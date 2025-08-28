@@ -299,39 +299,52 @@ async function handleSubmit() {
     renderApp();
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
-    const { mode, intensity, formState, lockedFields, humanState } = state;
-    const lockedContext = { mode, intensity, lockedFields: {} };
-    const unlockedFields = [];
-    PROMPT_OPTIONS[mode].fields.forEach(field => { if (lockedFields[mode]?.[field]) { lockedContext.lockedFields[field] = getFinalValue(formState[mode][field]); } else { unlockedFields.push(field); } });
-    let schemaProperties = unlockedFields.reduce((acc, field) => ({ ...acc, [field]: { type: "STRING" } }), {});
-    let prompt = `You are an expert art director. Given the locked parameters: ${JSON.stringify(lockedContext.lockedFields)}, suggest coherent values for the unlocked fields: ${unlockedFields.join(', ')}.`;
-    if (mode === 'product' && humanState.enabled) {
-        const unlockedHumanFields = [];
-        lockedContext.lockedFields.humanInShot = {};
-        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { if (lockedFields.product_human?.[field]) { lockedContext.lockedFields.humanInShot[field] = getFinalValue(humanState[field]); } else { unlockedHumanFields.push(field); } });
-        if(unlockedHumanFields.length > 0) {
-            const humanProperties = unlockedHumanFields.reduce((acc, field) => ({ ...acc, [field]: { type: "STRING" } }), {});
-            schemaProperties.humanInShot = { type: "OBJECT", properties: humanProperties };
-            prompt += ` Also suggest details for the human model for these fields: ${unlockedHumanFields.join(', ')}.`;
+    
+    try {
+        const { mode, intensity, formState, lockedFields, humanState } = state;
+        const lockedContext = { mode, intensity, lockedFields: {} };
+        const unlockedFields = [];
+        PROMPT_OPTIONS[mode].fields.forEach(field => { if (lockedFields[mode]?.[field]) { lockedContext.lockedFields[field] = getFinalValue(formState[mode][field]); } else { unlockedFields.push(field); } });
+        
+        // Buat prompt yang meminta AI untuk membuat JSON, tapi sebagai teks biasa
+        let prompt = `You are an expert art director. Given the locked parameters: ${JSON.stringify(lockedContext.lockedFields)}, suggest coherent values for the unlocked fields: ${unlockedFields.join(', ')}. Provide a single, valid JSON object response inside a markdown code block. Example: \`\`\`json\n{"field": "value"}\`\`\``;
+
+        if (mode === 'product' && humanState.enabled) {
+            // Logika untuk humanInShot (jika diperlukan) bisa ditambahkan di sini
         }
+        
+        // Panggil backend
+        const resultText = await callGeminiAPI(prompt); // Menggunakan nama fungsi callGeminiAPI, tapi isinya call ke Groq
+
+        if (resultText) {
+            // Temukan dan ekstrak blok JSON dari respons teks AI
+            const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+            if (jsonMatch && jsonMatch[1]) {
+                const jsonString = jsonMatch[1];
+                const suggestions = JSON.parse(jsonString);
+                
+                Object.keys(suggestions).forEach(field => {
+                    if (state.formState[mode] && state.formState[mode][field]) {
+                        state.formState[mode][field] = { custom: suggestions[field], select: '' };
+                    }
+                });
+            } else {
+                console.error("AI did not return a valid JSON block:", resultText);
+                alert("AI memberikan respons, tapi formatnya tidak sesuai. Coba lagi.");
+            }
+        }
+    } catch (e) {
+        console.error("An error occurred during AI suggestion:", e);
+        alert("Terjadi kesalahan saat memproses sugesti AI.");
+    } finally {
+        // PENTING: Pastikan loading selalu dihentikan, baik berhasil maupun gagal
+        state.isLoading.suggest = false;
+        renderApp();
     }
-    prompt += ` Provide a single JSON object response conforming to the schema.`;
-    const schema = { type: "OBJECT", properties: schemaProperties };
-    const resultJson = await callGeminiAPI(prompt, { responseMimeType: "application/json", responseSchema: schema });
-    if (resultJson) {
-        try {
-            const suggestions = JSON.parse(resultJson);
-            Object.keys(suggestions).forEach(field => {
-                if (field === 'humanInShot') { Object.keys(suggestions.humanInShot).forEach(hf => { state.humanState[hf] = { custom: suggestions.humanInShot[hf], select: '' }; }); } 
-                else { state.formState[mode][field] = { custom: suggestions[field], select: '' }; }
-            });
-        } catch (e) { console.error("Failed to parse AI suggestions:", e); }
-    }
-    state.isLoading.suggest = false;
-    renderApp();
 }
 
 function generateVideoPrompts(data, sceneText = null) {
