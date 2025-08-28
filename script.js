@@ -120,6 +120,37 @@ function updateDefaults() {
 
 const capitalize = (s) => (s && typeof s === 'string' ? s.charAt(0).toUpperCase() + s.slice(1) : '');
 
+// TAMBAHKAN FUNGSI BARU INI
+function getRandomElement(array) {
+    if (!array || array.length === 0) return '';
+    const randomIndex = Math.floor(Math.random() * array.length);
+    return array[randomIndex];
+}
+
+// TAMBAHKAN FUNGSI BARU INI
+function randomizeInputs() {
+    console.log("AI suggestion timed out. Randomizing inputs...");
+    const { mode, intensity, formState, lockedFields } = state;
+    const newFormState = { ...formState };
+
+    PROMPT_OPTIONS[mode].fields.forEach(field => {
+        // Hanya randomisasi field yang tidak dikunci
+        if (!lockedFields[mode]?.[field]) {
+            const options = PROMPT_OPTIONS[mode][intensity]?.[field] || [];
+            const randomValue = getRandomElement(options);
+            
+            newFormState[mode][field] = {
+                select: randomValue,
+                custom: '' // Hapus teks custom
+            };
+        }
+    });
+
+    state.formState = newFormState;
+    // Tampilkan pesan sementara
+    alert('AI sedang sibuk! Berikut adalah sugesti acak yang kreatif untuk Anda.');
+    renderApp(); // Render ulang aplikasi untuk menampilkan nilai acak
+}
 function LockIcon(locked) { return `<svg xmlns="http://www.w.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">${locked ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />` : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />`}</svg>`; }
 function Tooltip(text) { return `<span class="group relative ml-2"><span class="flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-400 rounded-full cursor-help">?</span><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">${text}</span></span>`; }
 
@@ -452,17 +483,23 @@ function handleToggleChange(e) {
     renderApp();
 }
 
-async function callGeminiAPI(prompt, generationConfig = {}) {
+// GANTI FUNGSI LAMA DENGAN VERSI BARU INI
+async function callGeminiAPI(prompt, generationConfig = {}, signal) {
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt, generationConfig }),
+            signal // <-- TAMBAHAN: Menerima sinyal pembatalan
         });
         if (!response.ok) throw new Error(`API error: ${await response.text()}`);
         const result = await response.json();
         return result?.candidates?.[0]?.content?.parts?.[0]?.text || null;
     } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log('Fetch aborted by timeout.');
+            return null;
+        }
         console.error("Error calling backend API:", error);
         alert("An error occurred. Please check the console for details.");
         return null;
@@ -521,66 +558,73 @@ async function handleSubmit() {
     renderApp();
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
-    
-    const { mode, intensity, formState, lockedFields, humanState } = state;
-    
-    const lockedContext = { mode, intensity, lockedFields: {} };
-    const unlockedFields = [];
-    
-    PROMPT_OPTIONS[mode].fields.forEach(field => {
-        if (lockedFields[mode]?.[field]) {
-            lockedContext.lockedFields[field] = getFinalValue(formState[mode][field]);
-        } else {
-            unlockedFields.push(field);
-        }
-    });
 
-    let schemaProperties = unlockedFields.reduce((acc, field) => ({ ...acc, [field]: { type: "STRING" } }), {});
-    let prompt = `You are an expert art director. Given the locked parameters: ${JSON.stringify(lockedContext.lockedFields)}, suggest coherent values for the unlocked fields: ${unlockedFields.join(', ')}.`;
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-    if (mode === 'product' && humanState.enabled) {
-        const unlockedHumanFields = [];
-        lockedContext.lockedFields.humanInShot = {};
-        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => {
-            if (lockedFields.product_human?.[field]) {
-                lockedContext.lockedFields.humanInShot[field] = getFinalValue(humanState[field]);
+    // Atur timer 10 detik. Jika selesai duluan, batalkan panggilan API.
+    const timeoutId = setTimeout(() => {
+        controller.abort();
+        // Panggil fungsi randomizer sebagai fallback
+        randomizeInputs(); 
+        state.isLoading.suggest = false; 
+    }, 10000); // 10000 milidetik = 10 detik
+
+    try {
+        // Kode untuk membuat prompt ke AI tetap sama
+        const { mode, intensity, formState, lockedFields } = state;
+        const lockedContext = { mode, intensity, lockedFields: {} };
+        const unlockedFields = [];
+        PROMPT_OPTIONS[mode].fields.forEach(field => {
+            if (lockedFields[mode]?.[field]) {
+                lockedContext.lockedFields[field] = getFinalValue(formState[mode][field]);
             } else {
-                unlockedHumanFields.push(field);
+                unlockedFields.push(field);
             }
         });
-        if(unlockedHumanFields.length > 0) {
-            const humanProperties = unlockedHumanFields.reduce((acc, field) => ({ ...acc, [field]: { type: "STRING" } }), {});
-            schemaProperties.humanInShot = { type: "OBJECT", properties: humanProperties };
-            prompt += ` Also suggest details for the human model for these fields: ${unlockedHumanFields.join(', ')}.`;
-        }
-    }
-    
-    prompt += ` Provide a single JSON object response conforming to the schema.`;
-    const schema = { type: "OBJECT", properties: schemaProperties };
-    const resultJson = await callGeminiAPI(prompt, { responseMimeType: "application/json", responseSchema: schema });
 
-    if (resultJson) {
-        try {
-            const suggestions = JSON.parse(resultJson);
-            Object.keys(suggestions).forEach(field => {
-                if (field === 'humanInShot') {
-                    Object.keys(suggestions.humanInShot).forEach(hf => {
-                        state.humanState[hf] = { custom: suggestions.humanInShot[hf], select: '' };
-                    });
-                } else {
-                    state.formState[mode][field] = { custom: suggestions[field], select: '' };
-                }
-            });
-        } catch (e) {
-            console.error("Failed to parse AI suggestions:", e);
+        // Jika semua field terkunci, tidak perlu panggil AI
+        if (unlockedFields.length === 0) {
+            alert("All fields are locked. Unlock some fields to get suggestions.");
+            clearTimeout(timeoutId); // Batalkan timeout karena tidak ada panggilan API
+            state.isLoading.suggest = false;
+            renderApp();
+            return;
         }
-    }
 
-    state.isLoading.suggest = false;
-    renderApp();
+        let schemaProperties = unlockedFields.reduce((acc, field) => ({ ...acc, [field]: { type: "STRING" } }), {});
+        let prompt = `You are an expert art director. Given the locked parameters: ${JSON.stringify(lockedContext.lockedFields)}, suggest coherent values for the unlocked fields: ${unlockedFields.join(', ')}. Provide a single JSON object response.`;
+        const schema = { type: "OBJECT", properties: schemaProperties };
+        
+        // Panggil API dengan sinyal pembatalan
+        const resultJson = await callGeminiAPI(prompt, { responseMimeType: "application/json", responseSchema: schema }, signal);
+
+        // Jika resultJson bernilai null, berarti timeout terjadi dan sudah ditangani
+        if (!resultJson) return;
+
+        // Jika berhasil sebelum timeout, proses seperti biasa
+        const suggestions = JSON.parse(resultJson);
+        Object.keys(suggestions).forEach(field => {
+            if (state.formState[mode][field]) {
+                state.formState[mode][field] = { custom: suggestions[field], select: '' };
+            }
+        });
+
+        state.isLoading.suggest = false;
+        renderApp();
+
+    } catch (e) {
+        console.error("Failed to parse AI suggestions JSON:", e);
+        state.isLoading.suggest = false;
+        renderApp();
+    } finally {
+        // Selalu bersihkan timer setelah selesai, baik berhasil, gagal, atau timeout
+        clearTimeout(timeoutId);
+    }
 }
 
 async function handleGenerateVariations(originalPrompt) {
