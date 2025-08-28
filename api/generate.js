@@ -1,60 +1,75 @@
-// Isi dari file: api/generate.js
+// Isi dari file: api/generate.js (Versi Groq)
 
-// Handler default untuk Vercel Serverless Function
 export default async function handler(request, response) {
-  // 1. Hanya izinkan metode POST
   if (request.method !== 'POST') {
     return response.status(405).json({ message: 'Method Not Allowed' });
   }
 
   try {
-    // 2. Ambil data prompt dari permintaan yang dikirim frontend
-    const { prompt, generationConfig } = request.body;
+    const { prompt } = request.body;
+    // Ambil API Key Groq dari Environment Variable
+    const groqApiKey = process.env.GROQ_API_KEY;
 
-    // 3. Ambil API Key secara aman dari Environment Variables di Vercel
-    const apiKey = process.env.GOOGLE_API_KEY;
-
-    // Lakukan validasi dasar
-    if (!apiKey) {
-      // Jangan pernah mengekspos detail error internal di produksi
-      console.error("GOOGLE_API_KEY is not configured.");
+    if (!groqApiKey) {
+      console.error("GROQ_API_KEY is not configured.");
       return response.status(500).json({ message: 'Server configuration error.' });
     }
     if (!prompt) {
       return response.status(400).json({ message: 'Prompt is required.' });
     }
     
-    // 4. Siapkan URL dan payload untuk dikirim ke Google AI API
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    // Endpoint API Groq
+    const apiUrl = 'https://api.groq.com/openai/v4/chat/completions';
 
     const payload = {
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      // Gabungkan generationConfig jika ada
-      ...(generationConfig && Object.keys(generationConfig).length > 0 && { generationConfig }),
+      // Gunakan model Llama 3 yang sangat cepat di Groq
+      model: "llama3-8b-8192",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      // Minta Groq untuk selalu merespon dalam format JSON
+      response_format: { "type": "json_object" }
     };
 
-    // 5. Kirim permintaan ke Google AI dari server
-    const googleResponse = await fetch(apiUrl, {
+    const groqResponse = await fetch(apiUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${groqApiKey}`
+      },
       body: JSON.stringify(payload),
     });
 
-    // 6. Tangani respons dari Google
-    if (!googleResponse.ok) {
-      // Jika Google mengembalikan error, teruskan informasinya untuk debugging
-      const errorBody = await googleResponse.text();
-      console.error("Google API Error:", errorBody);
-      return response.status(googleResponse.status).json({ message: 'Error from Google AI API', details: errorBody });
+    if (!groqResponse.ok) {
+      const errorBody = await groqResponse.text();
+      console.error("Groq API Error:", errorBody);
+      return response.status(groqResponse.status).json({ message: 'Error from Groq API', details: errorBody });
     }
 
-    const data = await googleResponse.json();
-    
-    // 7. Kirim kembali respons yang sukses ke frontend Anda
-    return response.status(200).json(data);
+    const data = await groqResponse.json();
+    const generatedText = data.choices[0]?.message?.content || null;
+
+    if (!generatedText) {
+      return response.status(500).json({ message: 'Could not parse generated text from Groq response.' });
+    }
+
+    // Buat strukturnya mirip respons Google agar frontend tidak perlu diubah
+    const mockGoogleResponse = {
+        candidates: [{
+            content: {
+                parts: [{
+                    text: generatedText
+                }]
+            }
+        }]
+    };
+
+    return response.status(200).json(mockGoogleResponse);
 
   } catch (error) {
-    // Tangani error tak terduga
     console.error("Internal Server Error:", error);
     return response.status(500).json({ message: 'An internal server error occurred.' });
   }
