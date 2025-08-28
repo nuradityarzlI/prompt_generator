@@ -248,7 +248,6 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 
 function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
@@ -281,25 +280,33 @@ async function handleSubmit() {
     let finalPrompt = '';
 
     if (data.mode === 'film') {
-        // --- INI BAGIAN PERBAIKANNYA ---
-        // Kita berikan instruksi yang jauh lebih spesifik untuk mode film
-        finalPrompt = `
-            You are a master cinematic concept artist. Your task is to synthesize the following film scene parameters into a single, powerful text-to-image prompt.
-            Describe the scene as if it were a single, frozen, epic movie still or a piece of high-quality concept art.
-            Focus ONLY on visual details: the characters' appearance and pose, the environment, the lighting, the colors, and the overall mood.
-            DO NOT describe camera movement or a sequence of actions over time. The entire description must be for a single moment.
-            The final output should be a dense, descriptive paragraph suitable for an image generation AI.
-
-            Parameters: ${parameterString}.
-        `;
-        // Mode film sekarang hanya akan menghasilkan 1 prompt gambar yang dioptimalkan
-        const generatedText = await callGeminiAPI(finalPrompt);
-        if (generatedText) {
-            let cleanedText = generatedText.replace(/^Here's.*?:\s*\n*/i, '').trim();
-            textPrompts = [cleanedText];
+        // Logika untuk membedakan jumlah adegan ada di sini
+        if (data.numScenes > 1) {
+            // PROMPT UNTUK MULTI-ADEGAN
+            finalPrompt = `You are a senior art director. Based on these parameters: ${parameterString}, write ${data.numScenes} connected cinematic scene descriptions. Separate each scene with the exact marker "---SCENE BREAK---". Do not add any introductory text.`;
+            let generatedText = await callGeminiAPI(finalPrompt);
+            if (generatedText) {
+                generatedText = generatedText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = generatedText.split('---SCENE BREAK---').map(s => s.trim()).filter(s => s);
+            }
+        } else {
+            // PROMPT UNTUK SINGLE-ADEGAN (DIOPTIMALKAN UNTUK GAMBAR)
+            finalPrompt = `
+                You are a master cinematic concept artist. Your task is to synthesize the following film scene parameters into a single, powerful text-to-image prompt.
+                Describe the scene as if it were a single, frozen, epic movie still or a piece of high-quality concept art.
+                Focus ONLY on visual details: the characters' appearance and pose, the environment, the lighting, the colors, and the overall mood.
+                DO NOT describe camera movement or a sequence of actions over time. The entire description must be for a single moment.
+                The final output should be a dense, descriptive paragraph suitable for an image generation AI.
+                Parameters: ${parameterString}.
+            `;
+            const generatedText = await callGeminiAPI(finalPrompt);
+            if (generatedText) {
+                let cleanedText = generatedText.replace(/^Here's.*?:\s*\n*/i, '').trim();
+                textPrompts = [cleanedText];
+            }
         }
-
-    } else { // Untuk mode model dan product, logikanya tetap sama
+    } else { 
+        // Untuk mode model dan product
         finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
@@ -331,9 +338,8 @@ async function handleAISuggest() {
     renderApp();
     
     try {
-        const { mode, intensity, formState, lockedFields } = state;
+        const { mode, intensity, formState, lockedFields, humanState } = state;
 
-        // Buat pemetaan dari Label ke fieldId untuk mempermudah pemrosesan nanti
         const labelToFieldIdMap = {};
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId;
@@ -351,18 +357,39 @@ async function handleAISuggest() {
             }
         });
 
-        // Prompt baru yang lebih sederhana untuk AI
+        let humanPromptPart = '';
+        if (mode === 'product' && humanState.enabled) {
+            const humanConfig = PROMPT_OPTIONS.special.humanInShot;
+            const unlockedHumanFieldsLabels = [];
+            
+            humanConfig.fields.forEach(fieldId => {
+                 labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
+            });
+
+            humanConfig.fields.forEach(fieldId => {
+                if (lockedFields.product_human?.[fieldId]) {
+                    const label = humanConfig.fieldLabels[fieldId];
+                    if (!lockedContext['Human in Shot Details']) {
+                        lockedContext['Human in Shot Details'] = {};
+                    }
+                    lockedContext['Human in Shot Details'][label] = getFinalValue(humanState[fieldId]);
+                } else {
+                    unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
+                }
+            });
+
+            if (unlockedHumanFieldsLabels.length > 0) {
+                humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
+            }
+        }
+
         const prompt = `
             You are an expert art director.
             Given the following locked parameters: ${JSON.stringify(lockedContext)}
             Suggest coherent values for the following unlocked fields.
+            ${humanPromptPart}
             Return your answer as a simple key-value list, with each item on a new line. Do not add any other text or explanation.
-            Format: "Field Name: Suggested Value"
-
-            Example:
-            Scene Style / Photography: cinematic portrait
-            Lighting: cinematic spotlight + fill
-
+            
             Here are the fields you need to suggest values for:
             ${unlockedFieldsLabels.join('\n')}
         `;
@@ -370,10 +397,6 @@ async function handleAISuggest() {
         const resultText = await callGeminiAPI(prompt);
 
         if (resultText) {
-            const newFormState = { ...state.formState };
-            let changesMade = false;
-
-            // Proses respons teks dari AI
             const lines = resultText.split('\n');
             lines.forEach(line => {
                 const parts = line.split(':');
@@ -382,26 +405,49 @@ async function handleAISuggest() {
                     const value = parts.slice(1).join(':').trim();
                     const fieldId = labelToFieldIdMap[label];
 
-                    if (fieldId && newFormState[mode][fieldId]) {
-                        newFormState[mode][fieldId] = { custom: value, select: '' };
-                        changesMade = true;
+                    if (fieldId) {
+                        let idPrefix = mode;
+                        let stateSlice = state.formState[mode];
+
+                        // Cek apakah field ini milik form utama atau form human
+                        if (PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
+                            idPrefix = 'human';
+                            stateSlice = state.humanState;
+                        }
+
+                        if (stateSlice && stateSlice[fieldId]) {
+                            // 1. Update state internal aplikasi
+                            stateSlice[fieldId].custom = value;
+                            stateSlice[fieldId].select = '';
+                            
+                            // --- INI BAGIAN PERBAIKANNYA ---
+                            // 2. Update tampilan visual input text secara langsung
+                            const inputElement = document.getElementById(`${idPrefix}-${fieldId}-text`);
+                            if (inputElement) {
+                                inputElement.value = value;
+                            }
+                            const selectElement = document.getElementById(`${idPrefix}-${fieldId}-select`);
+                            if (selectElement) {
+                                selectElement.value = ''; // Kosongkan juga dropdownnya
+                            }
+                        }
                     }
                 }
             });
-
-            if (changesMade) {
-                state.formState = newFormState;
-            } else {
-                console.error("AI did not return a valid key-value list:", resultText);
-                alert("AI memberikan respons, tapi formatnya tidak sesuai. Coba lagi.");
-            }
         }
     } catch (e) {
         console.error("An error occurred during AI suggestion:", e);
         alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
         state.isLoading.suggest = false;
-        renderApp();
+        // Kita tidak perlu renderApp() lagi di sini karena sudah update manual,
+        // ini membuat input tidak ter-reset.
+        // Cukup update tombol loadingnya saja.
+        const suggestBtn = document.getElementById('suggest-btn');
+        if(suggestBtn) {
+            suggestBtn.innerHTML = 'Suggest with AI ✨';
+            suggestBtn.disabled = false;
+        }
     }
 }
 
