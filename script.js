@@ -240,34 +240,61 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 
 function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
     state.promptVariations = { original: null, variations: [] };
     renderApp();
+
     const { mode, intensity, formState, humanState, filmState } = state;
     const data = { mode, intensity };
     PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
-    if (mode === 'product' && humanState.enabled) { data.humanInShot = {}; PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); }); }
-    if (mode === 'film') { data.numScenes = filmState.numScenes; data.linkScenes = filmState.linkScenes; }
-    let parameterString = PROMPT_OPTIONS[mode].fields.map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`).join(', ');
-    if (data.humanInShot) { const humanParams = Object.entries(data.humanInShot).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', '); parameterString += `. Human in shot details: ${humanParams}`; }
-    let textPrompts = [];
-    if (data.mode === 'film' && data.numScenes > 1) {
-        const prompt = `You are a senior art director. Based on these parameters: ${parameterString}, write ${data.numScenes} connected cinematic scene descriptions. Return as a JSON array of strings. Only return the JSON array.`;
-        const resultJson = await callGeminiAPI(prompt, { responseMimeType: "application/json" });
-        if (resultJson) { try { textPrompts = JSON.parse(resultJson); } catch (e) { console.error("Failed to parse multi-scene JSON", e); } }
-    } else {
-        const prompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
-        const generatedText = await callGeminiAPI(prompt);
-        if (generatedText) textPrompts = [generatedText];
+    
+    if (mode === 'product' && humanState.enabled) {
+        data.humanInShot = {};
+        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
     }
+    if (mode === 'film') {
+        data.numScenes = filmState.numScenes;
+        data.linkScenes = filmState.linkScenes;
+    }
+
+    let parameterString = PROMPT_OPTIONS[mode].fields
+        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
+        .join(', ');
+
+    if (data.humanInShot) {
+        const humanParams = Object.entries(data.humanInShot).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
+        parameterString += `. Human in shot details: ${humanParams}`;
+    }
+
+    let textPrompts = [];
+    let finalPrompt = '';
+
+    if (data.mode === 'film' && data.numScenes > 1) {
+        // MODIFIKASI: Minta teks biasa dengan pemisah, bukan JSON
+        finalPrompt = `You are a senior art director. Based on these parameters: ${parameterString}, write ${data.numScenes} connected cinematic scene descriptions. Separate each scene with the exact marker "---SCENE BREAK---".`;
+        const generatedText = await callGeminiAPI(finalPrompt); // Menggunakan nama fungsi callGeminiAPI, tapi isinya call ke Groq
+        if (generatedText) {
+            // Pisahkan teks menjadi array berdasarkan penanda
+            textPrompts = generatedText.split('---SCENE BREAK---').map(s => s.trim()).filter(s => s);
+        }
+    } else {
+        finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
+        const generatedText = await callGeminiAPI(finalPrompt);
+        if (generatedText) {
+            textPrompts = [generatedText];
+        }
+    }
+
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(text => {
             const videoPrompts = generateVideoPrompts(data, text.trim());
             return { text: text.trim(), videoLong: videoPrompts.long, videoShort: videoPrompts.short };
         });
     }
+
     state.isLoading.generate = false;
     renderApp();
 }
