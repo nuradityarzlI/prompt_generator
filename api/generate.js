@@ -20,7 +20,7 @@ export default async function handler(request, response) {
     
     // Endpoint API Groq
     const apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-
+    
     const payload = {
       // Gunakan model Llama 3 yang sangat cepat di Groq
       model: "llama3-8b-8192",
