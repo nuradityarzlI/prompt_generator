@@ -86,15 +86,23 @@ function initializeState() {
 }
 
 function updateDefaults() {
-    const { mode, intensity, formState } = state;
+    const { mode, intensity, formState, lockedFields } = state;
     const newModeState = { ...formState[mode] };
+
     PROMPT_OPTIONS[mode].fields.forEach(field => {
+        // PENTING: Jangan ubah field yang sedang dikunci (locked)
+        if (lockedFields[mode]?.[field]) {
+            return; // Lewati field ini dan lanjut ke field berikutnya
+        }
+
         const options = PROMPT_OPTIONS[mode][intensity]?.[field] || [];
         const newDefault = options[0] || '';
-        if ((!newModeState[field].select && !newModeState[field].custom) || (newModeState[field].select && !options.includes(newModeState[field].select))) {
-             newModeState[field].select = newDefault;
-        }
+        
+        // Selalu set ke default baru & hapus teks custom
+        newModeState[field].select = newDefault;
+        newModeState[field].custom = ''; 
     });
+    
     state.formState[mode] = newModeState;
 }
 
@@ -300,40 +308,74 @@ async function handleSubmit() {
 }
 
 // GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
     
     try {
-        const { mode, intensity, formState, lockedFields, humanState } = state;
-        const lockedContext = { mode, intensity, lockedFields: {} };
-        const unlockedFields = [];
-        PROMPT_OPTIONS[mode].fields.forEach(field => { if (lockedFields[mode]?.[field]) { lockedContext.lockedFields[field] = getFinalValue(formState[mode][field]); } else { unlockedFields.push(field); } });
-        
-        // Buat prompt yang meminta AI untuk membuat JSON, tapi sebagai teks biasa
-        let prompt = `You are an expert art director. Given the locked parameters: ${JSON.stringify(lockedContext.lockedFields)}, suggest coherent values for the unlocked fields: ${unlockedFields.join(', ')}. Provide a single, valid JSON object response inside a markdown code block. Example: \`\`\`json\n{"field": "value"}\`\`\``;
+        const { mode, intensity, formState, lockedFields } = state;
 
-        if (mode === 'product' && humanState.enabled) {
-            // Logika untuk humanInShot (jika diperlukan) bisa ditambahkan di sini
-        }
+        // Buat pemetaan dari Label ke fieldId untuk mempermudah pemrosesan nanti
+        const labelToFieldIdMap = {};
+        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId;
+        });
+
+        const lockedContext = {};
+        const unlockedFieldsLabels = [];
+
+        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            if (lockedFields[mode]?.[fieldId]) {
+                const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
+                lockedContext[label] = getFinalValue(formState[mode][fieldId]);
+            } else {
+                unlockedFieldsLabels.push(PROMPT_OPTIONS[mode].fieldLabels[fieldId]);
+            }
+        });
+
+        // Prompt baru yang lebih sederhana untuk AI
+        const prompt = `
+            You are an expert art director.
+            Given the following locked parameters: ${JSON.stringify(lockedContext)}
+            Suggest coherent values for the following unlocked fields.
+            Return your answer as a simple key-value list, with each item on a new line. Do not add any other text or explanation.
+            Format: "Field Name: Suggested Value"
+
+            Example:
+            Scene Style / Photography: cinematic portrait
+            Lighting: cinematic spotlight + fill
+
+            Here are the fields you need to suggest values for:
+            ${unlockedFieldsLabels.join('\n')}
+        `;
         
-        // Panggil backend
-        const resultText = await callGeminiAPI(prompt); // Menggunakan nama fungsi callGeminiAPI, tapi isinya call ke Groq
+        const resultText = await callGeminiAPI(prompt);
 
         if (resultText) {
-            // Temukan dan ekstrak blok JSON dari respons teks AI
-            const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
-            if (jsonMatch && jsonMatch[1]) {
-                const jsonString = jsonMatch[1];
-                const suggestions = JSON.parse(jsonString);
-                
-                Object.keys(suggestions).forEach(field => {
-                    if (state.formState[mode] && state.formState[mode][field]) {
-                        state.formState[mode][field] = { custom: suggestions[field], select: '' };
+            const newFormState = { ...state.formState };
+            let changesMade = false;
+
+            // Proses respons teks dari AI
+            const lines = resultText.split('\n');
+            lines.forEach(line => {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const label = parts[0].trim();
+                    const value = parts.slice(1).join(':').trim();
+                    const fieldId = labelToFieldIdMap[label];
+
+                    if (fieldId && newFormState[mode][fieldId]) {
+                        newFormState[mode][fieldId] = { custom: value, select: '' };
+                        changesMade = true;
                     }
-                });
+                }
+            });
+
+            if (changesMade) {
+                state.formState = newFormState;
             } else {
-                console.error("AI did not return a valid JSON block:", resultText);
+                console.error("AI did not return a valid key-value list:", resultText);
                 alert("AI memberikan respons, tapi formatnya tidak sesuai. Coba lagi.");
             }
         }
@@ -341,7 +383,6 @@ async function handleAISuggest() {
         console.error("An error occurred during AI suggestion:", e);
         alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
-        // PENTING: Pastikan loading selalu dihentikan, baik berhasil maupun gagal
         state.isLoading.suggest = false;
         renderApp();
     }
