@@ -280,19 +280,37 @@ async function handleSubmit() {
     let textPrompts = [];
     let finalPrompt = '';
 
-    if (data.mode === 'film' && data.numScenes > 1) {
-        // MODIFIKASI: Minta teks biasa dengan pemisah, bukan JSON
-        finalPrompt = `You are a senior art director. Based on these parameters: ${parameterString}, write ${data.numScenes} connected cinematic scene descriptions. Separate each scene with the exact marker "---SCENE BREAK---".`;
-        const generatedText = await callGeminiAPI(finalPrompt); // Menggunakan nama fungsi callGeminiAPI, tapi isinya call ke Groq
-        if (generatedText) {
-            // Pisahkan teks menjadi array berdasarkan penanda
-            textPrompts = generatedText.split('---SCENE BREAK---').map(s => s.trim()).filter(s => s);
-        }
-    } else {
-        finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
+    if (data.mode === 'film') {
+        // --- INI BAGIAN PERBAIKANNYA ---
+        // Kita berikan instruksi yang jauh lebih spesifik untuk mode film
+        finalPrompt = `
+            You are a master cinematic concept artist. Your task is to synthesize the following film scene parameters into a single, powerful text-to-image prompt.
+            Describe the scene as if it were a single, frozen, epic movie still or a piece of high-quality concept art.
+            Focus ONLY on visual details: the characters' appearance and pose, the environment, the lighting, the colors, and the overall mood.
+            DO NOT describe camera movement or a sequence of actions over time. The entire description must be for a single moment.
+            The final output should be a dense, descriptive paragraph suitable for an image generation AI.
+
+            Parameters: ${parameterString}.
+        `;
+        // Mode film sekarang hanya akan menghasilkan 1 prompt gambar yang dioptimalkan
         const generatedText = await callGeminiAPI(finalPrompt);
         if (generatedText) {
-            textPrompts = [generatedText];
+            let cleanedText = generatedText.replace(/^Here's.*?:\s*\n*/i, '').trim();
+            textPrompts = [cleanedText];
+        }
+
+    } else { // Untuk mode model dan product, logikanya tetap sama
+        finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
+        let rawText = await callGeminiAPI(finalPrompt);
+        if (rawText) {
+            const firstColonIndex = rawText.indexOf(':');
+            const firstQuoteIndex = rawText.indexOf('"');
+            let startIndex = -1;
+            if (firstColonIndex !== -1 && firstQuoteIndex !== -1) { startIndex = Math.min(firstColonIndex, firstQuoteIndex) + 1; } 
+            else if (firstColonIndex !== -1) { startIndex = firstColonIndex + 1; } 
+            else if (firstQuoteIndex !== -1) { startIndex = firstQuoteIndex; }
+            if (startIndex !== -1) { rawText = rawText.substring(startIndex).trim(); }
+            textPrompts = [rawText];
         }
     }
 
@@ -307,7 +325,6 @@ async function handleSubmit() {
     renderApp();
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 // GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
