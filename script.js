@@ -81,7 +81,7 @@ function initializeState() {
         formState: initialFormState,
         lockedFields: initialLockState,
         humanState: initialHumanState,
-        filmState: { numScenes: 1, linkScenes: true },
+        filmState: { numScenes: 1, linkScenes: true, characterBio: '' },
         openAccordionScene: 0,
     };
 
@@ -243,19 +243,28 @@ function ProductFormExtras() {
 function FilmFormExtras() {
     const { filmState } = state;
     return `
-        <div class="mt-6 border-t pt-6 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
-            <div>
-                <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
-                <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
-                    <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
-                    <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
-                    <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
-                </select>
+        <div class="mt-6 border-t pt-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+                <div>
+                    <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
+                    <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                        <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
+                        <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
+                        <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
+                </div>
             </div>
-            <div class="flex items-end">
-                ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
+
+            <div class="mt-4">
+                 <label for="film-characterBio" class="text-sm font-semibold text-gray-700 mb-2 block">
+                    Character Bio (Optional)
+                 </label>
+                 <textarea id="film-characterBio" rows="3" placeholder="Describe the main character, e.g., 'Elara, a young woman in her early 20s with vibrant red hair...'" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">${filmState.characterBio || ''}</textarea>
             </div>
-        </div>`;
+            </div>`;
 }
 
 function renderApp() {
