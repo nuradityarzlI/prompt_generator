@@ -451,6 +451,7 @@ async function handleSubmit() {
     renderApp();
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN PALING BENAR INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
@@ -458,8 +459,8 @@ async function handleAISuggest() {
     try {
         const { mode, intensity, formState, lockedFields, humanState } = state;
 
-        // Membuat pemetaan dari Label ke fieldId untuk semua mode
         const labelToFieldIdMap = {};
+        // 1. Isi kamus dengan field dari mode utama yang aktif
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId;
         });
@@ -467,7 +468,6 @@ async function handleAISuggest() {
         const lockedContext = {};
         const unlockedFieldsLabels = [];
 
-        // Mengumpulkan field utama yang terkunci dan tidak terkunci
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             if (lockedFields[mode]?.[fieldId]) {
                 const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
@@ -477,11 +477,10 @@ async function handleAISuggest() {
             }
         });
 
-        // Instruksi tambahan (akan diisi jika kondisi terpenuhi)
         let characterAnchorInstruction = '';
         let humanPromptPart = '';
+        let unlockedHumanFieldsLabels = [];
 
-        // Logika khusus jika mode adalah "film"
         if (mode === 'film') {
             const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor;
             if (unlockedFieldsLabels.includes(characterAnchorLabel)) {
@@ -493,11 +492,10 @@ async function handleAISuggest() {
             }
         }
 
-        // Logika khusus jika mode adalah "product" dan "human in shot" aktif
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
-            const unlockedHumanFieldsLabels = [];
             
+            // 2. LENGKAPI KAMUS dengan field dari Human in Shot
             humanConfig.fields.forEach(fieldId => {
                  labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
             });
@@ -520,7 +518,8 @@ async function handleAISuggest() {
             }
         }
 
-        // Membuat prompt akhir untuk AI dengan semua instruksi
+        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
+
         const prompt = `
             You are an expert art director.
             Given the following locked parameters: ${JSON.stringify(lockedContext)}
@@ -530,8 +529,7 @@ async function handleAISuggest() {
             Return your answer as a simple key-value list, with each item on a new line. Do not add any other text, explanation, or markdown.
             
             Here are the fields you need to suggest values for:
-            ${unlockedFieldsLabels.join('\n')}
-            ${(mode === 'product' && humanState.enabled && unlockedHumanFieldsLabels.length > 0) ? unlockedHumanFieldsLabels.join('\n') : ''}
+            ${allUnlockedLabels.join('\n')}
         `;
         
         const resultText = await callGeminiAPI(prompt);
@@ -573,7 +571,6 @@ async function handleAISuggest() {
         alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
         state.isLoading.suggest = false;
-        // Langsung update tombol tanpa render ulang seluruh aplikasi
         const suggestBtn = document.getElementById('suggest-btn');
         if(suggestBtn) {
             suggestBtn.innerHTML = 'Suggest with AI ✨';
