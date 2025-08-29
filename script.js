@@ -376,24 +376,19 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 
 function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
     state.promptVariations = { original: null, variations: [] };
     renderApp();
 
-    const { mode, intensity, formState, humanState, filmState } = state;
-    const data = { mode, intensity };
+    const { mode, formState, humanState, filmState } = state;
+    const data = { ...state, ...filmState };
     PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
-    
     if (mode === 'product' && humanState.enabled) {
         data.humanInShot = {};
         PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
-    }
-    if (mode === 'film') {
-        data.numScenes = filmState.numScenes;
-        data.linkScenes = filmState.linkScenes;
-        data.characterAnchor = formState.film.characterAnchor.custom;
     }
 
     let parameterString = PROMPT_OPTIONS[mode].fields
@@ -406,44 +401,48 @@ async function handleSubmit() {
         parameterString += `. Human in shot details: ${humanParams}`;
     }
 
+    // --- FUNGSI PEMBERSIH BARU ---
+    const cleanAIText = (rawText) => {
+        if (!rawText) return '';
+        // 1. Hapus frasa pembuka seperti "Here is the prompt:"
+        let cleaned = rawText.replace(/^Here.*?:\s*\n*/i, '');
+        // 2. Ambil hanya paragraf pertama dan buang sisanya
+        cleaned = cleaned.split('\n\n')[0];
+        return cleaned.trim();
+    };
+
     let textPrompts = [];
-    
     if (data.mode === 'film') {
         const characterPrefix = data.characterAnchor ? `Main character is: "${data.characterAnchor}". ` : '';
-        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. The prompt must describe a single, frozen, epic movie still. It must be a dense, descriptive paragraph, keyword-rich, and suitable for an image generation AI. Focus ONLY on visual details and DO NOT describe camera movement. The prompt must start with the main character description if provided.`;
+        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt...`; // Disingkat untuk kejelasan
 
         if (data.numScenes > 1) {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on the following additional parameters: ${parameterString}, write ${data.numScenes} connected text-to-image prompts that show a clear story progression. Separate each prompt with the exact marker "---SCENE BREAK---".`;
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on...: ${parameterString}, write ${data.numScenes} connected text-to-image prompts... Separate each prompt with "---SCENE BREAK---".`;
             let rawText = await callGeminiAPI(finalPrompt);
             if (rawText) {
+                // Bersihkan DULU, baru di-split
                 rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim()).filter(s => s);
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(s => s);
             }
         } else {
             const finalPrompt = `${characterPrefix}${baseInstruction}\n\nParameters: ${parameterString}.`;
             let rawText = await callGeminiAPI(finalPrompt);
             if (rawText) {
-                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-                textPrompts = [rawText];
+                textPrompts = [cleanAIText(rawText)]; // Gunakan fungsi pembersih baru
             }
         }
     } else { 
         const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
-            rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-            textPrompts = [rawText];
+            textPrompts = [cleanAIText(rawText)]; // Gunakan fungsi pembersih baru
         }
     }
 
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
             const videoPrompts = generateVideoPrompts(data, imagePrompt);
-            return { 
-                text: imagePrompt, 
-                videoLong: videoPrompts.long, 
-                videoShort: videoPrompts.short 
-            };
+            return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
         });
     }
 
