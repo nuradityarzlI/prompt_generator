@@ -248,7 +248,7 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 
 function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN TERCANGGIH INI
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
@@ -277,66 +277,51 @@ async function handleSubmit() {
         parameterString += `. Human in shot details: ${humanParams}`;
     }
 
-    let textPrompts = [];
-    let finalPrompt = '';
-
     if (data.mode === 'film') {
         if (data.numScenes > 1) {
-            // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-            // Minta AI untuk memberikan 2 jenis output dalam format JSON
-            finalPrompt = `
+            // Logika untuk multi-adegan (sudah sangat baik, tidak diubah)
+            const finalPrompt = `
                 You are a senior art director and writer. Based on these parameters: ${parameterString}, write ${data.numScenes} connected cinematic scene descriptions.
                 Return your response as a single, valid JSON array. Each object in the array must have two keys:
-                1. "scene_description": A narrative paragraph describing the scene's action and dialogue, suitable for a video script.
-                2. "image_prompt": A dense, single-paragraph text-to-image prompt describing the most iconic 'frozen moment' from that scene. This prompt should be keyword-rich, focus ONLY on static visual details, and contain no camera movement or dialogue.
-                
+                1. "scene_description": A narrative paragraph for a video script.
+                2. "image_prompt": A dense, single-paragraph text-to-image prompt for the most iconic 'frozen moment' of that scene.
                 Only return the raw JSON array.
             `;
             const resultJson = await callGeminiAPI(finalPrompt, { responseMimeType: "application/json" });
             if (resultJson) {
                 try {
-                    // AI akan mengembalikan array of objects, kita langsung proses
                     const scenesData = JSON.parse(resultJson);
-                    // Kita akan map data ini ke format state.outputs
                     state.outputs = scenesData.map(scene => {
                         const videoPrompts = generateVideoPrompts(data, scene.scene_description);
-                        return { 
-                            text: scene.image_prompt, // Teks untuk gambar diambil dari key 'image_prompt'
-                            videoLong: videoPrompts.long, 
-                            videoShort: videoPrompts.short 
-                        };
+                        return { text: scene.image_prompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
                     });
-                } catch (e) {
-                    console.error("Failed to parse multi-scene JSON from AI:", e);
-                    alert("AI memberikan respons, tapi formatnya tidak sesuai. Coba lagi.");
-                }
+                } catch (e) { console.error("Failed to parse multi-scene JSON from AI:", e); }
             }
         } else {
-            // Logika untuk single-adegan (sudah benar, tetap dipertahankan)
-            finalPrompt = `
-                You are a master cinematic concept artist. Your task is to synthesize the following film scene parameters into a single, powerful text-to-image prompt...
-                Parameters: ${parameterString}.
+            // --- INI BAGIAN PERBAIKANNYA ---
+            // PROMPT UNTUK SINGLE-ADEGAN (SEKARANG LEBIH CERDAS)
+            const finalPrompt = `
+                You are a senior art director and writer. Based on these parameters: ${parameterString}, write a single cinematic scene description.
+                Return your response as a single, valid JSON object with two keys:
+                1. "scene_description": A narrative paragraph for a video script.
+                2. "image_prompt": A dense, single-paragraph text-to-image prompt for the most iconic 'frozen moment' from that scene.
+                Only return the raw JSON object.
             `;
-            const generatedText = await callGeminiAPI(finalPrompt);
-            if (generatedText) {
-                let cleanedText = generatedText.replace(/^Here's.*?:\s*\n*/i, '').trim();
-                const videoPrompts = generateVideoPrompts(data, cleanedText);
-                state.outputs = [{ text: cleanedText, videoLong: videoPrompts.long, videoShort: videoPrompts.short }];
+            const resultJson = await callGeminiAPI(finalPrompt, { responseMimeType: "application/json" });
+            if (resultJson) {
+                try {
+                    const scene = JSON.parse(resultJson);
+                    const videoPrompts = generateVideoPrompts(data, scene.scene_description);
+                    state.outputs = [{ text: scene.image_prompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short }];
+                } catch (e) { console.error("Failed to parse single-scene JSON from AI:", e); }
             }
         }
     } else { 
         // Untuk mode model dan product
-        finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
+        const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
-            const firstColonIndex = rawText.indexOf(':');
-            const firstQuoteIndex = rawText.indexOf('"');
-            let startIndex = -1;
-            if (firstColonIndex !== -1 && firstQuoteIndex !== -1) { startIndex = Math.min(firstColonIndex, firstQuoteIndex) + 1; } 
-            else if (firstColonIndex !== -1) { startIndex = firstColonIndex + 1; } 
-            else if (firstQuoteIndex !== -1) { startIndex = firstQuoteIndex; }
-            if (startIndex !== -1) { rawText = rawText.substring(startIndex).trim(); }
-            
+            rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
             const videoPrompts = generateVideoPrompts(data, rawText);
             state.outputs = [{ text: rawText, videoLong: videoPrompts.long, videoShort: videoPrompts.short }];
         }
