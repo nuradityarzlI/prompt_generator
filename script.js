@@ -586,23 +586,18 @@ async function handleAISuggest() {
 function generateVideoPrompts(data, imagePrompt) {
     let long = '', short = '';
 
-    // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-    // Kita ambil semua parameter yang relevan dari data
-    const { cameraMovement, lighting, mood, sceneType, expression, cameraAngle } = data;
+    const { cameraMovement, lighting, mood, sceneType, expression, cameraAngle, composition, extraElements } = data;
 
     if (data.mode === 'model') {
-        // Format naratif untuk mode Model
-        long = `Scene: ${imagePrompt} Camera: ${cameraAngle}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType || 'portrait session'} and the character should show an expression of "${expression || 'subtle emotion'}".`;
-        short = `The camera angle is ${cameraAngle}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
+        long = `The camera angle is ${cameraAngle}. The subject shows an expression of ${expression}, with a mood of ${mood}.`;
+        short = `${cameraAngle}, ${expression}, ${mood}`;
     } else if (data.mode === 'product') {
-        // Format naratif untuk mode Product
-        const { composition, extraElements } = data;
-        long = `Scene: ${imagePrompt} Camera: ${composition}. Lighting: ${lighting}. Effects: Add visual effects like ${extraElements}. Mood: ${mood}.`;
-        short = `Animate this product shot with a ${composition} style. Add visual effects like ${extraElements}. The mood is ${mood}.`;
+        long = `Animate this product shot with a ${composition} style. Add visual effects like ${extraElements}. The mood is ${mood}.`;
+        short = `Animate, ${extraElements}, ${mood}`;
     } else if (data.mode === 'film') {
-        // Format naratif untuk mode Film
-        long = `Scene: ${imagePrompt} Camera: ${cameraMovement}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType} and the character should show an expression of "${expression || 'subtle emotion'}".`;
-        short = `The camera performs a ${cameraMovement}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
+        // "Long" dan "Short" sekarang memiliki format yang sama-sama singkat dan to-the-point
+        long = `The camera performs a ${cameraMovement}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}, fitting for a ${sceneType}.`;
+        short = `${cameraMovement}, ${expression}, cinematic animation, ${mood}`;
     }
     
     return { long, short };
