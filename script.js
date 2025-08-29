@@ -134,7 +134,27 @@ function OutputSection({ title, content }) {
 
 function SceneAccordion() {
     const { outputs, openAccordionScene } = state;
-    return `<div>${outputs.map((scene, index) => `<div class="border-b border-gray-200"><button data-scene-index="${index}" class="accordion-toggle w-full flex justify-between items-center p-4 text-left font-semibold text-gray-800">Scene ${index + 1}<span>${openAccordionScene === index ? '−' : '+'}</span></button>${openAccordionScene === index ? `<div class="p-4 bg-gray-50">${OutputSection({ title: "Text Prompt", content: scene.text, originalPromptForVariation: scene.text })}<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}</div></div>` : ''}</div>`).join('')}</div>`;
+    return `
+        <div>
+            ${outputs.map((scene, index) => `
+                <div class="border-b border-gray-200">
+                    <button data-scene-index="${index}" class="accordion-toggle w-full flex justify-between items-center p-4 text-left font-semibold text-gray-800">
+                        Scene ${index + 1}
+                        <span>${openAccordionScene === index ? '−' : '+'}</span>
+                    </button>
+                    ${openAccordionScene === index ? `
+                        <div class="p-4 bg-gray-50">
+                            ${OutputSection({ title: "Text Prompt", content: scene.text })}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                ${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}
+                                ${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </div>
+    `;
 }
 
 function ProductFormExtras() {
@@ -171,7 +191,18 @@ function renderApp() {
     let outputHTML = '';
     if(outputs) {
         if (outputs.length > 1) { outputHTML = SceneAccordion(); } 
-        else if (outputs.length === 1) { const scene = outputs[0]; outputHTML = `<div>${OutputSection({ title: "Text Prompt", content: scene.text })}</div>`; }
+        else if (outputs.length === 1) {
+            const scene = outputs[0];
+            outputHTML = `
+                <div>
+                    ${OutputSection({ title: "Text Prompt", content: scene.text })}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        ${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}
+                        ${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}
+                    </div>
+                </div>
+            `;
+        }
     }
 
     const appHTML = `
