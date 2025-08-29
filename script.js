@@ -42,63 +42,68 @@ const PROMPT_OPTIONS = {
     }
 };
 
-// =======================================================================
+=======================================================================
 // GLOBAL STATE MANAGEMENT
 // =======================================================================
 let state = {};
 
 function initializeState() {
-    const initialFormState = {};
-    ['model', 'product', 'film'].forEach(m => {
-        initialFormState[m] = {};
-        if (PROMPT_OPTIONS[m]) {
-            PROMPT_OPTIONS[m].fields.forEach(f => {
-                initialFormState[m][f] = { select: '', custom: '' };
-            });
-        }
-    });
+    const initialFormState = {};
+    ['model', 'product', 'film'].forEach(m => {
+        initialFormState[m] = {};
+        if (PROMPT_OPTIONS[m]) {
+            PROMPT_OPTIONS[m].fields.forEach(f => {
+                initialFormState[m][f] = { select: '', custom: '' };
+            });
+        }
+    });
 
-    const initialHumanState = { enabled: false };
-    PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => {
-        if (field === 'styling') { initialHumanState[field] = { custom: '' }; } 
-        else { initialHumanState[field] = { select: PROMPT_OPTIONS.special.humanInShot.options[field][0], custom: '' }; }
-    });
+    const initialHumanState = { enabled: false };
+    PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => {
+        if (field === 'styling') { initialHumanState[field] = { custom: '' }; } 
+        else { initialHumanState[field] = { select: PROMPT_OPTIONS.special.humanInShot.options[field][0], custom: '' }; }
+    });
 
-    const initialLockState = {};
-    ['model', 'product', 'film', 'product_human'].forEach(m => {
-        initialLockState[m] = {};
-    });
+    const initialLockState = {};
+    ['model', 'product', 'film', 'product_human'].forEach(m => {
+        initialLockState[m] = {};
+    });
 
-    state = {
-        mode: 'model',
-        intensity: 'conservative',
-        outputs: null,
-        isLoading: { suggest: false, generate: false },
-        formState: initialFormState,
-        lockedFields: initialLockState,
-        humanState: initialHumanState,
-        filmState: { numScenes: 1, linkScenes: true, characterBio: '' },
-        openAccordionScene: 0,
-    };
-    
-    updateDefaults();
+    state = {
+        mode: 'model',
+        intensity: 'conservative',
+        outputs: null,
+        isLoading: { suggest: false, generate: false, variations: false },
+        promptVariations: { original: null, variations: [] },
+        formState: initialFormState,
+        lockedFields: initialLockState,
+        humanState: initialHumanState,
+        filmState: { numScenes: 1, linkScenes: true },
+        openAccordionScene: 0,
+    };
+    
+    updateDefaults();
 }
 
 function updateDefaults() {
-    const { mode, intensity, formState, lockedFields } = state;
-    const newModeState = { ...formState[mode] };
+    const { mode, intensity, formState, lockedFields } = state;
+    const newModeState = { ...formState[mode] };
 
-    PROMPT_OPTIONS[mode].fields.forEach(field => {
-        if (lockedFields[mode]?.[field]) {
-            return; 
-        }
-        const options = PROMPT_OPTIONS[mode][intensity]?.[field] || [];
-        const newDefault = options[0] || '';
-        newModeState[field].select = newDefault;
-        newModeState[field].custom = ''; 
-    });
-    
-    state.formState[mode] = newModeState;
+    PROMPT_OPTIONS[mode].fields.forEach(field => {
+        // PENTING: Jangan ubah field yang sedang dikunci (locked)
+        if (lockedFields[mode]?.[field]) {
+            return; // Lewati field ini dan lanjut ke field berikutnya
+        }
+
+        const options = PROMPT_OPTIONS[mode][intensity]?.[field] || [];
+        const newDefault = options[0] || '';
+        
+        // Selalu set ke default baru & hapus teks custom
+        newModeState[field].select = newDefault;
+        newModeState[field].custom = ''; 
+    });
+    
+    state.formState[mode] = newModeState;
 }
 
 // =======================================================================
@@ -109,290 +114,512 @@ function LockIcon(locked) { return `<svg xmlns="http://www.w3.org/2000/svg" clas
 function Tooltip(text) { return `<span class="group relative ml-2"><span class="flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-400 rounded-full cursor-help">?</span><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">${text}</span></span>`; }
 
 function SegmentedControl({ options, selected, id }) {
-    return `<div id="${id}" class="flex p-1 bg-gray-100 rounded-lg">${options.map(({ value, label }) => `<button type="button" data-value="${value}" class="flex-1 py-2 px-1 text-sm font-semibold rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selected === value ? 'bg-white text-gray-800 shadow-sm' : 'bg-transparent text-gray-500 hover:bg-gray-200'}">${label}</button>`).join('')}</div>`;
+    return `<div id="${id}" class="flex p-1 bg-gray-100 rounded-lg">${options.map(({ value, label }) => `<button type="button" data-value="${value}" class="flex-1 py-2 px-1 text-sm font-semibold rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selected === value ? 'bg-white text-gray-800 shadow-sm' : 'bg-transparent text-gray-500 hover:bg-gray-200'}">${label}</button>`).join('')}</div>`;
 }
 
 function FormField({ id, mode, fieldId, label, options, value, customValue, isLocked = false }) {
-    const hasValue = customValue.trim() || value;
-    const showWarning = isLocked && !hasValue;
-    return `<div class="mb-6"><div class="flex items-center justify-between mb-2"><label for="${id}-select" class="flex items-center text-sm font-semibold text-gray-700">${label}${Tooltip("Select a curated option or enter a custom value below.")}</label><button type="button" data-lock-mode="${mode}" data-lock-field="${fieldId}" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(isLocked)}</button></div><select id="${id}-select" class="form-select w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800" ${isLocked ? 'disabled' : ''}><option value="" disabled ${!value || customValue.trim() ? 'selected' : ''} hidden>Select an option</option>${(options || []).map(opt => `<option value="${opt}" ${value === opt && !customValue.trim() ? 'selected' : ''}>${capitalize(opt)}</option>`).join('')}</select><input type="text" id="${id}-text" value="${customValue}" placeholder="Custom text (optional)" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 mt-2" ${isLocked ? 'readonly' : ''}>${showWarning ? `<p class="text-xs text-red-500 mt-1">Field is locked but has no value.</p>` : ''}</div>`;
+    const hasValue = customValue.trim() || value;
+    const showWarning = isLocked && !hasValue;
+    return `<div class="mb-6"><div class="flex items-center justify-between mb-2"><label for="${id}-select" class="flex items-center text-sm font-semibold text-gray-700">${label}${Tooltip("Select a curated option or enter a custom value below.")}</label><button type="button" data-lock-mode="${mode}" data-lock-field="${fieldId}" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(isLocked)}</button></div><select id="${id}-select" class="form-select w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800" ${isLocked ? 'disabled' : ''}><option value="" disabled ${!value || customValue.trim() ? 'selected' : ''} hidden>Select an option</option>${(options || []).map(opt => `<option value="${opt}" ${value === opt && !customValue.trim() ? 'selected' : ''}>${capitalize(opt)}</option>`).join('')}</select><input type="text" id="${id}-text" value="${customValue}" placeholder="Custom text (optional)" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 mt-2" ${isLocked ? 'readonly' : ''}>${showWarning ? `<p class="text-xs text-red-500 mt-1">Field is locked but has no value.</p>` : ''}</div>`;
 }
 
 function ToggleSwitch({ id, label, checked }) {
-    return `<label for="${id}" class="flex items-center cursor-pointer"><span class="mr-3 text-sm font-semibold text-gray-700">${label}</span><div class="relative"><input type="checkbox" id="${id}" class="sr-only toggle-switch" ${checked ? 'checked' : ''}><div class="block w-12 h-6 rounded-full transition ${checked ? 'bg-blue-500' : 'bg-gray-300'}"></div><div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform ${checked ? 'translate-x-6' : ''}"></div></div></label>`;
+    return `<label for="${id}" class="flex items-center cursor-pointer"><span class="mr-3 text-sm font-semibold text-gray-700">${label}</span><div class="relative"><input type="checkbox" id="${id}" class="sr-only toggle-switch" ${checked ? 'checked' : ''}><div class="block w-12 h-6 rounded-full transition ${checked ? 'bg-blue-500' : 'bg-gray-300'}"></div><div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform ${checked ? 'translate-x-6' : ''}"></div></div></label>`;
 }
 
 function OutputSection({ title, content }) {
-    return `<div class="mb-6"><div class="flex justify-between items-center mb-2"><h3 class="text-lg font-semibold text-gray-800">${title}</h3><button data-copy-content="${content.replace(/"/g, '&quot;')}" class="copy-button px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition">Copy</button></div><p class="p-4 bg-gray-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap font-mono">${content}</p></div>`;
+     // Versi sederhana tanpa tombol dan logika variasi
+     return `<div class="mb-6"><div class="flex justify-between items-center mb-2"><h3 class="text-lg font-semibold text-gray-800">${title}</h3><button data-copy-content="${content.replace(/"/g, '&quot;')}" class="copy-button px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition">Copy</button></div><p class="p-4 bg-gray-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap font-mono">${content}</p></div>`;
 }
 
 function SceneAccordion() {
-    const { outputs, openAccordionScene } = state;
-    return `<div>${outputs.map((scene, index) => `<div class="border-b border-gray-200"><button data-scene-index="${index}" class="accordion-toggle w-full flex justify-between items-center p-4 text-left font-semibold text-gray-800">Scene ${index + 1}<span>${openAccordionScene === index ? '−' : '+'}</span></button>${openAccordionScene === index ? `<div class="p-4 bg-gray-50">${OutputSection({ title: "Text Prompt", content: scene.text })}<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}</div></div>` : ''}</div>`).join('')}</div>`;
+    const { outputs, openAccordionScene } = state;
+    return `
+        <div>
+            ${outputs.map((scene, index) => `
+                <div class="border-b border-gray-200">
+                    <button data-scene-index="${index}" class="accordion-toggle w-full flex justify-between items-center p-4 text-left font-semibold text-gray-800">
+                        Scene ${index + 1}
+                        <span>${openAccordionScene === index ? '−' : '+'}</span>
+                    </button>
+                    ${openAccordionScene === index ? `
+                        <div class="p-4 bg-gray-50">
+                            ${OutputSection({ title: "Text Prompt", content: scene.text })}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                ${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}
+                                ${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </div>
+    `;
 }
 
 function ProductFormExtras() {
-    const { humanState, lockedFields } = state;
-    const config = PROMPT_OPTIONS.special.humanInShot;
-    let fieldsHTML = '';
-    if(humanState.enabled) {
-        fieldsHTML = `<div class="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">${config.fields.map(fieldId => { if (fieldId === 'styling') { const isLocked = lockedFields.product_human?.styling; const customValue = humanState.styling?.custom || ''; return `<div class="mb-6" key="human-styling"><div class="flex items-center justify-between mb-2"><label for="human-styling-text" class="flex items-center text-sm font-semibold text-gray-700">Styling</label><button type="button" data-lock-mode="product_human" data-lock-field="styling" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}">${LockIcon(isLocked)}</button></div><input type="text" id="human-styling-text" placeholder="e.g., minimalist silver rings" value="${customValue}" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg" ${isLocked ? 'readonly' : ''}></div>`; } return FormField({ id: `human-${fieldId}`, mode: 'product_human', fieldId: fieldId, label: config.fieldLabels[fieldId], options: config.options[fieldId], value: humanState[fieldId]?.select || '', customValue: humanState[fieldId]?.custom || '', isLocked: lockedFields.product_human?.[fieldId] }); }).join('')}</div>`;
-    }
-    return `<div class="mt-6 border-t pt-6">${ToggleSwitch({id: 'human-in-shot-toggle', label: 'Human in Product Shot', checked: humanState.enabled})}${fieldsHTML}</div>`;
+    const { humanState, lockedFields } = state;
+    const config = PROMPT_OPTIONS.special.humanInShot;
+    let fieldsHTML = '';
+    if(humanState.enabled) {
+        fieldsHTML = `<div class="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">${config.fields.map(fieldId => { if (fieldId === 'styling') { const isLocked = lockedFields.product_human?.styling; const customValue = humanState.styling?.custom || ''; return `<div class="mb-6" key="human-styling"><div class="flex items-center justify-between mb-2"><label for="human-styling-text" class="flex items-center text-sm font-semibold text-gray-700">Styling</label><button type="button" data-lock-mode="product_human" data-lock-field="styling" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}">${LockIcon(isLocked)}</button></div><input type="text" id="human-styling-text" placeholder="e.g., minimalist silver rings" value="${customValue}" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg" ${isLocked ? 'readonly' : ''}></div>`; } return FormField({ id: `human-${fieldId}`, mode: 'product_human', fieldId: fieldId, label: config.fieldLabels[fieldId], options: config.options[fieldId], value: humanState[fieldId]?.select || '', customValue: humanState[fieldId]?.custom || '', isLocked: lockedFields.product_human?.[fieldId] }); }).join('')}</div>`;
+    }
+    return `<div class="mt-6 border-t pt-6">${ToggleSwitch({id: 'human-in-shot-toggle', label: 'Human in Product Shot', checked: humanState.enabled})}${fieldsHTML}</div>`;
 }
 
 function FilmFormExtras() {
-    const { filmState, formState, lockedFields } = state;
-    const mode = 'film';
-    const fieldId = 'characterAnchor';
-    const characterAnchorState = formState[mode]?.[fieldId] || { custom: '' };
-    const isLocked = lockedFields[mode]?.[fieldId] || false;
-
-    return `
-        <div class="mt-6 border-t pt-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
-                <div>
-                    <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
-                    <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
-                        <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
-                        <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
-                        <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
-                    </select>
-                </div>
-                <div class="flex items-end mt-4 md:mt-0">
-                    ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
-                </div>
-            </div>
-            <div class="mt-6">
-                <div class="flex items-center justify-between mb-2">
-                    <label for="film-characterAnchor-text" class="flex items-center text-sm font-semibold text-gray-700">
-                        ${PROMPT_OPTIONS.film.fieldLabels.characterAnchor}
-                        ${Tooltip("Tulis deskripsi detail karakter utama di sini untuk menjaga konsistensi di setiap adegan.")}
-                    </label>
-                    <button type="button" data-lock-mode="${mode}" data-lock-field="${fieldId}" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(isLocked)}</button>
-                </div>
-                <textarea id="film-characterAnchor-text" rows="3" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg" placeholder="Contoh: Anna, a 21 year old woman with sharp green eyes..." ${isLocked ? 'readonly' : ''}>${characterAnchorState.custom}</textarea>
-            </div>
-        </div>
-    `;
+    const { filmState } = state;
+    return `<div class="mt-6 border-t pt-6 grid grid-cols-1 md:grid-cols-2 md:gap-x-8"><div><label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label><select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"><option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option><option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option><option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option></select></div><div class="flex items-end">${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}</div></div>`;
 }
 
 function renderApp() {
-    const root = document.getElementById('root');
-    if (!root) return;
-    const { mode, intensity, formState, isLoading, outputs, lockedFields } = state;
-    const modeConfig = PROMPT_OPTIONS[mode];
-    if (!modeConfig) return console.error("Invalid mode selected:", mode);
-    
-    const fieldsToRender = modeConfig.fields.filter(f => f !== 'characterAnchor');
-    const middleIndex = Math.ceil(fieldsToRender.length / 2);
-    const leftFields = fieldsToRender.slice(0, middleIndex);
-    const rightFields = fieldsToRender.slice(middleIndex);
+    const root = document.getElementById('root');
+    if (!root) return;
+    const { mode, intensity, formState, isLoading, outputs, lockedFields } = state;
+    const modeConfig = PROMPT_OPTIONS[mode];
+    if (!modeConfig) return console.error("Invalid mode selected:", mode);
+    const fields = modeConfig.fields;
+    const middleIndex = Math.ceil(fields.length / 2);
+    const leftFields = fields.slice(0, middleIndex);
+    const rightFields = fields.slice(middleIndex);
+    const renderFields = (fieldList) => fieldList.map(fieldId => FormField({ id: `${mode}-${fieldId}`, mode, fieldId, label: modeConfig.fieldLabels[fieldId], options: modeConfig[intensity]?.[fieldId], value: formState[mode]?.[fieldId]?.select || '', customValue: formState[mode]?.[fieldId]?.custom || '', isLocked: lockedFields[mode]?.[fieldId] })).join('');
+    
+    let extrasHTML = '';
+    if (mode === 'product') extrasHTML = ProductFormExtras();
+    if (mode === 'film') extrasHTML = FilmFormExtras();
+    
+    let outputHTML = '';
+    if(outputs) {
+        if (outputs.length > 1) { outputHTML = SceneAccordion(); } 
+        else if (outputs.length === 1) {
+            const scene = outputs[0];
+            outputHTML = `
+                <div>
+                    ${OutputSection({ title: "Text Prompt", content: scene.text })}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        ${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}
+                        ${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}
+                    </div>
+                </div>
+            `;
+        }
+    }
 
-    const renderFields = (fieldList) => fieldList.map(fieldId => FormField({ id: `${mode}-${fieldId}`, mode, fieldId, label: modeConfig.fieldLabels[fieldId], options: modeConfig[intensity]?.[fieldId], value: formState[mode]?.[fieldId]?.select || '', customValue: formState[mode]?.[fieldId]?.custom || '', isLocked: lockedFields[mode]?.[fieldId] })).join('');
-    
-    let extrasHTML = '';
-    if (mode === 'product') extrasHTML = ProductFormExtras();
-    if (mode === 'film') extrasHTML = FilmFormExtras();
-    
-    let outputHTML = '';
-    if(outputs) {
-        if (outputs.length > 1) { outputHTML = SceneAccordion(); } 
-        else if (outputs.length === 1) {
-            const scene = outputs[0];
-            outputHTML = `<div>${OutputSection({ title: "Text Prompt", content: scene.text })}<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}</div></div>`;
-        }
-    }
-
-    const appHTML = `<div class="w-full max-w-4xl mx-auto p-4 sm:p-6"><main class="bg-white rounded-2xl shadow-xl p-6 sm:p-10"><header class="text-center mb-8 relative"><h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Professional Visual Prompt Art Director</h1><p class="text-gray-500 mt-1">by HeyReena Studio</p><button id="open-help-modal-btn" title="Cara Penggunaan" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-blue-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button></header><div class="space-y-6"><div><label class="text-sm font-semibold text-gray-700 mb-2 block">Mode</label>${SegmentedControl({ id: 'mode-selector', options: [{ value: 'model', label: 'Model Photography' }, { value: 'product', label: 'Product Photography' }, { value: 'film', label: 'Short Film Scene' }], selected: mode })}</div><div><label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}</div></div><div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8"><div>${renderFields(leftFields)}</div><div>${renderFields(rightFields)}</div></div>${extrasHTML}<div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4"><button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>${isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}</button><button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" ${isLoading.generate ? 'disabled' : ''}>${isLoading.generate ? 'Generating...' : 'Generate Prompts'}</button><button id="clear-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">Clear All</button></div></main>${outputHTML ? `<section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">${outputHTML}</section>` : ''}</div>`;
-    root.innerHTML = appHTML;
-    addEventListeners();
+    const appHTML = `
+        <div class="w-full max-w-4xl mx-auto p-4 sm:p-6">
+            <main class="bg-white rounded-2xl shadow-xl p-6 sm:p-10">
+                
+                <header class="text-center mb-8 relative">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Professional Visual Prompt Art Director</h1>
+                    <p class="text-gray-500 mt-1">by HeyReena Studio</p>
+                    
+                    <button id="open-help-modal-btn" title="Cara Penggunaan" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </header>
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700 mb-2 block">Mode</label>
+                        ${SegmentedControl({ id: 'mode-selector', options: [{ value: 'model', label: 'Model Photography' }, { value: 'product', label: 'Product Photography' }, { value: 'film', label: 'Short Film Scene' }], selected: mode })}
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>
+                        ${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}
+                    </div>
+                </div>
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+                    <div>${renderFields(leftFields)}</div>
+                    <div>${renderFields(rightFields)}</div>
+                </div>
+                ${extrasHTML}
+                <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>${isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}</button>
+                    <button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" ${isLoading.generate ? 'disabled' : ''}>${isLoading.generate ? 'Generating...' : 'Generate Prompts'}</button>
+                    <button id="clear-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">Clear All</button>
+                </div>
+            </main>
+            ${outputHTML ? `<section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">${outputHTML}</section>` : ''}
+        </div>
+    `;
+    root.innerHTML = appHTML;
+    addEventListeners();
 }
 
 // =======================================================================
 // EVENT LISTENERS & HANDLERS
 // =======================================================================
 function addEventListeners() {
-    document.getElementById('mode-selector')?.addEventListener('click', e => { const value = e.target.dataset.value; if (value && state.mode !== value) { state.mode = value; updateDefaults(); renderApp(); } });
-    document.getElementById('intensity-selector')?.addEventListener('click', e => { const value = e.target.dataset.value; if (value && state.intensity !== value) { state.intensity = value; updateDefaults(); renderApp(); } });
-    document.querySelectorAll('.form-select').forEach(el => el.addEventListener('change', handleFormChange));
-    document.querySelectorAll('.form-custom-text').forEach(el => el.addEventListener('input', handleFormChange));
-    document.querySelectorAll('.lock-button').forEach(el => el.addEventListener('click', handleLockToggle));
-    document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
-    document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
-    // Event listener untuk Character Anchor sekarang ada di handleFormChange karena id-nya film-characterAnchor-text
-    document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
-    document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
-    document.getElementById('clear-btn')?.addEventListener('click', () => { initializeState(); renderApp(); });
-    document.querySelectorAll('.copy-button').forEach(button => button.addEventListener('click', e => { const content = e.target.dataset.copyContent.replace(/&quot;/g, '"'); navigator.clipboard.writeText(content).then(() => { e.target.textContent = 'Copied!'; setTimeout(() => { e.target.textContent = 'Copy'; }, 2000); }); }));
-    document.querySelectorAll('.accordion-toggle').forEach(btn => btn.addEventListener('click', e => { const index = Number(e.currentTarget.dataset.sceneIndex); state.openAccordionScene = state.openAccordionScene === index ? null : index; renderApp(); }));
-    const helpModal = document.getElementById('help-modal');
-    const openHelpBtn = document.getElementById('open-help-modal-btn');
-    const closeHelpBtn = document.getElementById('close-help-modal-btn');
-    openHelpBtn?.addEventListener('click', () => helpModal?.classList.remove('hidden'));
-    closeHelpBtn?.addEventListener('click', () => helpModal?.classList.add('hidden'));
-    helpModal?.addEventListener('click', (e) => { if (e.target.id === 'help-modal') { helpModal.classList.add('hidden'); } });
+    // === Kontrol Utama (Mode & Intensity) ===
+    document.getElementById('mode-selector')?.addEventListener('click', e => { 
+        const value = e.target.dataset.value; 
+        if (value && state.mode !== value) { 
+            state.mode = value; 
+            updateDefaults(); 
+            renderApp(); 
+        } 
+    });
+
+    document.getElementById('intensity-selector')?.addEventListener('click', e => { 
+        const value = e.target.dataset.value; 
+        if (value && state.intensity !== value) { 
+            state.intensity = value; 
+            updateDefaults(); 
+            renderApp(); 
+        } 
+    });
+
+    // === Kontrol Form Dinamis ===
+    document.querySelectorAll('.form-select').forEach(el => el.addEventListener('change', handleFormChange));
+    document.querySelectorAll('.form-custom-text').forEach(el => el.addEventListener('input', handleFormChange));
+    document.querySelectorAll('.lock-button').forEach(el => el.addEventListener('click', handleLockToggle));
+    
+    // === Kontrol Form Tambahan (Extras) ===
+    document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
+    document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
+    document.getElementById('film-characterBio')?.addEventListener('input', e => { state.filmState.characterBio = e.target.value; });
+
+    // === Tombol Aksi Utama ===
+    document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
+    document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
+    document.getElementById('clear-btn')?.addEventListener('click', () => { 
+        initializeState(); 
+        renderApp(); 
+    });
+    
+    // === Kontrol di Bagian Output ===
+    document.querySelectorAll('.copy-button').forEach(button => {
+        button.addEventListener('click', e => {
+            const content = e.target.dataset.copyContent.replace(/&quot;/g, '"');
+            navigator.clipboard.writeText(content).then(() => {
+                e.target.textContent = 'Copied!';
+                setTimeout(() => { e.target.textContent = 'Copy'; }, 2000);
+            });
+        });
+    });
+
+    document.querySelectorAll('.accordion-toggle').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const index = Number(e.currentTarget.dataset.sceneIndex);
+            state.openAccordionScene = state.openAccordionScene === index ? null : index;
+            renderApp();
+        });
+    });
+
+    // === Kontrol Pop-up Bantuan ===
+    const helpModal = document.getElementById('help-modal');
+    const openHelpBtn = document.getElementById('open-help-modal-btn');
+    const closeHelpBtn = document.getElementById('close-help-modal-btn');
+
+    openHelpBtn?.addEventListener('click', () => {
+        helpModal?.classList.remove('hidden');
+    });
+
+    closeHelpBtn?.addEventListener('click', () => {
+        helpModal?.classList.add('hidden');
+    });
+
+    helpModal?.addEventListener('click', (e) => {
+        if (e.target.id === 'help-modal') {
+            helpModal.classList.add('hidden');
+        }
+    });
 }
 
 function handleFormChange(e) {
-    const target = e.target;
-    const id = target.id.replace('-select', '').replace('-text', '');
-    const [mode, ...fieldIdParts] = id.split('-');
-    const fieldId = fieldIdParts.join('-');
-
-    if (id === 'film-characterAnchor') {
-        state.formState.film.characterAnchor.custom = target.value;
-        return;
-    }
-
-    let stateSlice;
-    if (mode === 'human') {
-        stateSlice = state.humanState;
-    } else {
-        stateSlice = state.formState[mode];
-    }
-    
-    if (!stateSlice || !stateSlice[fieldId]) return;
-
-    if (target.classList.contains('form-select')) {
-        stateSlice[fieldId].select = target.value;
-        stateSlice[fieldId].custom = '';
-        document.getElementById(`${id}-text`).value = '';
-    } else {
-        stateSlice[fieldId].custom = target.value;
-        const selectEl = document.getElementById(`${id}-select`);
-        if (selectEl) selectEl.value = '';
-    }
+    const target = e.target;
+    const id = target.id.replace('-select', '').replace('-text', '');
+    const [mode, ...fieldIdParts] = id.split('-');
+    const fieldId = fieldIdParts.join('-');
+    let stateSlice = (mode === 'human') ? state.humanState : state.formState[mode];
+    if (!stateSlice || !stateSlice[fieldId]) return;
+    if (target.classList.contains('form-select')) {
+        stateSlice[fieldId].select = target.value;
+        stateSlice[fieldId].custom = '';
+        document.getElementById(`${id}-text`).value = '';
+    } else {
+        stateSlice[fieldId].custom = target.value;
+        const selectEl = document.getElementById(`${id}-select`);
+        if (selectEl) selectEl.value = '';
+    }
 }
 
 function handleLockToggle(e) {
-    const { lockMode, lockField } = e.currentTarget.dataset;
-    state.lockedFields[lockMode][lockField] = !state.lockedFields[lockMode][lockField];
-    renderApp();
+    const { lockMode, lockField } = e.currentTarget.dataset;
+    state.lockedFields[lockMode][lockField] = !state.lockedFields[lockMode][lockField];
+    renderApp();
 }
 
 function handleToggleChange(e) {
-    const id = e.target.id;
-    if(id === 'human-in-shot-toggle') { state.humanState.enabled = e.target.checked; } 
-    else if (id === 'film-linkScenes-toggle') { state.filmState.linkScenes = e.target.checked; }
-    renderApp();
+    const id = e.target.id;
+    if(id === 'human-in-shot-toggle') { state.humanState.enabled = e.target.checked; } 
+    else if (id === 'film-linkScenes-toggle') { state.filmState.linkScenes = e.target.checked; }
+    renderApp();
 }
 
 async function callGeminiAPI(prompt, generationConfig = {}) {
-    try {
-        const response = await fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, generationConfig }),
-        });
-        if (!response.ok) throw new Error(`API error: ${await response.text()}`);
-        return await response.json().then(result => result?.candidates?.[0]?.content?.parts?.[0]?.text || null);
-    } catch (error) {
-        console.error("Error calling backend API:", error);
-        alert("An error occurred. Please check the console for details.");
-        return null;
-    }
+    try {
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, generationConfig }),
+        });
+        if (!response.ok) throw new Error(`API error: ${await response.text()}`);
+        return await response.json().then(result => result?.candidates?.[0]?.content?.parts?.[0]?.text || null);
+    } catch (error) {
+        console.error("Error calling backend API:", error);
+        alert("An error occurred. Please check the console for details.");
+        return null;
+    }
 }
 
-function getFinalValue(fieldState) { return fieldState?.custom?.trim() || fieldState?.select; }
+function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleSubmit() {
-    state.isLoading.generate = true;
-    state.outputs = null;
-    renderApp();
-    const { mode, formState, humanState, filmState } = state;
-    const data = { ...state, ...filmState };
-    PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
-    if (mode === 'product' && humanState.enabled) { data.humanInShot = {}; PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); }); }
-    let parameterString = PROMPT_OPTIONS[mode].fields.filter(field => field !== 'characterAnchor').map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`).join(', ');
-    if (data.humanInShot) { const humanParams = Object.entries(data.humanInShot).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', '); parameterString += `. Human in shot details: ${humanParams}`; }
-    const cleanAIText = (rawText) => { if (!rawText) return ''; let cleaned = rawText.replace(/^Here.*?:\s*\n*/i, ''); cleaned = cleaned.split('\n\n')[0]; cleaned = cleaned.replace(/^"|"$|^\s*"/g, '').trim(); return cleaned; };
-    let textPrompts = [];
-    if (data.mode === 'film') {
-        const characterPrefix = data.characterAnchor ? `${data.characterAnchor}. ` : '';
-        const baseInstruction = `You are a master cinematic concept artist...`;
-        if (data.numScenes > 1) {
-            const finalPrompt = `Based on...: ${parameterString}, write ${data.numScenes} connected text-to-image prompts... Each prompt must start with: "${characterPrefix}". Separate with "---SCENE BREAK---".`;
-            let rawText = await callGeminiAPI(finalPrompt);
-            if (rawText) { textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()); }
-        } else {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nParameters: ${parameterString}.`;
-            let rawText = await callGeminiAPI(finalPrompt);
-            if (rawText) { textPrompts = [cleanAIText(rawText)]; }
-        }
-    } else { 
-        const finalPrompt = `You are a senior art director...: ${parameterString}.`;
-        let rawText = await callGeminiAPI(finalPrompt);
-        if (rawText) { textPrompts = [cleanAIText(rawText)]; }
-    }
-    if (textPrompts.length > 0) { state.outputs = textPrompts.map(imagePrompt => { const videoPrompts = generateVideoPrompts(data, imagePrompt); return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short }; }); }
-    state.isLoading.generate = false;
-    renderApp();
+    state.isLoading.generate = true;
+    state.outputs = null;
+    state.promptVariations = { original: null, variations: [] };
+    renderApp();
+
+    const { mode, formState, humanState, filmState } = state;
+    const data = { ...state, ...filmState };
+    PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
+    if (mode === 'product' && humanState.enabled) {
+        data.humanInShot = {};
+        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
+    }
+    
+    let parameterString = PROMPT_OPTIONS[mode].fields
+        .filter(field => field !== 'characterAnchor')
+        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
+        .join(', ');
+
+    if (data.humanInShot) {
+        const humanParams = Object.entries(data.humanInShot).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
+        parameterString += `. Human in shot details: ${humanParams}`;
+    }
+
+    const cleanAIText = (rawText) => {
+        if (!rawText) return '';
+        let cleaned = rawText.replace(/^Here.*?:\s*\n*/i, '');
+        cleaned = cleaned.split('\n\n')[0];
+        // TAMBAHAN: Hapus tanda petik di awal dan akhir
+        cleaned = cleaned.replace(/^"|"$|^\s*"/g, '').trim();
+        return cleaned;
+    };
+
+    let textPrompts = [];
+    
+    if (data.mode === 'film') {
+        const characterPrefix = filmState.characterBio.trim() ? `Main character is: ${filmState.characterBio.trim()}. ` : '';
+        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt...`;
+
+        if (filmState.numScenes > 1) {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on...: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts... Separate each prompt with "---SCENE BREAK---".`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim());
+            }
+        } else {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nParameters: ${parameterString}.`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                textPrompts = [cleanAIText(rawText)];
+            }
+        }
+    } else { 
+        const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
+        let rawText = await callGeminiAPI(finalPrompt);
+        if (rawText) {
+            textPrompts = [cleanAIText(rawText)];
+        }
+    }
+
+    if (textPrompts.length > 0) {
+        state.outputs = textPrompts.map(imagePrompt => {
+            const videoPrompts = generateVideoPrompts(data, imagePrompt);
+            return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
+        });
+    }
+
+    state.isLoading.generate = false;
+    renderApp();
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN PALING BENAR INI
 async function handleAISuggest() {
-    state.isLoading.suggest = true;
-    renderApp();
-    try {
-        const { mode, formState, lockedFields, humanState } = state;
-        const labelToFieldIdMap = {};
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => { labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId; });
-        const lockedContext = {};
-        const unlockedFieldsLabels = [];
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => { if (lockedFields[mode]?.[fieldId]) { const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId]; lockedContext[label] = getFinalValue(formState[mode][fieldId]); } else { unlockedFieldsLabels.push(PROMPT_OPTIONS[mode].fieldLabels[fieldId]); } });
-        let characterAnchorInstruction = '', humanPromptPart = '', unlockedHumanFieldsLabels = [];
-        if (mode === 'film') { const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor; if (unlockedFieldsLabels.includes(characterAnchorLabel)) { characterAnchorInstruction = `For the "Character Anchor..." field, you MUST provide a detailed physical description...`; } }
-        if (mode === 'product' && humanState.enabled) {
-            const humanConfig = PROMPT_OPTIONS.special.humanInShot;
-            humanConfig.fields.forEach(fieldId => { labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId; });
-            if (!lockedContext['Human in Shot Details']) { lockedContext['Human in Shot Details'] = {}; }
-            humanConfig.fields.forEach(fieldId => { if (lockedFields.product_human?.[fieldId]) { const label = humanConfig.fieldLabels[fieldId]; lockedContext['Human in Shot Details'][label] = getFinalValue(humanState[fieldId]); } else { unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]); } });
-            if (unlockedHumanFieldsLabels.length > 0) { humanPromptPart = `\nAdditionally, suggest values for the human model...: ${unlockedHumanFieldsLabels.join(', ')}.`; }
-        }
-        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
-        const prompt = `You are an expert art director... Suggest values for:\n${allUnlockedLabels.join('\n')}`;
-        const resultText = await callGeminiAPI(prompt);
-        console.log("--- RAW AI RESPONSE ---", resultText);
-        if (resultText) {
-            const lines = resultText.split('\n');
-            lines.forEach(line => {
-                const parts = line.split(':');
-                if (parts.length >= 2) {
-                    const label = parts[0].trim();
-                    const value = parts.slice(1).join(':').trim();
-                    const fieldId = labelToFieldIdMap[label];
-                    if (fieldId) {
-                        let idPrefix = mode, stateSlice = state.formState[mode];
-                        if (mode === 'product' && humanState.enabled && PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) { idPrefix = 'human'; stateSlice = state.humanState; }
-                        if (stateSlice && stateSlice[fieldId]) {
-                            stateSlice[fieldId].custom = value;
-                            stateSlice[fieldId].select = '';
-                            const inputElement = document.getElementById(`${idPrefix}-${fieldId}-text`);
-                            if (inputElement) inputElement.value = value;
-                            const selectElement = document.getElementById(`${idPrefix}-${fieldId}-select`);
-                            if (selectElement) selectElement.value = '';
-                        }
-                    }
-                }
-            });
-        }
-    } catch (e) { console.error("An error occurred during AI suggestion:", e); } 
-    finally { state.isLoading.suggest = false; const btn = document.getElementById('suggest-btn'); if(btn) { btn.innerHTML = 'Suggest with AI ✨'; btn.disabled = false; } }
+    state.isLoading.suggest = true;
+    renderApp();
+    
+    try {
+        const { mode, intensity, formState, lockedFields, humanState } = state;
+
+        const labelToFieldIdMap = {};
+        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId;
+        });
+
+        const lockedContext = {};
+        const unlockedFieldsLabels = [];
+
+        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            if (lockedFields[mode]?.[fieldId]) {
+                const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
+                lockedContext[label] = getFinalValue(formState[mode][fieldId]);
+            } else {
+                unlockedFieldsLabels.push(PROMPT_OPTIONS[mode].fieldLabels[fieldId]);
+            }
+        });
+
+        let characterAnchorInstruction = '';
+        let humanPromptPart = '';
+        let unlockedHumanFieldsLabels = [];
+
+        if (mode === 'film') {
+            const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor;
+            if (unlockedFieldsLabels.includes(characterAnchorLabel)) {
+                characterAnchorInstruction = `
+                    For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character. 
+                    Invent a name, an approximate age, and at least three distinct visual features (e.g., hairstyle, facial features, iconic clothing). 
+                    Do not give a concept, give a concrete visual description.
+                `;
+            }
+        }
+
+        if (mode === 'product' && humanState.enabled) {
+            const humanConfig = PROMPT_OPTIONS.special.humanInShot;
+            humanConfig.fields.forEach(fieldId => {
+                 labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
+            });
+            if (!lockedContext['Human in Shot Details']) {
+                lockedContext['Human in Shot Details'] = {};
+            }
+            humanConfig.fields.forEach(fieldId => {
+                if (lockedFields.product_human?.[fieldId]) {
+                    const label = humanConfig.fieldLabels[fieldId];
+                    lockedContext['Human in Shot Details'][label] = getFinalValue(humanState[fieldId]);
+                } else {
+                    unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
+                }
+            });
+            if (unlockedHumanFieldsLabels.length > 0) {
+                humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
+            }
+        }
+
+        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
+
+        const prompt = `
+            You are an expert art director.
+            Given the following locked parameters: ${JSON.stringify(lockedContext)}
+            Suggest coherent values for the following unlocked fields.
+            ${characterAnchorInstruction}
+            ${humanPromptPart}
+            Return your answer as a simple key-value list, with each item on a new line. Do not add any other text, explanation, or markdown.
+            Here are the fields you need to suggest values for:
+            ${allUnlockedLabels.join('\n')}
+        `;
+        
+        const resultText = await callGeminiAPI(prompt);
+
+        console.log("--- RAW AI RESPONSE ---");
+        console.log(resultText);
+
+        if (resultText) {
+            const lines = resultText.split('\n');
+            lines.forEach(line => {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const label = parts[0].trim();
+                    const value = parts.slice(1).join(':').trim();
+                    const fieldId = labelToFieldIdMap[label];
+                    if (fieldId) {
+                        let idPrefix = mode;
+                        let stateSlice = state.formState[mode];
+                        
+                        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
+                        // Tambahkan pengecekan mode 'product' dan humanState.enabled
+                        if (mode === 'product' && humanState.enabled && PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
+                            idPrefix = 'human';
+                            stateSlice = state.humanState;
+                        }
+
+                        if (stateSlice && stateSlice[fieldId]) {
+                            stateSlice[fieldId].custom = value;
+                            stateSlice[fieldId].select = '';
+                            
+                            const inputElement = document.getElementById(`${idPrefix}-${fieldId}-text`);
+                            if (inputElement) inputElement.value = value;
+                            
+                            const selectElement = document.getElementById(`${idPrefix}-${fieldId}-select`);
+                            if (selectElement) selectElement.value = '';
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error("An error occurred during AI suggestion:", e);
+        alert("Terjadi kesalahan saat memproses sugesti AI.");
+    } finally {
+        state.isLoading.suggest = false;
+        const suggestBtn = document.getElementById('suggest-btn');
+        if(suggestBtn) {
+            suggestBtn.innerHTML = 'Suggest with AI ✨';
+            suggestBtn.disabled = false;
+        }
+    }
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 function generateVideoPrompts(data, imagePrompt) {
-    let long = '', short = '';
-    const { cameraMovement, lighting, mood, sceneType, expression, cameraAngle, composition, extraElements } = data;
-    if (data.mode === 'model') { long = `Scene: ${imagePrompt} Camera: ${cameraAngle}...`; short = `The camera performs a ${cameraMovement || cameraAngle}...`; } 
-    else if (data.mode === 'product') { long = `Scene: ${imagePrompt} Camera: ${composition}...`; short = `Animate this product shot with a ${composition}...`; } 
-    else if (data.mode === 'film') { long = `Scene: ${imagePrompt} Camera: ${cameraMovement}...`; short = `The camera performs a ${cameraMovement}...`; }
-    return { long, short };
+    let long = '', short = '';
+
+    // --- INI BAGIAN UTAMA PERBAIKANNYA ---
+    // Kita ambil semua parameter yang relevan dari data
+    const { cameraMovement, lighting, mood, sceneType, expression, cameraAngle } = data;
+
+    if (data.mode === 'model') {
+        // Format naratif untuk mode Model
+        long = `Scene: ${imagePrompt} Camera: ${cameraAngle}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType || 'portrait session'} and the character should show an expression of "${expression || 'subtle emotion'}".`;
+        short = `The camera angle is ${cameraAngle}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
+    } else if (data.mode === 'product') {
+        // Format naratif untuk mode Product
+        const { composition, extraElements } = data;
+        long = `Scene: ${imagePrompt} Camera: ${composition}. Lighting: ${lighting}. Effects: Add visual effects like ${extraElements}. Mood: ${mood}.`;
+        short = `Animate this product shot with a ${composition} style. Add visual effects like ${extraElements}. The mood is ${mood}.`;
+    } else if (data.mode === 'film') {
+        // Format naratif untuk mode Film
+        long = `Scene: ${imagePrompt} Camera: ${cameraMovement}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType} and the character should show an expression of "${expression || 'subtle emotion'}".`;
+        short = `The camera performs a ${cameraMovement}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
+    }
+    
+    return { long, short };
 };
+
+async function handleGenerateVariations(originalPrompt) {
+    state.isLoading.variations = true;
+    state.promptVariations = { original: originalPrompt, variations: [] };
+    renderApp();
+    const prompt = `You are a creative assistant. Given the art direction prompt, generate 3 distinct variations. Keep core elements but alter mood, details, or perspective. Return as a JSON array of strings.\n\nOriginal Prompt: "${originalPrompt}"`;
+    const resultJson = await callGeminiAPI(prompt, { responseMimeType: "application/json" });
+    if (resultJson) {
+        try {
+            const variations = JSON.parse(resultJson);
+            state.promptVariations = { original: originalPrompt, variations };
+        } catch (e) { console.error("Failed to parse variations:", e); }
+    }
+    state.isLoading.variations = false;
+    renderApp();
+}
 
 // =======================================================================
 // INITIALIZE APP
 // =======================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    initializeState();
-    renderApp();
+    initializeState();
+    renderApp();
 });
