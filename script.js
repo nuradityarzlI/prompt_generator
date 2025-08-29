@@ -490,75 +490,61 @@ function getFinalValue(fieldState) {
     return fieldState.custom.trim() || fieldState.select;
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
+// GANTI SELURUH FUNGSI LAMA ANDA DENGAN YANG INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
-    state.promptVariations = { original: null, variations: [] };
     renderApp();
 
-    const { mode, formState, humanState, filmState } = state;
-    const data = { ...state, ...filmState };
-    PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
+    const { mode, formState } = state;
 
-    if (mode === 'product' && humanState.enabled) {
-        data.humanInShot = {};
-        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
-    }
+    // 1. Kumpulkan semua data berkualitas dari form
+    const data = {};
+    PROMPT_OPTIONS[mode].fields.forEach(field => {
+        data[field] = getFinalValue(formState[mode][field]);
+    });
 
-    let parameterString = PROMPT_OPTIONS[mode].fields
-        .filter(field => field !== 'characterAnchor')
-        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
+    // 2. Buat string parameter untuk dikirim sebagai brief ke AI
+    const parameterString = PROMPT_OPTIONS[mode].fields
+        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: "${data[field]}"`)
         .join(', ');
 
-    if (data.humanInShot) {
-        const humanParams = Object.entries(data.humanInShot).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
-        parameterString += `. Human in shot details: ${humanParams}`;
-    }
+    // 3. Buat perintah ke AI untuk meminta ide dalam format JSON yang terstruktur
+    const finalPromptToAI = `
+        You are an AI Art Director. Based on the following creative parameters, your task is to provide a creative vision.
+        Return your vision as a single, valid JSON object and nothing else.
 
-    const cleanAIText = (rawText) => {
-    if (!rawText) return '';
-    // Hapus berbagai macam kalimat pembuka yang umum (mencari titik dua atau baris baru)
-    let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
-    // Hapus baris kosong di awal dan kutipan di awal/akhir
-    cleaned = cleaned.trim().replace(/^"|"$/g, '');
-    return cleaned;
-    };
+        The JSON object MUST have these exact keys:
+        - "subjectDescription": A detailed and evocative description of the main subject.
+        - "settingDescription": A vivid description of the environment, background, and location.
+        - "styleConcept": A short, powerful phrase describing the overall mood, style, and artistic direction (e.g., "Gritty Cyberpunk Noir" or "Ethereal Fantasy Dreamscape").
+        
+        Parameters: ${parameterString}
+    `;
 
-    let textPrompts = [];
+    // 4. Panggil AI untuk mendapatkan komponen kreatif
+    // Pastikan backend Anda bisa meneruskan konfigurasi untuk meminta JSON
+    const rawJSON = await callGeminiAPI(finalPromptToAI, { response_mime_type: "application/json" });
 
-    if (data.mode === 'film') {
-        const characterAnchorValue = getFinalValue(formState.film.characterAnchor); 
-        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
-        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt...`;
+    try {
+        // 5. Parse komponen kreatif yang diberikan AI
+        const creativeComponents = JSON.parse(rawJSON);
 
-        if (filmState.numScenes > 1) {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on...: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts... Separate each prompt with "---SCENE BREAK---".`;
-            let rawText = await callGeminiAPI(finalPrompt);
-            if (rawText) {
-                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim());
-            }
-        } else {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nParameters: ${parameterString}.`;
-            let rawText = await callGeminiAPI(finalPrompt);
-            if (rawText) {
-                textPrompts = [cleanAIText(rawText)];
-            }
-        }
-    } else {
-        const finalPrompt = `You are an expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
-        let rawText = await callGeminiAPI(finalPrompt);
-        if (rawText) {
-            textPrompts = [cleanAIText(rawText)];
-        }
-    }
+        // 6. KODE MENGAMBIL ALIH: Rakit komponen menjadi prompt gambar yang sempurna
+        const finalImagePrompt = `${data.cameraAngle || 'cinematic shot'} of ${creativeComponents.subjectDescription}, set within ${creativeComponents.settingDescription}. The overall aesthetic is ${creativeComponents.styleConcept}. Shot on ${data.cameraLens}, inspired by ${data.references}, photorealistic, 8k, hyperdetailed, cinematic color grading.`;
+        
+        // 7. Hasilkan video prompts menggunakan komponen kreatif tersebut
+        const videoPrompts = generateVideoPrompts(data, creativeComponents, finalImagePrompt);
 
-    if (textPrompts.length > 0) {
-        state.outputs = textPrompts.map(imagePrompt => {
-            const videoPrompts = generateVideoPrompts(data, imagePrompt);
-            return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
-        });
+        state.outputs = [{
+            text: finalImagePrompt,
+            videoLong: videoPrompts.long,
+            videoShort: videoPrompts.short
+        }];
+
+    } catch (error) {
+        console.error("Failed to parse JSON from AI:", error);
+        alert("AI returned an invalid format. Please try again.");
     }
 
     state.isLoading.generate = false;
@@ -690,33 +676,34 @@ async function handleAISuggest() {
     }
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
-function generateVideoPrompts(data, imagePrompt) {
-    let long = '', short = '';
+// GANTI SELURUH FUNGSI LAMA ANDA DENGAN YANG INI
+function generateVideoPrompts(data, creativeComponents, imagePrompt) {
+    let longPrompt = '';
+    let shortPrompt = '';
+    const { mode } = data; // Ambil mode saat ini
 
-    // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-    // Kita ambil semua parameter yang relevan dari data
-    const { cameraMovement, lighting, mood, sceneType, expression, cameraAngle } = data;
-    const cleanImagePrompt = imagePrompt.includes("Here's a synthesized text-to-image prompt") ? "A beautifully generated image based on user parameters." : imagePrompt;
+    if (mode === 'product') {
+        // Logika spesifik untuk video PRODUK
+        const composition = data.composition || "a smooth tracking shot";
+        const extraElements = data.extraElements || "subtle light glints";
 
+        longPrompt = `**Visual Foundation:** "${imagePrompt}"
+**Action:** The video showcases the product with dynamic effects like ${extraElements}. The camera uses a ${composition} to highlight its premium features and textures.`;
+        shortPrompt = `Product showcase video. A ${composition} highlights the product's features with effects like ${extraElements}.`;
 
-    if (data.mode === 'model') {
-        // Format naratif untuk mode Model
-        long = `Scene: ${imagePrompt} Camera: ${cameraAngle}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType || 'portrait session'} and the character should show an expression of "${expression || 'subtle emotion'}".`;
-        short = `The camera angle is ${cameraAngle}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
-    } else if (data.mode === 'product') {
-        // Format naratif untuk mode Product
-        const { composition, extraElements } = data;
-        long = `Scene: ${imagePrompt} Camera: ${composition}. Lighting: ${lighting}. Effects: Add visual effects like ${extraElements}. Mood: ${mood}.`;
-        short = `Animate this product shot with a ${composition} style. Add visual effects like ${extraElements}. The mood is ${mood}.`;
-    } else if (data.mode === 'film') {
-        // Format naratif untuk mode Film
-        long = `Scene: ${imagePrompt} Camera: ${cameraMovement}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType} and the character should show an expression of "${expression || 'subtle emotion'}".`;
-        short = `The camera performs a ${cameraMovement}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
+    } else {
+        // Logika untuk subjek MANUSIA (Model dan Film)
+        const cameraMovement = data.cameraMovement || "a slow, subtle panning shot";
+        const subjectExpression = data.expression || "a calm, neutral expression";
+        const sceneType = data.sceneType || "an unfolding moment";
+
+        longPrompt = `**Visual Foundation:** "${imagePrompt}"
+**Action:** The scene depicts ${sceneType}. The camera performs ${cameraMovement}, capturing the subject's main expression of ${subjectExpression} as the scene unfolds.`;
+        shortPrompt = `A video of ${data.mainSubject || data.characters}. The primary camera movement is a ${cameraMovement}, focusing on the subject's expression.`;
     }
 
-    return { long, short };
-};
+    return { long: longPrompt, short: shortPrompt };
+}
 
 async function handleGenerateVariations(originalPrompt) {
     state.isLoading.variations = true;
