@@ -240,41 +240,22 @@ function ProductFormExtras() {
         </div>`;
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 function FilmFormExtras() {
-    const { filmState, formState, lockedFields } = state;
-    const mode = 'film';
-    const fieldId = 'characterAnchor';
-    const characterAnchorState = formState[mode]?.[fieldId] || { custom: '' };
-    const isLocked = lockedFields[mode]?.[fieldId] || false;
-
+    const { filmState } = state;
     return `
-        <div class="mt-6 border-t pt-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
-                <div>
-                    <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
-                    <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
-                        <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
-                        <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
-                        <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
-                    </select>
-                </div>
-                <div class="flex items-end mt-4 md:mt-0">
-                    ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
-                </div>
+        <div class="mt-6 border-t pt-6 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+            <div>
+                <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
+                <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                    <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
+                    <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
+                    <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
+                </select>
             </div>
-            <div class="mt-6">
-                <div class="flex items-center justify-between mb-2">
-                    <label for="film-characterAnchor-text" class="flex items-center text-sm font-semibold text-gray-700">
-                        ${PROMPT_OPTIONS.film.fieldLabels.characterAnchor}
-                        ${Tooltip("Tulis deskripsi detail karakter utama di sini untuk menjaga konsistensi di setiap adegan.")}
-                    </label>
-                    <button type="button" data-lock-mode="${mode}" data-lock-field="${fieldId}" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(isLocked)}</button>
-                </div>
-                <textarea id="film-characterAnchor-text" rows="3" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg" placeholder="Contoh: Anna, a 21 year old woman with sharp green eyes..." ${isLocked ? 'readonly' : ''}>${characterAnchorState.custom}</textarea>
+            <div class="flex items-end">
+                ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
             </div>
-        </div>
-    `;
+        </div>`;
 }
 
 function renderApp() {
@@ -452,26 +433,13 @@ function addEventListeners() {
     });
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 function handleFormChange(e) {
     const target = e.target;
     const id = target.id.replace('-select', '').replace('-text', '');
     const [mode, ...fieldIdParts] = id.split('-');
     const fieldId = fieldIdParts.join('-');
+    let stateSlice = (mode === 'human') ? state.humanState : state.formState[mode];
 
-    // Logika khusus untuk textarea Character Anchor
-    if (id === 'film-characterAnchor') {
-        state.formState.film.characterAnchor.custom = target.value;
-        return; // Selesai, jangan jalankan kode di bawahnya
-    }
-
-    let stateSlice;
-    if (mode === 'human') {
-        stateSlice = state.humanState;
-    } else {
-        stateSlice = state.formState[mode];
-    }
-    
     if (!stateSlice || !stateSlice[fieldId]) return;
 
     if (target.classList.contains('form-select')) {
@@ -525,43 +493,45 @@ function getFinalValue(fieldState) {
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
+    state.promptVariations = { original: null, variations: [] };
     renderApp();
 
     const { mode, formState, humanState, filmState } = state;
     const data = { ...state, ...filmState };
     PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
-    
+
     if (mode === 'product' && humanState.enabled) {
         data.humanInShot = {};
         PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
+    }
+
+    let parameterString = PROMPT_OPTIONS[mode].fields
+        .filter(field => field !== 'characterAnchor')
+        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
+        .join(', ');
+
+    if (data.humanInShot) {
+        const humanParams = Object.entries(data.humanInShot).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
+        parameterString += `. Human in shot details: ${humanParams}`;
     }
 
     const cleanAIText = (rawText) => {
         if (!rawText) return '';
         let cleaned = rawText.replace(/^Here.*?:\s*\n*/i, '');
         cleaned = cleaned.split('\n\n')[0];
+        // TAMBAHAN: Hapus tanda petik di awal dan akhir
         cleaned = cleaned.replace(/^"|"$|^\s*"/g, '').trim();
         return cleaned;
     };
 
     let textPrompts = [];
-    
+
     if (data.mode === 'film') {
-        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-        // 1. Ambil nilai Character Anchor dengan aman dari formState
-        const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
-        const characterPrefix = characterAnchorValue ? `${characterAnchorValue}. ` : '';
+        const characterPrefix = filmState.characterBio.trim() ? `Main character is: ${filmState.characterBio.trim()}. ` : '';
+        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt...`;
 
-        // 2. Buat parameter string TANPA character anchor agar tidak duplikat
-        let parameterString = PROMPT_OPTIONS.film.fields
-            .filter(field => field !== 'characterAnchor')
-            .map(field => `${PROMPT_OPTIONS.film.fieldLabels[field]}: ${data[field]}`)
-            .join(', ');
-        
-        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. The prompt must describe a single, frozen, epic movie still. It must be a dense, descriptive paragraph, keyword-rich, and suitable for an image generation AI. Focus ONLY on visual details and DO NOT describe camera movement. The prompt must start with the main character description if provided.`;
-
-        if (data.numScenes > 1) {
-            const finalPrompt = `Based on the following parameters: ${parameterString}, write ${data.numScenes} connected text-to-image prompts that show a clear story progression. Each prompt must start with the consistent main character description: "${characterPrefix}". Separate each prompt with the exact marker "---SCENE BREAK---".`;
+        if (filmState.numScenes > 1) {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on...: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts... Separate each prompt with "---SCENE BREAK---".`;
             let rawText = await callGeminiAPI(finalPrompt);
             if (rawText) {
                 rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
@@ -574,17 +544,7 @@ async function handleSubmit() {
                 textPrompts = [cleanAIText(rawText)];
             }
         }
-    } else { 
-        // Logika untuk mode 'model' dan 'product'
-        let parameterString = PROMPT_OPTIONS[mode].fields
-            .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
-            .join(', ');
-
-        if (data.humanInShot) {
-            const humanParams = Object.entries(data.humanInShot).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
-            parameterString += `. Human in shot details: ${humanParams}`;
-        }
-
+    } else {
         const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
