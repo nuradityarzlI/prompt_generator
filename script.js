@@ -451,6 +451,7 @@ async function handleSubmit() {
     renderApp();
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
@@ -483,9 +484,7 @@ async function handleAISuggest() {
             const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor;
             if (unlockedFieldsLabels.includes(characterAnchorLabel)) {
                 characterAnchorInstruction = `
-                    For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character. 
-                    Invent a name, an approximate age, and at least three distinct visual features (e.g., hairstyle, facial features, iconic clothing). 
-                    Do not give a concept, give a concrete visual description.
+                    For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character...
                 `;
             }
         }
@@ -495,9 +494,11 @@ async function handleAISuggest() {
             humanConfig.fields.forEach(fieldId => {
                  labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
             });
+
             if (!lockedContext['Human in Shot Details']) {
                 lockedContext['Human in Shot Details'] = {};
             }
+
             humanConfig.fields.forEach(fieldId => {
                 if (lockedFields.product_human?.[fieldId]) {
                     const label = humanConfig.fieldLabels[fieldId];
@@ -506,11 +507,14 @@ async function handleAISuggest() {
                     unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
                 }
             });
+
             if (unlockedHumanFieldsLabels.length > 0) {
                 humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
             }
         }
 
+        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
+        // Gabungkan semua field yang tidak terkunci menjadi SATU daftar
         const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
 
         const prompt = `
@@ -520,17 +524,16 @@ async function handleAISuggest() {
             ${characterAnchorInstruction}
             ${humanPromptPart}
             Return your answer as a simple key-value list, with each item on a new line. Do not add any other text, explanation, or markdown.
+            
             Here are the fields you need to suggest values for:
             ${allUnlockedLabels.join('\n')}
         `;
+        // --- AKHIR DARI PERBAIKAN ---
         
         const resultText = await callGeminiAPI(prompt);
 
-        // =======================================================
-        // TAMBAHAN "MATA-MATA" UNTUK MELIHAT RESPON ASLI DARI AI
         console.log("--- RAW AI RESPONSE ---");
         console.log(resultText);
-        // =======================================================
 
         if (resultText) {
             const lines = resultText.split('\n');
