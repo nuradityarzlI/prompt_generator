@@ -127,13 +127,9 @@ function ToggleSwitch({ id, label, checked }) {
     return `<label for="${id}" class="flex items-center cursor-pointer"><span class="mr-3 text-sm font-semibold text-gray-700">${label}</span><div class="relative"><input type="checkbox" id="${id}" class="sr-only toggle-switch" ${checked ? 'checked' : ''}><div class="block w-12 h-6 rounded-full transition ${checked ? 'bg-blue-500' : 'bg-gray-300'}"></div><div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform ${checked ? 'translate-x-6' : ''}"></div></div></label>`;
 }
 
-function OutputSection({ title, content, originalPromptForVariation = null }) {
-     const { isLoading, promptVariations } = state;
-     let variationsHTML = '';
-     if (originalPromptForVariation && promptVariations.original === originalPromptForVariation && promptVariations.variations.length > 0) {
-         variationsHTML = `<div class="mt-4 space-y-2"><h4 class="font-semibold text-gray-700">Variations:</h4>${promptVariations.variations.map(v => `<p class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 font-mono">${v}</p>`).join('')}</div>`;
-     }
-     return `<div class="mb-6"><div class="flex justify-between items-center mb-2"><h3 class="text-lg font-semibold text-gray-800">${title}</h3><button data-copy-content="${content.replace(/"/g, '&quot;')}" class="copy-button px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition">Copy</button></div><p class="p-4 bg-gray-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap font-mono">${content}</p>${originalPromptForVariation ? `<div class="mt-4"><button data-variation-prompt="${originalPromptForVariation.replace(/"/g, '&quot;')}" class="generate-variations-btn w-full sm:w-auto py-2 px-4 bg-blue-100 text-blue-700 font-semibold rounded-lg hover:bg-blue-200 transition text-sm disabled:opacity-50" ${isLoading.variations ? 'disabled' : ''}>${isLoading.variations ? 'Generating...' : 'Generate Variations ✨'}</button></div>` : ''}${variationsHTML}</div>`;
+function OutputSection({ title, content }) {
+     // Versi sederhana tanpa tombol dan logika variasi
+     return `<div class="mb-6"><div class="flex justify-between items-center mb-2"><h3 class="text-lg font-semibold text-gray-800">${title}</h3><button data-copy-content="${content.replace(/"/g, '&quot;')}" class="copy-button px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition">Copy</button></div><p class="p-4 bg-gray-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap font-mono">${content}</p></div>`;
 }
 
 function SceneAccordion() {
