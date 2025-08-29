@@ -81,7 +81,7 @@ function initializeState() {
         formState: initialFormState,
         lockedFields: initialLockState,
         humanState: initialHumanState,
-        filmState: { numScenes: 1, linkScenes: true, characterBio: ''},
+        filmState: { numScenes: 1, linkScenes: true},
         openAccordionScene: 0,
     };
 
@@ -245,31 +245,17 @@ function ProductFormExtras() {
 function FilmFormExtras() {
     const { filmState } = state;
     return `
-        <div class="mt-6 border-t pt-6">
-            <div class="mb-6">
-                <label for="film-characterBio" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                    Character Anchor / Key Visual Details
-                    ${Tooltip("Describe your main character's core visual identity. This will be used to maintain consistency across scenes.")}
-                </label>
-                <textarea
-                    id="film-characterBio"
-                    rows="3"
-                    class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800"
-                    placeholder="e.g., A weathered detective in his late 40s with a tired gaze, a perpetually wrinkled trench coat, and a silver ring on his index finger."
-                >${filmState.characterBio || ''}</textarea>
+        <div class="mt-6 border-t pt-6 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+            <div>
+                <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
+                <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                    <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
+                    <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
+                    <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
+                </select>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
-                <div>
-                    <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
-                    <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
-                        <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
-                        <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
-                        <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
-                    </select>
-                </div>
-                <div class="flex items-end mt-4 md:mt-0">
-                    ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
-                </div>
+            <div class="flex items-end">
+                ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
             </div>
         </div>`;
 }
@@ -400,8 +386,7 @@ function addEventListeners() {
     // === Kontrol Form Tambahan (Extras) ===
     document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
     document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
-    document.getElementById('film-characterBio')?.addEventListener('input', e => { state.filmState.characterBio = e.target.value; });
-
+    
     // === Tombol Aksi Utama ===
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
     document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
@@ -543,7 +528,8 @@ async function handleSubmit() {
     let textPrompts = [];
 
     if (data.mode === 'film') {
-        const characterPrefix = filmState.characterBio.trim() ? `Main character is: ${filmState.characterBio.trim()}. ` : '';
+        const characterAnchorValue = getFinalValue(formState.film.characterAnchor); 
+        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
         const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt...`;
 
         if (filmState.numScenes > 1) {
