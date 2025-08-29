@@ -535,7 +535,7 @@ async function handleSubmit() {
             let rawText = await callGeminiAPI(finalPrompt);
             if (rawText) {
                 rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim()).filter(s => s);
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(s => s);
             }
         } else {
             const finalPrompt = `${characterPrefix}${baseInstruction}\n\nParameters: ${parameterString}.`;
