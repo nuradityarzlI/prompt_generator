@@ -451,7 +451,6 @@ async function handleSubmit() {
     renderApp();
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN PALING BENAR INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
@@ -460,7 +459,6 @@ async function handleAISuggest() {
         const { mode, intensity, formState, lockedFields, humanState } = state;
 
         const labelToFieldIdMap = {};
-        // 1. Isi kamus dengan field dari mode utama yang aktif
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId;
         });
@@ -494,16 +492,12 @@ async function handleAISuggest() {
 
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
-            
-            // 2. LENGKAPI KAMUS dengan field dari Human in Shot
             humanConfig.fields.forEach(fieldId => {
                  labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
             });
-
             if (!lockedContext['Human in Shot Details']) {
                 lockedContext['Human in Shot Details'] = {};
             }
-
             humanConfig.fields.forEach(fieldId => {
                 if (lockedFields.product_human?.[fieldId]) {
                     const label = humanConfig.fieldLabels[fieldId];
@@ -512,7 +506,6 @@ async function handleAISuggest() {
                     unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
                 }
             });
-
             if (unlockedHumanFieldsLabels.length > 0) {
                 humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
             }
@@ -527,12 +520,17 @@ async function handleAISuggest() {
             ${characterAnchorInstruction}
             ${humanPromptPart}
             Return your answer as a simple key-value list, with each item on a new line. Do not add any other text, explanation, or markdown.
-            
             Here are the fields you need to suggest values for:
             ${allUnlockedLabels.join('\n')}
         `;
         
         const resultText = await callGeminiAPI(prompt);
+
+        // =======================================================
+        // TAMBAHAN "MATA-MATA" UNTUK MELIHAT RESPON ASLI DARI AI
+        console.log("--- RAW AI RESPONSE ---");
+        console.log(resultText);
+        // =======================================================
 
         if (resultText) {
             const lines = resultText.split('\n');
@@ -542,23 +540,18 @@ async function handleAISuggest() {
                     const label = parts[0].trim();
                     const value = parts.slice(1).join(':').trim();
                     const fieldId = labelToFieldIdMap[label];
-
                     if (fieldId) {
                         let idPrefix = mode;
                         let stateSlice = state.formState[mode];
-                        
                         if (PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
                             idPrefix = 'human';
                             stateSlice = state.humanState;
                         }
-
                         if (stateSlice && stateSlice[fieldId]) {
                             stateSlice[fieldId].custom = value;
                             stateSlice[fieldId].select = '';
-                            
                             const inputElement = document.getElementById(`${idPrefix}-${fieldId}-text`);
                             if (inputElement) inputElement.value = value;
-                            
                             const selectElement = document.getElementById(`${idPrefix}-${fieldId}-select`);
                             if (selectElement) selectElement.value = '';
                         }
