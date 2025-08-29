@@ -14,9 +14,55 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
-    
+
     <div id="root"></div>
 
+    <div id="help-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-gray-900 bg-opacity-70 backdrop-blur-sm">
+        <div class="w-full max-w-2xl p-6 sm:p-8 m-4 bg-white rounded-lg shadow-xl transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Cara Penggunaan Aplikasi</h2>
+                <button id="close-help-modal-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="prose max-w-none text-gray-700 max-h-[70vh] overflow-y-auto pr-2">
+                <h4>Selamat Datang di Visual Prompt Art Director!</h4>
+                <p>Aplikasi ini dirancang untuk membantu kamu membuat prompt visual yang kaya dan detail untuk AI Generator seperti seorang Art Director Profesional.</p>
+                
+                <ol>
+                    <li>
+                        <strong>Pilih Mode:</strong> Tentukan jenis visual yang ingin kamu buat (Model, Produk, atau Film).
+                    </li>
+                    <li>
+                        <strong>Pilih Creative Intensity:</strong> Tentukan gaya visual, dari yang umum (Conservative) hingga yang paling kreatif (Experimental). Pilihan dropdown akan otomatis menyesuaikan.
+                    </li>
+                    <li>
+                        <strong>Isi Detail:</strong> Pilih opsi dari setiap dropdown atau tulis arahan unik kamu sendiri di kolom "Custom text".
+                    </li>
+                    <li>
+                        <strong>Suggest with AI ✨:</strong> Bingung? Klik tombol ini. AI akan mengisi semua kolom yang tidak terkunci 🔒 dengan sugesti yang kreatif dan selaras.
+                    </li>
+                     <li>
+                        <strong>Lock Field 🔒:</strong> Klik ikon gembok untuk mengunci isian. Isian yang terkunci tidak akan berubah saat Anda menekan "Suggest with AI" atau mengubah "Intensity".
+                    </li>
+                    <li>
+                        <strong>Generate Prompts:</strong> Setelah semua terisi, klik tombol ini untuk mendapatkan hasil akhir prompt Anda yang siap di copy-paste.
+                    </li>
+                </ol>
+
+                <h4>Tips untuk Short Film Scene</h4>
+                <ul>
+                    <li><strong>Character Anchor:</strong> Gunakan kolom ini untuk mendeskripsikan karakter utama Anda secara detail (nama, umur, ciri fisik, pakaian ikonik). Deskripsi ini akan secara otomatis ditambahkan ke setiap prompt adegan untuk menjaga konsistensi visual.</li>
+                    <li><strong>Number of Scenes:</strong> Jika Anda memilih 1 adegan, outputnya akan dioptimalkan untuk satu gambar sinematik (concept art). Jika Anda memilih lebih dari 1 adegan, AI akan menulis cerita pendek, dan outputnya akan dioptimalkan untuk video.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
+    
 </body>
 </html>
