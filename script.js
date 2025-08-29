@@ -451,7 +451,6 @@ async function handleSubmit() {
     renderApp();
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
@@ -459,6 +458,7 @@ async function handleAISuggest() {
     try {
         const { mode, intensity, formState, lockedFields, humanState } = state;
 
+        // Membuat pemetaan dari Label ke fieldId untuk semua mode
         const labelToFieldIdMap = {};
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId;
@@ -467,6 +467,7 @@ async function handleAISuggest() {
         const lockedContext = {};
         const unlockedFieldsLabels = [];
 
+        // Mengumpulkan field utama yang terkunci dan tidak terkunci
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             if (lockedFields[mode]?.[fieldId]) {
                 const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
@@ -476,39 +477,66 @@ async function handleAISuggest() {
             }
         });
 
-        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-        // Buat instruksi tambahan yang dinamis jika Character Anchor perlu disugesti
+        // Instruksi tambahan (akan diisi jika kondisi terpenuhi)
         let characterAnchorInstruction = '';
-        const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor;
+        let humanPromptPart = '';
 
-        if (mode === 'film' && unlockedFieldsLabels.includes(characterAnchorLabel)) {
-            characterAnchorInstruction = `
-                For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character. 
-                Invent a name, an approximate age, and at least three distinct visual features (e.g., hairstyle, facial features, iconic clothing). 
-                Do not give a concept, give a concrete visual description.
-            `;
+        // Logika khusus jika mode adalah "film"
+        if (mode === 'film') {
+            const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor;
+            if (unlockedFieldsLabels.includes(characterAnchorLabel)) {
+                characterAnchorInstruction = `
+                    For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character. 
+                    Invent a name, an approximate age, and at least three distinct visual features (e.g., hairstyle, facial features, iconic clothing). 
+                    Do not give a concept, give a concrete visual description.
+                `;
+            }
         }
-        // --- AKHIR DARI PERBAIKAN ---
 
-        let humanPromptPart = ''; // Placeholder, bisa Anda kembangkan nanti
+        // Logika khusus jika mode adalah "product" dan "human in shot" aktif
+        if (mode === 'product' && humanState.enabled) {
+            const humanConfig = PROMPT_OPTIONS.special.humanInShot;
+            const unlockedHumanFieldsLabels = [];
+            
+            humanConfig.fields.forEach(fieldId => {
+                 labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
+            });
 
-        // Buat prompt akhir untuk AI
+            if (!lockedContext['Human in Shot Details']) {
+                lockedContext['Human in Shot Details'] = {};
+            }
+
+            humanConfig.fields.forEach(fieldId => {
+                if (lockedFields.product_human?.[fieldId]) {
+                    const label = humanConfig.fieldLabels[fieldId];
+                    lockedContext['Human in Shot Details'][label] = getFinalValue(humanState[fieldId]);
+                } else {
+                    unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
+                }
+            });
+
+            if (unlockedHumanFieldsLabels.length > 0) {
+                humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
+            }
+        }
+
+        // Membuat prompt akhir untuk AI dengan semua instruksi
         const prompt = `
             You are an expert art director.
             Given the following locked parameters: ${JSON.stringify(lockedContext)}
             Suggest coherent values for the following unlocked fields.
-            ${characterAnchorInstruction} 
+            ${characterAnchorInstruction}
             ${humanPromptPart}
-            Return your answer as a simple key-value list, with each item on a new line. Do not add any other text or explanation.
+            Return your answer as a simple key-value list, with each item on a new line. Do not add any other text, explanation, or markdown.
             
             Here are the fields you need to suggest values for:
             ${unlockedFieldsLabels.join('\n')}
+            ${(mode === 'product' && humanState.enabled && unlockedHumanFieldsLabels.length > 0) ? unlockedHumanFieldsLabels.join('\n') : ''}
         `;
         
         const resultText = await callGeminiAPI(prompt);
 
         if (resultText) {
-            // Logika parsing dan update state tetap sama
             const lines = resultText.split('\n');
             lines.forEach(line => {
                 const parts = line.split(':');
@@ -520,6 +548,7 @@ async function handleAISuggest() {
                     if (fieldId) {
                         let idPrefix = mode;
                         let stateSlice = state.formState[mode];
+                        
                         if (PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
                             idPrefix = 'human';
                             stateSlice = state.humanState;
@@ -528,8 +557,10 @@ async function handleAISuggest() {
                         if (stateSlice && stateSlice[fieldId]) {
                             stateSlice[fieldId].custom = value;
                             stateSlice[fieldId].select = '';
+                            
                             const inputElement = document.getElementById(`${idPrefix}-${fieldId}-text`);
                             if (inputElement) inputElement.value = value;
+                            
                             const selectElement = document.getElementById(`${idPrefix}-${fieldId}-select`);
                             if (selectElement) selectElement.value = '';
                         }
@@ -542,6 +573,7 @@ async function handleAISuggest() {
         alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
         state.isLoading.suggest = false;
+        // Langsung update tombol tanpa render ulang seluruh aplikasi
         const suggestBtn = document.getElementById('suggest-btn');
         if(suggestBtn) {
             suggestBtn.innerHTML = 'Suggest with AI ✨';
