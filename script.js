@@ -248,6 +248,7 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 
 function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN TERCANGGIH INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
@@ -280,29 +281,47 @@ async function handleSubmit() {
     let finalPrompt = '';
 
     if (data.mode === 'film') {
-        // Logika untuk membedakan jumlah adegan ada di sini
         if (data.numScenes > 1) {
-            // PROMPT UNTUK MULTI-ADEGAN
-            finalPrompt = `You are a senior art director. Based on these parameters: ${parameterString}, write ${data.numScenes} connected cinematic scene descriptions. Separate each scene with the exact marker "---SCENE BREAK---". Do not add any introductory text.`;
-            let generatedText = await callGeminiAPI(finalPrompt);
-            if (generatedText) {
-                generatedText = generatedText.replace(/^Here.*?:\s*\n*/i, '').trim();
-                textPrompts = generatedText.split('---SCENE BREAK---').map(s => s.trim()).filter(s => s);
+            // --- INI BAGIAN UTAMA PERBAIKANNYA ---
+            // Minta AI untuk memberikan 2 jenis output dalam format JSON
+            finalPrompt = `
+                You are a senior art director and writer. Based on these parameters: ${parameterString}, write ${data.numScenes} connected cinematic scene descriptions.
+                Return your response as a single, valid JSON array. Each object in the array must have two keys:
+                1. "scene_description": A narrative paragraph describing the scene's action and dialogue, suitable for a video script.
+                2. "image_prompt": A dense, single-paragraph text-to-image prompt describing the most iconic 'frozen moment' from that scene. This prompt should be keyword-rich, focus ONLY on static visual details, and contain no camera movement or dialogue.
+                
+                Only return the raw JSON array.
+            `;
+            const resultJson = await callGeminiAPI(finalPrompt, { responseMimeType: "application/json" });
+            if (resultJson) {
+                try {
+                    // AI akan mengembalikan array of objects, kita langsung proses
+                    const scenesData = JSON.parse(resultJson);
+                    // Kita akan map data ini ke format state.outputs
+                    state.outputs = scenesData.map(scene => {
+                        const videoPrompts = generateVideoPrompts(data, scene.scene_description);
+                        return { 
+                            text: scene.image_prompt, // Teks untuk gambar diambil dari key 'image_prompt'
+                            videoLong: videoPrompts.long, 
+                            videoShort: videoPrompts.short 
+                        };
+                    });
+                } catch (e) {
+                    console.error("Failed to parse multi-scene JSON from AI:", e);
+                    alert("AI memberikan respons, tapi formatnya tidak sesuai. Coba lagi.");
+                }
             }
         } else {
-            // PROMPT UNTUK SINGLE-ADEGAN (DIOPTIMALKAN UNTUK GAMBAR)
+            // Logika untuk single-adegan (sudah benar, tetap dipertahankan)
             finalPrompt = `
-                You are a master cinematic concept artist. Your task is to synthesize the following film scene parameters into a single, powerful text-to-image prompt.
-                Describe the scene as if it were a single, frozen, epic movie still or a piece of high-quality concept art.
-                Focus ONLY on visual details: the characters' appearance and pose, the environment, the lighting, the colors, and the overall mood.
-                DO NOT describe camera movement or a sequence of actions over time. The entire description must be for a single moment.
-                The final output should be a dense, descriptive paragraph suitable for an image generation AI.
+                You are a master cinematic concept artist. Your task is to synthesize the following film scene parameters into a single, powerful text-to-image prompt...
                 Parameters: ${parameterString}.
             `;
             const generatedText = await callGeminiAPI(finalPrompt);
             if (generatedText) {
                 let cleanedText = generatedText.replace(/^Here's.*?:\s*\n*/i, '').trim();
-                textPrompts = [cleanedText];
+                const videoPrompts = generateVideoPrompts(data, cleanedText);
+                state.outputs = [{ text: cleanedText, videoLong: videoPrompts.long, videoShort: videoPrompts.short }];
             }
         }
     } else { 
@@ -317,15 +336,10 @@ async function handleSubmit() {
             else if (firstColonIndex !== -1) { startIndex = firstColonIndex + 1; } 
             else if (firstQuoteIndex !== -1) { startIndex = firstQuoteIndex; }
             if (startIndex !== -1) { rawText = rawText.substring(startIndex).trim(); }
-            textPrompts = [rawText];
+            
+            const videoPrompts = generateVideoPrompts(data, rawText);
+            state.outputs = [{ text: rawText, videoLong: videoPrompts.long, videoShort: videoPrompts.short }];
         }
-    }
-
-    if (textPrompts.length > 0) {
-        state.outputs = textPrompts.map(text => {
-            const videoPrompts = generateVideoPrompts(data, text.trim());
-            return { text: text.trim(), videoLong: videoPrompts.long, videoShort: videoPrompts.short };
-        });
     }
 
     state.isLoading.generate = false;
