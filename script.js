@@ -517,12 +517,12 @@ async function handleSubmit() {
     }
 
     const cleanAIText = (rawText) => {
-        if (!rawText) return '';
-        let cleaned = rawText.replace(/^Here.*?:\s*\n*/i, '');
-        cleaned = cleaned.split('\n\n')[0];
-        // TAMBAHAN: Hapus tanda petik di awal dan akhir
-        cleaned = cleaned.replace(/^"|"$|^\s*"/g, '').trim();
-        return cleaned;
+    if (!rawText) return '';
+    // Hapus berbagai macam kalimat pembuka yang umum (mencari titik dua atau baris baru)
+    let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
+    // Hapus baris kosong di awal dan kutipan di awal/akhir
+    cleaned = cleaned.trim().replace(/^"|"$/g, '');
+    return cleaned;
     };
 
     let textPrompts = [];
@@ -547,7 +547,7 @@ async function handleSubmit() {
             }
         }
     } else {
-        const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
+        const finalPrompt = `You are an expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
             textPrompts = [cleanAIText(rawText)];
@@ -697,6 +697,8 @@ function generateVideoPrompts(data, imagePrompt) {
     // --- INI BAGIAN UTAMA PERBAIKANNYA ---
     // Kita ambil semua parameter yang relevan dari data
     const { cameraMovement, lighting, mood, sceneType, expression, cameraAngle } = data;
+    const cleanImagePrompt = imagePrompt.includes("Here's a synthesized text-to-image prompt") ? "A beautifully generated image based on user parameters." : imagePrompt;
+
 
     if (data.mode === 'model') {
         // Format naratif untuk mode Model
