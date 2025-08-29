@@ -240,22 +240,41 @@ function ProductFormExtras() {
         </div>`;
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 function FilmFormExtras() {
-    const { filmState } = state;
+    const { filmState, formState, lockedFields } = state;
+    const mode = 'film';
+    const fieldId = 'characterAnchor';
+    const characterAnchorState = formState[mode]?.[fieldId] || { custom: '' };
+    const isLocked = lockedFields[mode]?.[fieldId] || false;
+
     return `
-        <div class="mt-6 border-t pt-6 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
-            <div>
-                <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
-                <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
-                    <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
-                    <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
-                    <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
-                </select>
+        <div class="mt-6 border-t pt-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+                <div>
+                    <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
+                    <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                        <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
+                        <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
+                        <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
+                    </select>
+                </div>
+                <div class="flex items-end mt-4 md:mt-0">
+                    ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
+                </div>
             </div>
-            <div class="flex items-end">
-                ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
+            <div class="mt-6">
+                <div class="flex items-center justify-between mb-2">
+                    <label for="film-characterAnchor-text" class="flex items-center text-sm font-semibold text-gray-700">
+                        ${PROMPT_OPTIONS.film.fieldLabels.characterAnchor}
+                        ${Tooltip("Tulis deskripsi detail karakter utama di sini untuk menjaga konsistensi di setiap adegan.")}
+                    </label>
+                    <button type="button" data-lock-mode="${mode}" data-lock-field="${fieldId}" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(isLocked)}</button>
+                </div>
+                <textarea id="film-characterAnchor-text" rows="3" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg" placeholder="Contoh: Anna, a 21 year old woman with sharp green eyes..." ${isLocked ? 'readonly' : ''}>${characterAnchorState.custom}</textarea>
             </div>
-        </div>`;
+        </div>
+    `;
 }
 
 function renderApp() {
@@ -433,13 +452,26 @@ function addEventListeners() {
     });
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 function handleFormChange(e) {
     const target = e.target;
     const id = target.id.replace('-select', '').replace('-text', '');
     const [mode, ...fieldIdParts] = id.split('-');
     const fieldId = fieldIdParts.join('-');
-    let stateSlice = (mode === 'human') ? state.humanState : state.formState[mode];
 
+    // Logika khusus untuk textarea Character Anchor
+    if (id === 'film-characterAnchor') {
+        state.formState.film.characterAnchor.custom = target.value;
+        return; // Selesai, jangan jalankan kode di bawahnya
+    }
+
+    let stateSlice;
+    if (mode === 'human') {
+        stateSlice = state.humanState;
+    } else {
+        stateSlice = state.formState[mode];
+    }
+    
     if (!stateSlice || !stateSlice[fieldId]) return;
 
     if (target.classList.contains('form-select')) {
