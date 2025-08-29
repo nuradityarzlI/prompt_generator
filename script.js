@@ -163,15 +163,55 @@ function renderApp() {
     const leftFields = fields.slice(0, middleIndex);
     const rightFields = fields.slice(middleIndex);
     const renderFields = (fieldList) => fieldList.map(fieldId => FormField({ id: `${mode}-${fieldId}`, mode, fieldId, label: modeConfig.fieldLabels[fieldId], options: modeConfig[intensity]?.[fieldId], value: formState[mode]?.[fieldId]?.select || '', customValue: formState[mode]?.[fieldId]?.custom || '', isLocked: lockedFields[mode]?.[fieldId] })).join('');
+    
     let extrasHTML = '';
     if (mode === 'product') extrasHTML = ProductFormExtras();
     if (mode === 'film') extrasHTML = FilmFormExtras();
+    
     let outputHTML = '';
     if(outputs) {
         if (outputs.length > 1) { outputHTML = SceneAccordion(); } 
-        else if (outputs.length === 1) { const scene = outputs[0]; outputHTML = `<div>${OutputSection({ title: "Text Prompt", content: scene.text, originalPromptForVariation: scene.text })}<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}</div></div>`; }
+        else if (outputs.length === 1) { const scene = outputs[0]; outputHTML = `<div>${OutputSection({ title: "Text Prompt", content: scene.text })}</div>`; }
     }
-    const appHTML = `<div class="w-full max-w-4xl mx-auto p-4 sm:p-6"><main class="bg-white rounded-2xl shadow-xl p-6 sm:p-10"><header class="text-center mb-8"><h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Professional Visual Prompt Art Director</h1><p class="text-gray-500 mt-1">by HeyReena Studio</p></header><div class="space-y-6"><div><label class="text-sm font-semibold text-gray-700 mb-2 block">Mode</label>${SegmentedControl({ id: 'mode-selector', options: [{ value: 'model', label: 'Model Photography' }, { value: 'product', label: 'Product Photography' }, { value: 'film', label: 'Short Film Scene' }], selected: mode })}</div><div><label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}</div></div><div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8"><div>${renderFields(leftFields)}</div><div>${renderFields(rightFields)}</div></div>${extrasHTML}<div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4"><button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>${isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}</button><button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" ${isLoading.generate ? 'disabled' : ''}>${isLoading.generate ? 'Generating...' : 'Generate Prompts'}</button><button id="clear-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">Clear All</button></div></main>${outputHTML ? `<section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">${outputHTML}</section>` : ''}</div>`;
+
+    const appHTML = `
+        <div class="w-full max-w-4xl mx-auto p-4 sm:p-6">
+            <main class="bg-white rounded-2xl shadow-xl p-6 sm:p-10">
+                
+                <header class="text-center mb-8 relative">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Professional Visual Prompt Art Director</h1>
+                    <p class="text-gray-500 mt-1">by HeyReena Studio</p>
+                    
+                    <button id="open-help-modal-btn" title="Cara Penggunaan" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </header>
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700 mb-2 block">Mode</label>
+                        ${SegmentedControl({ id: 'mode-selector', options: [{ value: 'model', label: 'Model Photography' }, { value: 'product', label: 'Product Photography' }, { value: 'film', label: 'Short Film Scene' }], selected: mode })}
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>
+                        ${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}
+                    </div>
+                </div>
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+                    <div>${renderFields(leftFields)}</div>
+                    <div>${renderFields(rightFields)}</div>
+                </div>
+                ${extrasHTML}
+                <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>${isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}</button>
+                    <button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" ${isLoading.generate ? 'disabled' : ''}>${isLoading.generate ? 'Generating...' : 'Generate Prompts'}</button>
+                    <button id="clear-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">Clear All</button>
+                </div>
+            </main>
+            ${outputHTML ? `<section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">${outputHTML}</section>` : ''}
+        </div>
+    `;
     root.innerHTML = appHTML;
     addEventListeners();
 }
@@ -180,19 +220,80 @@ function renderApp() {
 // EVENT LISTENERS & HANDLERS
 // =======================================================================
 function addEventListeners() {
-    document.getElementById('mode-selector')?.addEventListener('click', e => { const value = e.target.dataset.value; if (value && state.mode !== value) { state.mode = value; updateDefaults(); renderApp(); } });
-    document.getElementById('intensity-selector')?.addEventListener('click', e => { const value = e.target.dataset.value; if (value && state.intensity !== value) { state.intensity = value; updateDefaults(); renderApp(); } });
+    // === Kontrol Utama (Mode & Intensity) ===
+    document.getElementById('mode-selector')?.addEventListener('click', e => { 
+        const value = e.target.dataset.value; 
+        if (value && state.mode !== value) { 
+            state.mode = value; 
+            updateDefaults(); 
+            renderApp(); 
+        } 
+    });
+
+    document.getElementById('intensity-selector')?.addEventListener('click', e => { 
+        const value = e.target.dataset.value; 
+        if (value && state.intensity !== value) { 
+            state.intensity = value; 
+            updateDefaults(); 
+            renderApp(); 
+        } 
+    });
+
+    // === Kontrol Form Dinamis ===
     document.querySelectorAll('.form-select').forEach(el => el.addEventListener('change', handleFormChange));
     document.querySelectorAll('.form-custom-text').forEach(el => el.addEventListener('input', handleFormChange));
     document.querySelectorAll('.lock-button').forEach(el => el.addEventListener('click', handleLockToggle));
+    
+    // === Kontrol Form Tambahan (Extras) ===
     document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
     document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
+    document.getElementById('film-characterBio')?.addEventListener('input', e => { state.filmState.characterBio = e.target.value; });
+
+    // === Tombol Aksi Utama ===
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
     document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
-    document.getElementById('clear-btn')?.addEventListener('click', () => { initializeState(); renderApp(); });
-    document.querySelectorAll('.copy-button').forEach(button => button.addEventListener('click', e => { const content = e.target.dataset.copyContent.replace(/&quot;/g, '"'); navigator.clipboard.writeText(content).then(() => { e.target.textContent = 'Copied!'; setTimeout(() => { e.target.textContent = 'Copy'; }, 2000); }); }));
-    document.querySelectorAll('.generate-variations-btn').forEach(btn => btn.addEventListener('click', e => handleGenerateVariations(e.target.dataset.variationPrompt)));
-    document.querySelectorAll('.accordion-toggle').forEach(btn => btn.addEventListener('click', e => { const index = Number(e.currentTarget.dataset.sceneIndex); state.openAccordionScene = state.openAccordionScene === index ? null : index; renderApp(); }));
+    document.getElementById('clear-btn')?.addEventListener('click', () => { 
+        initializeState(); 
+        renderApp(); 
+    });
+    
+    // === Kontrol di Bagian Output ===
+    document.querySelectorAll('.copy-button').forEach(button => {
+        button.addEventListener('click', e => {
+            const content = e.target.dataset.copyContent.replace(/&quot;/g, '"');
+            navigator.clipboard.writeText(content).then(() => {
+                e.target.textContent = 'Copied!';
+                setTimeout(() => { e.target.textContent = 'Copy'; }, 2000);
+            });
+        });
+    });
+
+    document.querySelectorAll('.accordion-toggle').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const index = Number(e.currentTarget.dataset.sceneIndex);
+            state.openAccordionScene = state.openAccordionScene === index ? null : index;
+            renderApp();
+        });
+    });
+
+    // === Kontrol Pop-up Bantuan ===
+    const helpModal = document.getElementById('help-modal');
+    const openHelpBtn = document.getElementById('open-help-modal-btn');
+    const closeHelpBtn = document.getElementById('close-help-modal-btn');
+
+    openHelpBtn?.addEventListener('click', () => {
+        helpModal?.classList.remove('hidden');
+    });
+
+    closeHelpBtn?.addEventListener('click', () => {
+        helpModal?.classList.add('hidden');
+    });
+
+    helpModal?.addEventListener('click', (e) => {
+        if (e.target.id === 'help-modal') {
+            helpModal.classList.add('hidden');
+        }
+    });
 }
 
 function handleFormChange(e) {
