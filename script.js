@@ -331,7 +331,7 @@ async function handleSubmit() {
     renderApp();
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
@@ -356,36 +356,28 @@ async function handleAISuggest() {
             }
         });
 
-        let humanPromptPart = '';
-        if (mode === 'product' && humanState.enabled) {
-            const humanConfig = PROMPT_OPTIONS.special.humanInShot;
-            const unlockedHumanFieldsLabels = [];
-            
-            humanConfig.fields.forEach(fieldId => {
-                 labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
-            });
+        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
+        // Buat instruksi tambahan yang dinamis jika Character Anchor perlu disugesti
+        let characterAnchorInstruction = '';
+        const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor;
 
-            humanConfig.fields.forEach(fieldId => {
-                if (lockedFields.product_human?.[fieldId]) {
-                    const label = humanConfig.fieldLabels[fieldId];
-                    if (!lockedContext['Human in Shot Details']) {
-                        lockedContext['Human in Shot Details'] = {};
-                    }
-                    lockedContext['Human in Shot Details'][label] = getFinalValue(humanState[fieldId]);
-                } else {
-                    unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
-                }
-            });
-
-            if (unlockedHumanFieldsLabels.length > 0) {
-                humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
-            }
+        if (mode === 'film' && unlockedFieldsLabels.includes(characterAnchorLabel)) {
+            characterAnchorInstruction = `
+                For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character. 
+                Invent a name, an approximate age, and at least three distinct visual features (e.g., hairstyle, facial features, iconic clothing). 
+                Do not give a concept, give a concrete visual description.
+            `;
         }
+        // --- AKHIR DARI PERBAIKAN ---
 
+        let humanPromptPart = ''; // Placeholder, bisa Anda kembangkan nanti
+
+        // Buat prompt akhir untuk AI
         const prompt = `
             You are an expert art director.
             Given the following locked parameters: ${JSON.stringify(lockedContext)}
             Suggest coherent values for the following unlocked fields.
+            ${characterAnchorInstruction} 
             ${humanPromptPart}
             Return your answer as a simple key-value list, with each item on a new line. Do not add any other text or explanation.
             
@@ -396,6 +388,7 @@ async function handleAISuggest() {
         const resultText = await callGeminiAPI(prompt);
 
         if (resultText) {
+            // Logika parsing dan update state tetap sama
             const lines = resultText.split('\n');
             lines.forEach(line => {
                 const parts = line.split(':');
@@ -407,28 +400,18 @@ async function handleAISuggest() {
                     if (fieldId) {
                         let idPrefix = mode;
                         let stateSlice = state.formState[mode];
-
-                        // Cek apakah field ini milik form utama atau form human
                         if (PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
                             idPrefix = 'human';
                             stateSlice = state.humanState;
                         }
 
                         if (stateSlice && stateSlice[fieldId]) {
-                            // 1. Update state internal aplikasi
                             stateSlice[fieldId].custom = value;
                             stateSlice[fieldId].select = '';
-                            
-                            // --- INI BAGIAN PERBAIKANNYA ---
-                            // 2. Update tampilan visual input text secara langsung
                             const inputElement = document.getElementById(`${idPrefix}-${fieldId}-text`);
-                            if (inputElement) {
-                                inputElement.value = value;
-                            }
+                            if (inputElement) inputElement.value = value;
                             const selectElement = document.getElementById(`${idPrefix}-${fieldId}-select`);
-                            if (selectElement) {
-                                selectElement.value = ''; // Kosongkan juga dropdownnya
-                            }
+                            if (selectElement) selectElement.value = '';
                         }
                     }
                 }
@@ -439,9 +422,6 @@ async function handleAISuggest() {
         alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
         state.isLoading.suggest = false;
-        // Kita tidak perlu renderApp() lagi di sini karena sudah update manual,
-        // ini membuat input tidak ter-reset.
-        // Cukup update tombol loadingnya saja.
         const suggestBtn = document.getElementById('suggest-btn');
         if(suggestBtn) {
             suggestBtn.innerHTML = 'Suggest with AI ✨';
@@ -450,8 +430,13 @@ async function handleAISuggest() {
     }
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 function generateVideoPrompts(data, sceneText = null) {
     let long = '', short = '';
+    
+    // TAMBAHAN: Ambil deskripsi karakter utama dari data
+    const characterPrefix = (data.mode === 'film' && data.characterAnchor) ? `${data.characterAnchor}. ` : '';
+
     if (data.mode === 'model') {
         const { mainSubject, background, cameraAngle, lighting, expression, mood, ethnicity, styling } = data;
         long = `Scene: In a ${background}, a ${mainSubject} is styled in ${styling}. Camera: ${cameraAngle}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The shot should capture a sense of ${expression}. Character: A ${ethnicity} subject.`;
@@ -463,8 +448,9 @@ function generateVideoPrompts(data, sceneText = null) {
         short = `${capitalize(productType)} on a ${surface}. ${composition} with ${lightingStyle}.${humanInShot ? ` A ${humanInShot.personRole} interacts.` : ''} Mood: ${mood}.`;
     } else if (data.mode === 'film') {
         const { sceneType, setting, cameraMovement, timeOfDay, mood, characters } = data;
-        long = `Scene: ${sceneText || `A ${sceneType} in a ${setting} featuring ${characters}.`} Camera: ${cameraMovement}. Lighting: ${timeOfDay}. Aesthetic: ${mood}. Flow: Build emotion, culminating in a pivotal moment.`;
-        short = `${capitalize(sceneType)} in a ${setting}. ${cameraMovement} with ${timeOfDay} lighting. Mood: ${mood}.`;
+        // TAMBAHAN: Sisipkan characterPrefix di awal prompt video
+        long = `Scene: ${characterPrefix}${sceneText || `A ${sceneType} in a ${setting} featuring ${characters}.`} Camera: ${cameraMovement}. Lighting: ${timeOfDay}. Aesthetic: ${mood}. Flow: Build emotion, culminating in a pivotal moment.`;
+        short = `${characterPrefix}${capitalize(sceneType)} in a ${setting}. ${cameraMovement} with ${timeOfDay} lighting. Mood: ${mood}.`;
     }
     return { long, short };
 };
