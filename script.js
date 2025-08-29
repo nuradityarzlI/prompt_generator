@@ -376,21 +376,26 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 
 function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
     state.promptVariations = { original: null, variations: [] };
     renderApp();
 
-    const { mode, formState, humanState, filmState } = state;
-    const data = { ...state, ...filmState };
+    const { mode, intensity, formState, humanState, filmState } = state;
+    const data = { mode, intensity };
     PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
+    
     if (mode === 'product' && humanState.enabled) {
         data.humanInShot = {};
         PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
     }
-    
+    if (mode === 'film') {
+        data.numScenes = filmState.numScenes;
+        data.linkScenes = filmState.linkScenes;
+        data.characterAnchor = formState.film.characterAnchor.custom;
+    }
+
     let parameterString = PROMPT_OPTIONS[mode].fields
         .filter(field => field !== 'characterAnchor')
         .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
@@ -401,47 +406,44 @@ async function handleSubmit() {
         parameterString += `. Human in shot details: ${humanParams}`;
     }
 
-    const cleanAIText = (rawText) => {
-        if (!rawText) return '';
-        let cleaned = rawText.replace(/^Here.*?:\s*\n*/i, '');
-        cleaned = cleaned.split('\n\n')[0];
-        // TAMBAHAN: Hapus tanda petik di awal dan akhir
-        cleaned = cleaned.replace(/^"|"$|^\s*"/g, '').trim();
-        return cleaned;
-    };
-
     let textPrompts = [];
     
     if (data.mode === 'film') {
-        const characterPrefix = filmState.characterBio.trim() ? `Main character is: ${filmState.characterBio.trim()}. ` : '';
-        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt...`;
+        const characterPrefix = data.characterAnchor ? `Main character is: "${data.characterAnchor}". ` : '';
+        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. The prompt must describe a single, frozen, epic movie still. It must be a dense, descriptive paragraph, keyword-rich, and suitable for an image generation AI. Focus ONLY on visual details and DO NOT describe camera movement. The prompt must start with the main character description if provided.`;
 
-        if (filmState.numScenes > 1) {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on...: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts... Separate each prompt with "---SCENE BREAK---".`;
+        if (data.numScenes > 1) {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on the following additional parameters: ${parameterString}, write ${data.numScenes} connected text-to-image prompts that show a clear story progression. Separate each prompt with the exact marker "---SCENE BREAK---".`;
             let rawText = await callGeminiAPI(finalPrompt);
             if (rawText) {
                 rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim());
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim()).filter(s => s);
             }
         } else {
             const finalPrompt = `${characterPrefix}${baseInstruction}\n\nParameters: ${parameterString}.`;
             let rawText = await callGeminiAPI(finalPrompt);
             if (rawText) {
-                textPrompts = [cleanAIText(rawText)];
+                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = [rawText];
             }
         }
     } else { 
         const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
-            textPrompts = [cleanAIText(rawText)];
+            rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+            textPrompts = [rawText];
         }
     }
 
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
             const videoPrompts = generateVideoPrompts(data, imagePrompt);
-            return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
+            return { 
+                text: imagePrompt, 
+                videoLong: videoPrompts.long, 
+                videoShort: videoPrompts.short 
+            };
         });
     }
 
@@ -458,6 +460,7 @@ async function handleAISuggest() {
         const { mode, intensity, formState, lockedFields, humanState } = state;
 
         const labelToFieldIdMap = {};
+        // 1. Isi kamus dengan field dari mode utama yang aktif
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId;
         });
@@ -491,12 +494,16 @@ async function handleAISuggest() {
 
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
+            
+            // 2. LENGKAPI KAMUS dengan field dari Human in Shot
             humanConfig.fields.forEach(fieldId => {
                  labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
             });
+
             if (!lockedContext['Human in Shot Details']) {
                 lockedContext['Human in Shot Details'] = {};
             }
+
             humanConfig.fields.forEach(fieldId => {
                 if (lockedFields.product_human?.[fieldId]) {
                     const label = humanConfig.fieldLabels[fieldId];
@@ -505,6 +512,7 @@ async function handleAISuggest() {
                     unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
                 }
             });
+
             if (unlockedHumanFieldsLabels.length > 0) {
                 humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
             }
@@ -519,14 +527,12 @@ async function handleAISuggest() {
             ${characterAnchorInstruction}
             ${humanPromptPart}
             Return your answer as a simple key-value list, with each item on a new line. Do not add any other text, explanation, or markdown.
+            
             Here are the fields you need to suggest values for:
             ${allUnlockedLabels.join('\n')}
         `;
         
         const resultText = await callGeminiAPI(prompt);
-
-        console.log("--- RAW AI RESPONSE ---");
-        console.log(resultText);
 
         if (resultText) {
             const lines = resultText.split('\n');
@@ -536,13 +542,12 @@ async function handleAISuggest() {
                     const label = parts[0].trim();
                     const value = parts.slice(1).join(':').trim();
                     const fieldId = labelToFieldIdMap[label];
+
                     if (fieldId) {
                         let idPrefix = mode;
                         let stateSlice = state.formState[mode];
                         
-                        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-                        // Tambahkan pengecekan mode 'product' dan humanState.enabled
-                        if (mode === 'product' && humanState.enabled && PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
+                        if (PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
                             idPrefix = 'human';
                             stateSlice = state.humanState;
                         }
