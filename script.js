@@ -81,7 +81,7 @@ function initializeState() {
         formState: initialFormState,
         lockedFields: initialLockState,
         humanState: initialHumanState,
-        filmState: { numScenes: 1, linkScenes: true, characterBio: '' },
+        filmState: { numScenes: 1, linkScenes: true},
         openAccordionScene: 0,
     };
 
