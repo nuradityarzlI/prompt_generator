@@ -244,7 +244,6 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 
 function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
@@ -262,9 +261,11 @@ async function handleSubmit() {
     if (mode === 'film') {
         data.numScenes = filmState.numScenes;
         data.linkScenes = filmState.linkScenes;
+        data.characterAnchor = formState.film.characterAnchor.custom;
     }
 
     let parameterString = PROMPT_OPTIONS[mode].fields
+        .filter(field => field !== 'characterAnchor')
         .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
         .join(', ');
 
@@ -273,54 +274,45 @@ async function handleSubmit() {
         parameterString += `. Human in shot details: ${humanParams}`;
     }
 
+    let textPrompts = [];
+    
     if (data.mode === 'film') {
+        const characterPrefix = data.characterAnchor ? `Main character is: "${data.characterAnchor}". ` : '';
+        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. The prompt must describe a single, frozen, epic movie still. It must be a dense, descriptive paragraph, keyword-rich, and suitable for an image generation AI. Focus ONLY on visual details and DO NOT describe camera movement. The prompt must start with the main character description if provided.`;
+
         if (data.numScenes > 1) {
-            // Logika untuk multi-adegan (sudah sangat baik, tidak diubah)
-            const finalPrompt = `
-                You are a senior art director and writer. Based on these parameters: ${parameterString}, write ${data.numScenes} connected cinematic scene descriptions.
-                Return your response as a single, valid JSON array. Each object in the array must have two keys:
-                1. "scene_description": A narrative paragraph for a video script.
-                2. "image_prompt": A dense, single-paragraph text-to-image prompt for the most iconic 'frozen moment' of that scene.
-                Only return the raw JSON array.
-            `;
-            const resultJson = await callGeminiAPI(finalPrompt, { responseMimeType: "application/json" });
-            if (resultJson) {
-                try {
-                    const scenesData = JSON.parse(resultJson);
-                    state.outputs = scenesData.map(scene => {
-                        const videoPrompts = generateVideoPrompts(data, scene.scene_description);
-                        return { text: scene.image_prompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
-                    });
-                } catch (e) { console.error("Failed to parse multi-scene JSON from AI:", e); }
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on the following additional parameters: ${parameterString}, write ${data.numScenes} connected text-to-image prompts that show a clear story progression. Separate each prompt with the exact marker "---SCENE BREAK---".`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim()).filter(s => s);
             }
         } else {
-            // --- INI BAGIAN PERBAIKANNYA ---
-            // PROMPT UNTUK SINGLE-ADEGAN (SEKARANG LEBIH CERDAS)
-            const finalPrompt = `
-                You are a senior art director and writer. Based on these parameters: ${parameterString}, write a single cinematic scene description.
-                Return your response as a single, valid JSON object with two keys:
-                1. "scene_description": A narrative paragraph for a video script.
-                2. "image_prompt": A dense, single-paragraph text-to-image prompt for the most iconic 'frozen moment' from that scene.
-                Only return the raw JSON object.
-            `;
-            const resultJson = await callGeminiAPI(finalPrompt, { responseMimeType: "application/json" });
-            if (resultJson) {
-                try {
-                    const scene = JSON.parse(resultJson);
-                    const videoPrompts = generateVideoPrompts(data, scene.scene_description);
-                    state.outputs = [{ text: scene.image_prompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short }];
-                } catch (e) { console.error("Failed to parse single-scene JSON from AI:", e); }
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nParameters: ${parameterString}.`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = [rawText];
             }
         }
     } else { 
-        // Untuk mode model dan product
         const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
             rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-            const videoPrompts = generateVideoPrompts(data, rawText);
-            state.outputs = [{ text: rawText, videoLong: videoPrompts.long, videoShort: videoPrompts.short }];
+            textPrompts = [rawText];
         }
+    }
+
+    if (textPrompts.length > 0) {
+        state.outputs = textPrompts.map(imagePrompt => {
+            const videoPrompts = generateVideoPrompts(data, imagePrompt);
+            return { 
+                text: imagePrompt, 
+                videoLong: videoPrompts.long, 
+                videoShort: videoPrompts.short 
+            };
+        });
     }
 
     state.isLoading.generate = false;
@@ -426,28 +418,31 @@ async function handleAISuggest() {
     }
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
-function generateVideoPrompts(data, sceneText = null) {
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN PALING OPTIMAL INI
+function generateVideoPrompts(data, imagePrompt) {
     let long = '', short = '';
-    
-    // TAMBAHAN: Ambil deskripsi karakter utama dari data
-    const characterPrefix = (data.mode === 'film' && data.characterAnchor) ? `${data.characterAnchor}. ` : '';
 
+    // Logika untuk mode 'model' dan 'product' bisa tetap sama
     if (data.mode === 'model') {
-        const { mainSubject, background, cameraAngle, lighting, expression, mood, ethnicity, styling } = data;
-        long = `Scene: In a ${background}, a ${mainSubject} is styled in ${styling}. Camera: ${cameraAngle}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The shot should capture a sense of ${expression}. Character: A ${ethnicity} subject.`;
-        short = `${capitalize(mainSubject)} in ${background}. ${cameraAngle}, lit with ${lighting}. ${expression} with ${mood} elegance.`;
+        const { cameraAngle, expression, mood } = data;
+        long = `The camera angle is ${cameraAngle}. The subject should show an expression of ${expression}, with a mood of ${mood}.`;
+        short = `${cameraAngle}, ${expression}, ${mood}`;
     } else if (data.mode === 'product') {
-        const { productType, surface, composition, lightingStyle, mood, background, humanInShot } = data;
-        let humanDesc = humanInShot ? ` A ${humanInShot.personRole} is ${humanInShot.interaction} the product.` : '';
-        long = `Scene: A ${productType} is on a ${surface}.${humanDesc} Camera: ${composition}. Lighting: ${lightingStyle} against a ${background}. Aesthetic: ${mood}. Flow: Highlight key features, ending on a hero shot.`;
-        short = `${capitalize(productType)} on a ${surface}. ${composition} with ${lightingStyle}.${humanInShot ? ` A ${humanInShot.personRole} interacts.` : ''} Mood: ${mood}.`;
+        const { composition, extraElements, mood } = data;
+        long = `Animate this product shot with a ${composition} style. Add visual effects like ${extraElements}. The mood is ${mood}.`;
+        short = `Animate, ${extraElements}, ${mood}`;
     } else if (data.mode === 'film') {
-        const { sceneType, setting, cameraMovement, timeOfDay, mood, characters } = data;
-        // TAMBAHAN: Sisipkan characterPrefix di awal prompt video
-        long = `Scene: ${characterPrefix}${sceneText || `A ${sceneType} in a ${setting} featuring ${characters}.`} Camera: ${cameraMovement}. Lighting: ${timeOfDay}. Aesthetic: ${mood}. Flow: Build emotion, culminating in a pivotal moment.`;
-        short = `${characterPrefix}${capitalize(sceneType)} in a ${setting}. ${cameraMovement} with ${timeOfDay} lighting. Mood: ${mood}.`;
+        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
+        // Kita ambil semua parameter yang relevan untuk PERGERAKAN
+        const { cameraMovement, mood, expression, sceneType } = data;
+
+        // Buat prompt video panjang yang fokus pada perintah animasi
+        long = `The camera performs a ${cameraMovement}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}, fitting for a ${sceneType}.`;
+
+        // Prompt video pendek adalah kata kunci gerakan
+        short = `${cameraMovement}, ${expression}, cinematic animation, ${mood}`;
     }
+    
     return { long, short };
 };
 
