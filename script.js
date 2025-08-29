@@ -117,6 +117,7 @@ function SegmentedControl({ options, selected, id }) {
     return `<div id="${id}" class="flex p-1 bg-gray-100 rounded-lg">${options.map(({ value, label }) => `<button type="button" data-value="${value}" class="flex-1 py-2 px-1 text-sm font-semibold rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selected === value ? 'bg-white text-gray-800 shadow-sm' : 'bg-transparent text-gray-500 hover:bg-gray-200'}">${label}</button>`).join('')}</div>`;
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 function FormField({ id, mode, fieldId, label, options, value, customValue, isLocked = false }) {
     const hasValue = customValue.trim() || value;
     const showWarning = isLocked && !hasValue;
@@ -167,9 +168,33 @@ function ProductFormExtras() {
     return `<div class="mt-6 border-t pt-6">${ToggleSwitch({id: 'human-in-shot-toggle', label: 'Human in Product Shot', checked: humanState.enabled})}${fieldsHTML}</div>`;
 }
 
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 function FilmFormExtras() {
     const { filmState } = state;
-    return `<div class="mt-6 border-t pt-6 grid grid-cols-1 md:grid-cols-2 md:gap-x-8"><div><label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label><select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"><option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option><option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option><option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option></select></div><div class="flex items-end">${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}</div></div>`;
+    return `
+        <div class="mt-6 border-t pt-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+                <div>
+                    <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
+                    <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                        <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
+                        <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
+                        <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
+                    </select>
+                </div>
+                <div class="flex items-end mt-4 md:mt-0">
+                    ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
+                </div>
+            </div>
+            <div class="mt-6">
+                <label for="film-characterAnchor-text" class="text-sm font-semibold text-gray-700 mb-2 block">
+                    Character Anchor / Key Visual Details
+                    ${Tooltip("Tulis deskripsi detail karakter utama di sini untuk menjaga konsistensi di setiap adegan.")}
+                </label>
+                <textarea id="film-characterAnchor-text" rows="3" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg" placeholder="Contoh: Anna, a 21 year old woman with sharp green eyes and a long black trench coat...">${state.formState.film.characterAnchor.custom || ''}</textarea>
+            </div>
+        </div>
+    `;
 }
 
 function renderApp() {
