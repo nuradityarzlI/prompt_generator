@@ -184,7 +184,6 @@ function renderApp() {
     const modeConfig = PROMPT_OPTIONS[mode];
     if (!modeConfig) return console.error("Invalid mode selected:", mode);
     
-    // Filter out 'characterAnchor' before rendering the main grid
     const fieldsToRender = modeConfig.fields.filter(f => f !== 'characterAnchor');
     const middleIndex = Math.ceil(fieldsToRender.length / 2);
     const leftFields = fieldsToRender.slice(0, middleIndex);
@@ -241,22 +240,19 @@ function handleFormChange(e) {
     const [mode, ...fieldIdParts] = id.split('-');
     const fieldId = fieldIdParts.join('-');
 
-    let stateSlice, effectiveMode;
-    if (mode === 'human') {
-        stateSlice = state.humanState;
-        effectiveMode = 'product_human';
-    } else {
-        stateSlice = state.formState[mode];
-        effectiveMode = mode;
-    }
-
-    if (!stateSlice || !stateSlice[fieldId]) {
-        // Handle a special case for film-characterAnchor which is directly tied to formState
-        if (id === 'film-characterAnchor') {
-            state.formState.film.characterAnchor.custom = target.value;
-        }
+    if (id === 'film-characterAnchor') {
+        state.formState.film.characterAnchor.custom = target.value;
         return;
     }
+
+    let stateSlice;
+    if (mode === 'human') {
+        stateSlice = state.humanState;
+    } else {
+        stateSlice = state.formState[mode];
+    }
+    
+    if (!stateSlice || !stateSlice[fieldId]) return;
 
     if (target.classList.contains('form-select')) {
         stateSlice[fieldId].select = target.value;
@@ -298,7 +294,7 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
     }
 }
 
-function getFinalValue(fieldState) { return fieldState.custom.trim() || fieldState.select; }
+function getFinalValue(fieldState) { return fieldState?.custom?.trim() || fieldState?.select; }
 
 async function handleSubmit() {
     state.isLoading.generate = true;
@@ -313,7 +309,7 @@ async function handleSubmit() {
     const cleanAIText = (rawText) => { if (!rawText) return ''; let cleaned = rawText.replace(/^Here.*?:\s*\n*/i, ''); cleaned = cleaned.split('\n\n')[0]; cleaned = cleaned.replace(/^"|"$|^\s*"/g, '').trim(); return cleaned; };
     let textPrompts = [];
     if (data.mode === 'film') {
-        const characterPrefix = data.characterAnchor.trim() ? `${data.characterAnchor.trim()}. ` : '';
+        const characterPrefix = data.characterAnchor ? `${data.characterAnchor}. ` : '';
         const baseInstruction = `You are a master cinematic concept artist...`;
         if (data.numScenes > 1) {
             const finalPrompt = `Based on...: ${parameterString}, write ${data.numScenes} connected text-to-image prompts... Each prompt must start with: "${characterPrefix}". Separate with "---SCENE BREAK---".`;
