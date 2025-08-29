@@ -451,7 +451,7 @@ async function handleSubmit() {
     renderApp();
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN PALING BENAR INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
@@ -484,7 +484,9 @@ async function handleAISuggest() {
             const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor;
             if (unlockedFieldsLabels.includes(characterAnchorLabel)) {
                 characterAnchorInstruction = `
-                    For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character...
+                    For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character. 
+                    Invent a name, an approximate age, and at least three distinct visual features (e.g., hairstyle, facial features, iconic clothing). 
+                    Do not give a concept, give a concrete visual description.
                 `;
             }
         }
@@ -494,11 +496,9 @@ async function handleAISuggest() {
             humanConfig.fields.forEach(fieldId => {
                  labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
             });
-
             if (!lockedContext['Human in Shot Details']) {
                 lockedContext['Human in Shot Details'] = {};
             }
-
             humanConfig.fields.forEach(fieldId => {
                 if (lockedFields.product_human?.[fieldId]) {
                     const label = humanConfig.fieldLabels[fieldId];
@@ -507,14 +507,11 @@ async function handleAISuggest() {
                     unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
                 }
             });
-
             if (unlockedHumanFieldsLabels.length > 0) {
                 humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
             }
         }
 
-        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-        // Gabungkan semua field yang tidak terkunci menjadi SATU daftar
         const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
 
         const prompt = `
@@ -524,11 +521,9 @@ async function handleAISuggest() {
             ${characterAnchorInstruction}
             ${humanPromptPart}
             Return your answer as a simple key-value list, with each item on a new line. Do not add any other text, explanation, or markdown.
-            
             Here are the fields you need to suggest values for:
             ${allUnlockedLabels.join('\n')}
         `;
-        // --- AKHIR DARI PERBAIKAN ---
         
         const resultText = await callGeminiAPI(prompt);
 
@@ -546,15 +541,21 @@ async function handleAISuggest() {
                     if (fieldId) {
                         let idPrefix = mode;
                         let stateSlice = state.formState[mode];
-                        if (PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
+                        
+                        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
+                        // Tambahkan pengecekan mode 'product' dan humanState.enabled
+                        if (mode === 'product' && humanState.enabled && PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
                             idPrefix = 'human';
                             stateSlice = state.humanState;
                         }
+
                         if (stateSlice && stateSlice[fieldId]) {
                             stateSlice[fieldId].custom = value;
                             stateSlice[fieldId].select = '';
+                            
                             const inputElement = document.getElementById(`${idPrefix}-${fieldId}-text`);
                             if (inputElement) inputElement.value = value;
+                            
                             const selectElement = document.getElementById(`${idPrefix}-${fieldId}-select`);
                             if (selectElement) selectElement.value = '';
                         }
