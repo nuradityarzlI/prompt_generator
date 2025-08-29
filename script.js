@@ -550,28 +550,26 @@ async function handleAISuggest() {
     }
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 function generateVideoPrompts(data, imagePrompt) {
     let long = '', short = '';
 
+    // --- INI BAGIAN UTAMA PERBAIKANNYA ---
+    // Kita ambil semua parameter yang relevan dari data
+    const { cameraMovement, lighting, mood, sceneType, expression, cameraAngle } = data;
+
     if (data.mode === 'model') {
-        // Logika untuk mode 'model'
-        const { cameraAngle, expression, mood } = data;
-        long = `Scene: ${imagePrompt} Camera: ${cameraAngle}. Action: The subject shows an expression of ${expression}. Mood: ${mood}.`;
-        short = `${cameraAngle}, ${expression}, ${mood}`;
+        // Format naratif untuk mode Model
+        long = `Scene: ${imagePrompt} Camera: ${cameraAngle}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType || 'portrait session'} and the character should show an expression of "${expression || 'subtle emotion'}".`;
+        short = `The camera angle is ${cameraAngle}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
     } else if (data.mode === 'product') {
-        // Logika untuk mode 'product'
-        const { composition, extraElements, mood } = data;
-        long = `Scene: ${imagePrompt} Composition: ${composition}. Effects: Add visual effects like ${extraElements}. Mood: ${mood}.`;
-        short = `Animate, ${extraElements}, ${mood}`;
+        // Format naratif untuk mode Product
+        const { composition, extraElements } = data;
+        long = `Scene: ${imagePrompt} Camera: ${composition}. Lighting: ${lighting}. Effects: Add visual effects like ${extraElements}. Mood: ${mood}.`;
+        short = `Animate this product shot with a ${composition} style. Add visual effects like ${extraElements}. The mood is ${mood}.`;
     } else if (data.mode === 'film') {
-        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-        const { cameraMovement, lighting, mood, sceneType, expression } = data;
-
-        // "Long" sekarang memiliki format naratif + parameter detail
+        // Format naratif untuk mode Film
         long = `Scene: ${imagePrompt} Camera: ${cameraMovement}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType} and the character should show an expression of "${expression || 'subtle emotion'}".`;
-
-        // "Short" sekarang memiliki format perintah gerak yang singkat
         short = `The camera performs a ${cameraMovement}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
     }
     
