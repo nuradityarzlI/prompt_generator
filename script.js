@@ -418,29 +418,29 @@ async function handleAISuggest() {
     }
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN PALING OPTIMAL INI
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
 function generateVideoPrompts(data, imagePrompt) {
     let long = '', short = '';
 
-    // Logika untuk mode 'model' dan 'product' bisa tetap sama
     if (data.mode === 'model') {
+        // Logika untuk mode 'model'
         const { cameraAngle, expression, mood } = data;
-        long = `The camera angle is ${cameraAngle}. The subject should show an expression of ${expression}, with a mood of ${mood}.`;
+        long = `Scene: ${imagePrompt} Camera: ${cameraAngle}. Action: The subject shows an expression of ${expression}. Mood: ${mood}.`;
         short = `${cameraAngle}, ${expression}, ${mood}`;
     } else if (data.mode === 'product') {
+        // Logika untuk mode 'product'
         const { composition, extraElements, mood } = data;
-        long = `Animate this product shot with a ${composition} style. Add visual effects like ${extraElements}. The mood is ${mood}.`;
+        long = `Scene: ${imagePrompt} Composition: ${composition}. Effects: Add visual effects like ${extraElements}. Mood: ${mood}.`;
         short = `Animate, ${extraElements}, ${mood}`;
     } else if (data.mode === 'film') {
         // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-        // Kita ambil semua parameter yang relevan untuk PERGERAKAN
-        const { cameraMovement, mood, expression, sceneType } = data;
+        const { cameraMovement, lighting, mood, sceneType, expression } = data;
 
-        // Buat prompt video panjang yang fokus pada perintah animasi
-        long = `The camera performs a ${cameraMovement}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}, fitting for a ${sceneType}.`;
+        // "Long" sekarang memiliki format naratif + parameter detail
+        long = `Scene: ${imagePrompt} Camera: ${cameraMovement}. Lighting: ${lighting}. Aesthetic: ${mood}. Flow: The scene should depict a ${sceneType} and the character should show an expression of "${expression || 'subtle emotion'}".`;
 
-        // Prompt video pendek adalah kata kunci gerakan
-        short = `${cameraMovement}, ${expression}, cinematic animation, ${mood}`;
+        // "Short" sekarang memiliki format perintah gerak yang singkat
+        short = `The camera performs a ${cameraMovement}. The character shows an expression of "${expression}". The overall atmosphere is ${mood}.`;
     }
     
     return { long, short };
