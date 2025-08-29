@@ -121,7 +121,30 @@ function LockIcon(locked) {
 function Tooltip(text) {
     return `<span class="group relative ml-2"><span class="flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-400 rounded-full cursor-help">?</span><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">${text}</span></span>`;
 }
+// TAMBAHKAN FUNGSI HELPER BARU INI DI SCRIPT ANDA
+function parseKeyValueFallback(text) {
+    try {
+        const lines = text.split('\n').filter(line => line.includes(':'));
+        const components = {};
+        
+        // Cari key yang relevan dari output teks biasa
+        const subjectLine = lines.find(l => /subject/i.test(l));
+        const settingLine = lines.find(l => /background|setting/i.test(l));
+        const styleLine = lines.find(l => /mood|aesthetic|style/i.test(l));
 
+        if (subjectLine) components.subjectDescription = subjectLine.split(':')[1].trim();
+        if (settingLine) components.settingDescription = settingLine.split(':')[1].trim();
+        if (styleLine) components.styleConcept = styleLine.split(':')[1].trim();
+
+        // Jika semua komponen utama ditemukan, kembalikan objeknya
+        if (components.subjectDescription && components.settingDescription && components.styleConcept) {
+            return components;
+        }
+        return null; // Fallback gagal jika komponen penting tidak ada
+    } catch {
+        return null; // Gagal total
+    }
+}
 function SegmentedControl({ options, selected, id }) {
     return `<div id="${id}" class="flex p-1 bg-gray-100 rounded-lg">${options.map(({ value, label }) => `<button type="button" data-value="${value}" class="flex-1 py-2 px-1 text-sm font-semibold rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selected === value ? 'bg-white text-gray-800 shadow-sm' : 'bg-transparent text-gray-500 hover:bg-gray-200'}">${label}</button>`).join('')}</div>`;
 }
@@ -511,41 +534,59 @@ async function handleSubmit() {
 
     // 3. Buat perintah ke AI untuk meminta ide dalam format JSON yang terstruktur
     const finalPromptToAI = `
-        You are an AI Art Director. Based on the following creative parameters, your task is to provide a creative vision.
-        Return your vision as a single, valid JSON object and nothing else.
+    Your task is to act as an AI Art Director. Your output MUST be a single, valid JSON object and nothing else.
+    Do not include markdown formatting like \`\`\`json.
 
-        The JSON object MUST have these exact keys:
-        - "subjectDescription": A detailed and evocative description of the main subject.
-        - "settingDescription": A vivid description of the environment, background, and location.
-        - "styleConcept": A short, powerful phrase describing the overall mood, style, and artistic direction (e.g., "Gritty Cyberpunk Noir" or "Ethereal Fantasy Dreamscape").
-        
-        Parameters: ${parameterString}
-    `;
+    **EXAMPLE OF THE REQUIRED JSON OUTPUT FORMAT:**
+    {
+      "subjectDescription": "A detailed and evocative description of the main subject.",
+      "settingDescription": "A vivid description of the environment and background.",
+      "styleConcept": "A short, powerful phrase for the mood and style."
+    }
+
+    **CREATIVE BRIEF (Use these parameters below to generate the content for the JSON object above):**
+    ---
+    ${parameterString}
+    ---
+`;
 
     // 4. Panggil AI untuk mendapatkan komponen kreatif
     // Pastikan backend Anda bisa meneruskan konfigurasi untuk meminta JSON
     const rawJSON = await callGeminiAPI(finalPromptToAI, { response_mime_type: "application/json" });
 
     try {
-        // 5. Parse komponen kreatif yang diberikan AI
-        const creativeComponents = JSON.parse(rawJSON);
-
-        // 6. KODE MENGAMBIL ALIH: Rakit komponen menjadi prompt gambar yang sempurna
-        const finalImagePrompt = `${data.cameraAngle || 'cinematic shot'} of ${creativeComponents.subjectDescription}, set within ${creativeComponents.settingDescription}. The overall aesthetic is ${creativeComponents.styleConcept}. Shot on ${data.cameraLens}, inspired by ${data.references}, photorealistic, 8k, hyperdetailed, cinematic color grading.`;
-        
-        // 7. Hasilkan video prompts menggunakan komponen kreatif tersebut
-        const videoPrompts = generateVideoPrompts(data, creativeComponents, finalImagePrompt);
-
-        state.outputs = [{
-            text: finalImagePrompt,
-            videoLong: videoPrompts.long,
-            videoShort: videoPrompts.short
-        }];
-
-    } catch (error) {
-        console.error("Failed to parse JSON from AI:", error);
-        alert("AI returned an invalid format. Please try again.");
+    let creativeComponents;
+    try {
+        // Upaya pertama: Parse JSON seperti yang seharusnya
+        creativeComponents = JSON.parse(rawJSON);
+    } catch (e) {
+        // Jika JSON.parse gagal, jalankan Rencana B (Fallback)
+        console.warn("AI did not return valid JSON. Attempting fallback text parse.");
+        creativeComponents = parseKeyValueFallback(rawJSON);
     }
+
+    if (!creativeComponents) {
+        // Jika kedua upaya gagal, beri tahu pengguna dan hentikan
+        throw new Error("AI returned an unreadable format.");
+    }
+
+    // KODE SELANJUTNYA SAMA SEPERTI SEBELUMNYA...
+    // Rakit komponen menjadi prompt gambar yang sempurna
+    const finalImagePrompt = `${data.cameraAngle || 'cinematic shot'} of ${creativeComponents.subjectDescription}, set within ${creativeComponents.settingDescription}. The overall aesthetic is ${creativeComponents.styleConcept}. Shot on ${data.cameraLens}, inspired by ${data.references}, photorealistic, 8k, hyperdetailed, cinematic color grading.`;
+    
+    // Hasilkan video prompts menggunakan komponen kreatif tersebut
+    const videoPrompts = generateVideoPrompts(data, creativeComponents, finalImagePrompt);
+
+    state.outputs = [{
+        text: finalImagePrompt,
+        videoLong: videoPrompts.long,
+        videoShort: videoPrompts.short
+    }];
+
+} catch (error) {
+    console.error("Failed to generate prompts:", error);
+    alert("Sorry, there was an error processing the AI response. Please try again.");
+}
 
     state.isLoading.generate = false;
     renderApp();
