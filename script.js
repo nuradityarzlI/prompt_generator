@@ -81,7 +81,7 @@ function initializeState() {
         formState: initialFormState,
         lockedFields: initialLockState,
         humanState: initialHumanState,
-        filmState: { numScenes: 1, linkScenes: true, characterBio: '' },
+        filmState: { numScenes: 1, linkScenes: true, baseCharacterPrompt: '',characterRefUrl: '' },
         openAccordionScene: 0,
     };
 
@@ -240,11 +240,35 @@ function ProductFormExtras() {
         </div>`;
 }
 
+// Ganti seluruh fungsi FilmFormExtras dengan ini
 function FilmFormExtras() {
     const { filmState } = state;
     return `
         <div class="mt-6 border-t pt-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+            <div class="p-4 border border-blue-200 bg-blue-50 rounded-lg">
+                <h3 class="text-md font-bold text-gray-800 mb-3">Character Continuity</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="film-baseCharacterPrompt" class="text-sm font-semibold text-gray-700 mb-2 block">
+                            Base Character Prompt (For Consistency) ${Tooltip("Masukkan deskripsi visual detail karakter Anda di sini. Teks ini akan ditambahkan ke setiap scene.")}
+                        </label>
+                        <textarea id="film-baseCharacterPrompt" rows="4" 
+                            placeholder="e.g., Kaelen, a male net-runner in his late 20s with sharp, angular facial features. He has short, slicked-back silver hair with a shaved undercut..." 
+                            class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">${filmState.baseCharacterPrompt || ''}</textarea>
+                    </div>
+                    <div>
+                        <label for="film-characterRefUrl" class="text-sm font-semibold text-gray-700 mb-2 block">
+                            Character Reference Image URL (Optional) ${Tooltip("Tempelkan URL gambar karakter 'master' Anda untuk konsistensi visual terbaik.")}
+                        </label>
+                        <input type="text" id="film-characterRefUrl" 
+                            placeholder="https://link.to/your/perfect_character_image.png" 
+                            value="${filmState.characterRefUrl || ''}" 
+                            class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
                 <div>
                     <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
                     <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
@@ -257,14 +281,7 @@ function FilmFormExtras() {
                     ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
                 </div>
             </div>
-
-            <div class="mt-4">
-                 <label for="film-characterBio" class="text-sm font-semibold text-gray-700 mb-2 block">
-                    Character Bio (Optional)
-                 </label>
-                 <textarea id="film-characterBio" rows="3" placeholder="Describe the main character, e.g., 'Elara, a young woman in her early 20s with vibrant red hair...'" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">${filmState.characterBio || ''}</textarea>
-            </div>
-            </div>`;
+        </div>`;
 }
 
 function renderApp() {
@@ -385,15 +402,29 @@ function addEventListeners() {
         }
     });
 
-    // === Kontrol Form Dinamis ===
+    // === Kontrol Form Dinamis (Input Select & Teks Kustom) ===
     document.querySelectorAll('.form-select').forEach(el => el.addEventListener('change', handleFormChange));
     document.querySelectorAll('.form-custom-text').forEach(el => el.addEventListener('input', handleFormChange));
+    
+    // === Tombol Kunci (Lock) di Setiap Field ===
     document.querySelectorAll('.lock-button').forEach(el => el.addEventListener('click', handleLockToggle));
 
     // === Kontrol Form Tambahan (Extras) ===
     document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
-    document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
-    document.getElementById('film-characterBio')?.addEventListener('input', e => { state.filmState.characterBio = e.target.value; });
+    
+    // -- Spesifik untuk Mode Film --
+    document.getElementById('film-numScenes')?.addEventListener('change', e => {
+        state.filmState.numScenes = Number(e.target.value);
+    });
+    document.getElementById('film-baseCharacterPrompt')?.addEventListener('input', e => {
+        state.filmState.baseCharacterPrompt = e.target.value;
+    });
+    document.getElementById('film-characterRefUrl')?.addEventListener('input', e => {
+        state.filmState.characterRefUrl = e.target.value;
+    });
+    // Menghapus event listener untuk characterBio yang sudah tidak relevan
+    // document.getElementById('film-characterBio')?.addEventListener('input', e => { state.filmState.characterBio = e.target.value; });
+
 
     // === Tombol Aksi Utama ===
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
@@ -406,10 +437,13 @@ function addEventListeners() {
     // === Kontrol di Bagian Output ===
     document.querySelectorAll('.copy-button').forEach(button => {
         button.addEventListener('click', e => {
+            // Mengambil konten dari atribut data-copy-content
             const content = e.target.dataset.copyContent.replace(/&quot;/g, '"');
             navigator.clipboard.writeText(content).then(() => {
                 e.target.textContent = 'Copied!';
-                setTimeout(() => { e.target.textContent = 'Copy'; }, 2000);
+                setTimeout(() => {
+                    e.target.textContent = 'Copy';
+                }, 2000);
             });
         });
     });
@@ -417,12 +451,13 @@ function addEventListeners() {
     document.querySelectorAll('.accordion-toggle').forEach(btn => {
         btn.addEventListener('click', e => {
             const index = Number(e.currentTarget.dataset.sceneIndex);
+            // Toggle: jika scene yang diklik sudah terbuka, tutup (set ke null). Jika belum, buka.
             state.openAccordionScene = state.openAccordionScene === index ? null : index;
             renderApp();
         });
     });
 
-    // === Kontrol Pop-up Bantuan ===
+    // === Kontrol Pop-up Bantuan (Help Modal) ===
     const helpModal = document.getElementById('help-modal');
     const openHelpBtn = document.getElementById('open-help-modal-btn');
     const closeHelpBtn = document.getElementById('close-help-modal-btn');
@@ -435,6 +470,7 @@ function addEventListeners() {
         helpModal?.classList.add('hidden');
     });
 
+    // Menutup modal jika pengguna mengklik area di luar konten modal
     helpModal?.addEventListener('click', (e) => {
         if (e.target.id === 'help-modal') {
             helpModal.classList.add('hidden');
@@ -500,20 +536,29 @@ function getFinalValue(fieldState) {
 
 // GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 async function handleSubmit() {
+    // 1. Atur status loading dan reset output sebelumnya
     state.isLoading.generate = true;
     state.outputs = null;
     state.promptVariations = { original: null, variations: [] };
     renderApp();
 
+    // 2. Kumpulkan semua data relevan dari state
     const { mode, formState, humanState, filmState } = state;
     const data = { ...state, ...filmState };
-    PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
+    PROMPT_OPTIONS[mode].fields.forEach(field => {
+        data[field] = getFinalValue(formState[mode][field]);
+    });
 
     if (mode === 'product' && humanState.enabled) {
         data.humanInShot = {};
-        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
+        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => {
+            data.humanInShot[field] = getFinalValue(humanState[field]);
+        });
     }
 
+    // 3. Bangun string parameter untuk dikirim ke AI (untuk mendapatkan IDE ADEGAN)
+    // Perhatikan: baseCharacterPrompt dan characterRefUrl TIDAK disertakan di sini.
+    // Kita hanya mengirim parameter adegan agar AI fokus pada ceritanya.
     let parameterString = PROMPT_OPTIONS[mode].fields
         .filter(field => field !== 'characterAnchor')
         .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
@@ -524,50 +569,80 @@ async function handleSubmit() {
         parameterString += `. Human in shot details: ${humanParams}`;
     }
 
+    // Fungsi helper untuk membersihkan teks dari AI
     const cleanAIText = (rawText) => {
         if (!rawText) return '';
         let cleaned = rawText.replace(/^Here.*?:\s*\n*/i, '');
         cleaned = cleaned.split('\n\n')[0];
-        // TAMBAHAN: Hapus tanda petik di awal dan akhir
         cleaned = cleaned.replace(/^"|"$|^\s*"/g, '').trim();
         return cleaned;
     };
 
-    let textPrompts = [];
+    let textPrompts = []; // Ini akan berisi deskripsi adegan mentah dari AI
 
-    if (data.mode === 'film') {
-        const characterPrefix = filmState.characterBio.trim() ? `Main character is: ${filmState.characterBio.trim()}. ` : '';
-        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt...`;
+    // 4. Panggil API untuk men-generate deskripsi adegan
+    if (mode === 'film') {
+        const baseInstruction = `You are a master cinematic concept artist. Your task is to synthesize the provided parameters into powerful scene descriptions for a text-to-image prompt. Focus on visual actions and environment.`;
 
         if (filmState.numScenes > 1) {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on...: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts... Separate each prompt with "---SCENE BREAK---".`;
+            const continuityInstruction = filmState.linkScenes ? `Ensure the scenes are connected sequentially.` : `The scenes do not need to be connected.`;
+            const finalPrompt = `${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} distinct scene descriptions. ${continuityInstruction} Separate each prompt with "---SCENE BREAK---".`;
             let rawText = await callGeminiAPI(finalPrompt);
             if (rawText) {
                 rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
                 textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim());
             }
         } else {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nParameters: ${parameterString}.`;
+            const finalPrompt = `${baseInstruction}\n\nParameters: ${parameterString}.`;
             let rawText = await callGeminiAPI(finalPrompt);
             if (rawText) {
                 textPrompts = [cleanAIText(rawText)];
             }
         }
-    } else {
-        const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph: ${parameterString}.`;
+    } else { // Untuk mode Model atau Product
+        const finalPrompt = `You are a senior art director. Synthesize the following creative parameters into a single, concise paragraph for a text-to-image prompt: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
             textPrompts = [cleanAIText(rawText)];
         }
     }
 
-    if (textPrompts.length > 0) {
-        state.outputs = textPrompts.map(imagePrompt => {
-            const videoPrompts = generateVideoPrompts(data, imagePrompt);
-            return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
+    // 5. Proses hasil dari AI dan GABUNGKAN dengan data konsistensi karakter
+    if (textPrompts.length > 0 && textPrompts[0] !== '') {
+        state.outputs = textPrompts.map(scenePrompt => {
+            let finalImagePrompt = scenePrompt; // Defaultnya adalah prompt adegan itu sendiri
+
+            // === LOGIKA BARU UNTUK KONSISTENSI KARAKTER (HANYA MODE FILM) ===
+            if (mode === 'film') {
+                const { baseCharacterPrompt, characterRefUrl } = filmState;
+                let prefix = '';
+
+                // Tambahkan URL Referensi di paling depan
+                if (characterRefUrl && characterRefUrl.trim()) {
+                    prefix += characterRefUrl.trim() + ' ';
+                }
+
+                // Tambahkan Deskripsi Karakter Dasar
+                if (baseCharacterPrompt && baseCharacterPrompt.trim()) {
+                    prefix += baseCharacterPrompt.trim() + ', '; // Tambahkan koma sebagai pemisah
+                }
+
+                // Gabungkan prefix dengan deskripsi adegan
+                finalImagePrompt = prefix + scenePrompt;
+            }
+            // === AKHIR LOGIKA BARU ===
+
+            const videoPrompts = generateVideoPrompts(data, finalImagePrompt);
+            
+            return {
+                text: finalImagePrompt,
+                videoLong: videoPrompts.long,
+                videoShort: videoPrompts.short
+            };
         });
     }
 
+    // 6. Matikan status loading dan tampilkan hasilnya
     state.isLoading.generate = false;
     renderApp();
 }
