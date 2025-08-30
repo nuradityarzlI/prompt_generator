@@ -1,7 +1,6 @@
-// File: api/suggest.js
-// Endpoint ini HANYA untuk fitur "Suggest with AI" menggunakan Llama 3 via Groq.
+// File: api/suggest.js (Versi Perbaikan)
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -11,7 +10,8 @@ export default async function handler(req, res) {
     const groqApiKey = process.env.GROQ_API_KEY;
 
     if (!groqApiKey) {
-      return res.status(500).json({ message: 'Server configuration error: GROQ_API_KEY is missing.' });
+      console.error("GROQ_API_KEY is not configured on Vercel.");
+      return res.status(500).json({ message: 'Server configuration error: API key is missing.' });
     }
     if (!prompt) {
       return res.status(400).json({ message: 'Prompt is required.' });
@@ -54,4 +54,4 @@ export default async function handler(req, res) {
     console.error("Internal Server Error in /api/suggest:", error);
     return res.status(500).json({ message: 'An internal server error occurred.' });
   }
-}
+};
