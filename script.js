@@ -262,18 +262,22 @@ function clearFormAndOutputs() {
     const currentMode = state.mode;
     const currentIntensity = state.intensity;
 
-    // 2. Panggil fungsi inisialisasi untuk me-reset semuanya ke awal
+    // 2. Panggil fungsi inisialisasi untuk me-reset semuanya ke kondisi awal
+    //    Ini adalah cara paling efisien untuk membersihkan semua state seperti
+    //    formState, lockedFields, humanState, dll.
     initializeState();
 
-    // 3. Kembalikan mode dan intensity yang tadi kita simpan
+    // 3. Setelah semuanya bersih, kembalikan mode dan intensity yang tadi kita simpan
     state.mode = currentMode;
     state.intensity = currentIntensity;
     
-    // 4. Panggil updateDefaults() lagi agar isian form sesuai
-    //    dengan mode dan intensity yang dipertahankan
+    // 4. Panggil updateDefaults() lagi. Fungsi ini akan membaca mode dan intensity
+    //    yang baru saja kita kembalikan, lalu mengisi form dengan nilai default
+    //    yang sesuai.
     updateDefaults();
 
-    // 5. Render ulang aplikasi untuk menampilkan perubahan
+    // 5. Render ulang aplikasi untuk menampilkan form yang sudah bersih
+    //    namun dengan mode dan intensity yang tetap sama.
     renderApp();
 }
 
@@ -408,7 +412,6 @@ function addEventListeners() {
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
     document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
     document.getElementById('clear-btn')?.addEventListener('click', clearFormAndOutputs);
-    });
 
     // === Kontrol di Bagian Output ===
     document.querySelectorAll('.copy-button').forEach(button => {
