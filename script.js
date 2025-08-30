@@ -562,7 +562,7 @@ async function handleSubmit() {
     if (data.mode === 'film') {
         const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
         const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
-        const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
+        const baseInstruction = `You are a world-class prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
 
         if (filmState.numScenes > 1 && filmState.linkScenes) {
             const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
@@ -583,7 +583,7 @@ async function handleSubmit() {
              textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
         }
     } else {
-        const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
+        const finalPrompt = `You are a world-class prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
             textPrompts = [cleanAIText(rawText)];
