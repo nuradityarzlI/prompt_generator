@@ -257,6 +257,26 @@ function FilmFormExtras() {
         </div>`;
 }
 
+function clearFormAndOutputs() {
+    // 1. Simpan mode dan intensity yang sedang aktif saat ini
+    const currentMode = state.mode;
+    const currentIntensity = state.intensity;
+
+    // 2. Panggil fungsi inisialisasi untuk me-reset semuanya ke awal
+    initializeState();
+
+    // 3. Kembalikan mode dan intensity yang tadi kita simpan
+    state.mode = currentMode;
+    state.intensity = currentIntensity;
+    
+    // 4. Panggil updateDefaults() lagi agar isian form sesuai
+    //    dengan mode dan intensity yang dipertahankan
+    updateDefaults();
+
+    // 5. Render ulang aplikasi untuk menampilkan perubahan
+    renderApp();
+}
+
 function renderApp() {
     const root = document.getElementById('root');
     if (!root) return;
@@ -387,9 +407,7 @@ function addEventListeners() {
     // === Tombol Aksi Utama ===
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
     document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
-    document.getElementById('clear-btn')?.addEventListener('click', () => {
-        initializeState();
-        renderApp();
+    document.getElementById('clear-btn')?.addEventListener('click', clearFormAndOutputs);
     });
 
     // === Kontrol di Bagian Output ===
