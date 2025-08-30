@@ -47,7 +47,27 @@ const PROMPT_OPTIONS = {
 // =======================================================================
 let state = {};
 
+function saveState() {
+    localStorage.setItem('promptAppState', JSON.stringify(state));
+}
+
+function loadState() {
+    const savedState = localStorage.getItem('promptAppState');
+    if (savedState) {
+        return JSON.parse(savedState);
+    }
+    return null; // Tidak ada state tersimpan
+}
+
 function initializeState() {
+    const loaded = loadState();
+    if (loaded) {
+        state = loaded;
+        // Pastikan state yang dimuat tidak dalam kondisi loading
+        state.isLoading = { suggest: false, generate: false, variations: false };
+        return; // Hentikan inisialisasi default jika state berhasil dimuat
+    }
+
     const initialFormState = {};
     ['model', 'product', 'film'].forEach(m => {
         initialFormState[m] = {};
@@ -107,6 +127,7 @@ function updateDefaults() {
     });
 
     state.formState[mode] = newModeState;
+    saveState();
 }
 
 // =======================================================================
@@ -176,7 +197,7 @@ function SceneAccordion() {
     const { outputs, openAccordionScene } = state;
     return `
         <div>
-            ${outputs.map((scene, index) => `
+            ${(outputs || []).map((scene, index) => `
                 <div class="border-b border-gray-200">
                     <button data-scene-index="${index}" class="accordion-toggle w-full flex justify-between items-center p-4 text-left font-semibold text-gray-800">
                         Scene ${index + 1}
@@ -234,6 +255,13 @@ function ProductFormExtras() {
     }
     return `
         <div class="mt-6 border-t pt-6">
+            <div class="mb-4 p-4 border rounded-lg bg-blue-50 border-blue-200">
+                 <label for="product-image-upload" class="text-sm font-semibold text-gray-700 mb-2 block">Analyze Product from Image</label>
+                 <div class="flex items-center gap-4">
+                    <input type="file" id="product-image-upload" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200">
+                    <button id="analyze-image-btn" class="py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" disabled>Analyze</button>
+                 </div>
+            </div>
             ${ToggleSwitch({id: 'human-in-shot-toggle', label: 'Human in Product Shot', checked: humanState.enabled})}
             ${fieldsHTML}
         </div>`;
@@ -258,26 +286,49 @@ function FilmFormExtras() {
 }
 
 function clearFormAndOutputs() {
-    // 1. Simpan mode dan intensity yang sedang aktif saat ini
     const currentMode = state.mode;
     const currentIntensity = state.intensity;
 
-    // 2. Panggil fungsi inisialisasi untuk me-reset semuanya ke kondisi awal
-    //    Ini adalah cara paling efisien untuk membersihkan semua state seperti
-    //    formState, lockedFields, humanState, dll.
-    initializeState();
+    initializeState(); // This function now creates a fresh state without loading
 
-    // 3. Setelah semuanya bersih, kembalikan mode dan intensity yang tadi kita simpan
     state.mode = currentMode;
     state.intensity = currentIntensity;
     
-    // 4. Panggil updateDefaults() lagi. Fungsi ini akan membaca mode dan intensity
-    //    yang baru saja kita kembalikan, lalu mengisi form dengan nilai default
-    //    yang sesuai.
-    updateDefaults();
+    // We need to re-initialize a fresh state, but without loading from localStorage
+    const initialFormState = {};
+    ['model', 'product', 'film'].forEach(m => {
+        initialFormState[m] = {};
+        if (PROMPT_OPTIONS[m]) {
+            PROMPT_OPTIONS[m].fields.forEach(f => {
+                initialFormState[m][f] = { select: '', custom: '' };
+            });
+        }
+    });
+    const initialHumanState = { enabled: false };
+    PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => {
+        if (field === 'styling') {
+            initialHumanState[field] = { custom: '' };
+        } else {
+            initialHumanState[field] = { select: PROMPT_OPTIONS.special.humanInShot.options[field][0], custom: '' };
+        }
+    });
+    const initialLockState = {};
+    ['model', 'product', 'film', 'product_human'].forEach(m => {
+        initialLockState[m] = {};
+    });
 
-    // 5. Render ulang aplikasi untuk menampilkan form yang sudah bersih
-    //    namun dengan mode dan intensity yang tetap sama.
+    // Manually reset state parts, keeping mode and intensity
+    state.outputs = null;
+    state.isLoading = { suggest: false, generate: false, variations: false };
+    state.promptVariations = { original: null, variations: [] };
+    state.formState = initialFormState;
+    state.lockedFields = initialLockState;
+    state.humanState = initialHumanState;
+    state.filmState = { numScenes: 1, linkScenes: true };
+    state.openAccordionScene = 0;
+
+
+    updateDefaults(); // This function already calls saveState()
     renderApp();
 }
 
@@ -359,10 +410,11 @@ function renderApp() {
                 ${extrasHTML}
 
                 <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                     <button id="analyze-image-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" disabled>Analyze</button>
                     <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>
                         ${isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}
                     </button>
-                    <button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" ${isLoading.generate ? 'disabled' : ''}>
+                    <button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50 col-span-2" ${isLoading.generate ? 'disabled' : ''}>
                         ${isLoading.generate ? 'Generating...' : 'Generate Prompts'}
                     </button>
                     <button id="clear-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">Clear All</button>
@@ -406,12 +458,29 @@ function addEventListeners() {
 
     // === Kontrol Form Tambahan (Extras) ===
     document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
-    document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
+    document.getElementById('film-numScenes')?.addEventListener('change', e => { 
+        state.filmState.numScenes = Number(e.target.value); 
+        saveState();
+    });
     
     // === Tombol Aksi Utama ===
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
     document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
     document.getElementById('clear-btn')?.addEventListener('click', clearFormAndOutputs);
+
+    // === Kontrol Upload Gambar ===
+    const uploadInput = document.getElementById('product-image-upload');
+    const analyzeBtn = document.getElementById('analyze-image-btn');
+    
+    uploadInput?.addEventListener('change', () => {
+        if (uploadInput.files.length > 0) {
+            analyzeBtn.disabled = false;
+        } else {
+            analyzeBtn.disabled = true;
+        }
+    });
+
+    analyzeBtn?.addEventListener('click', handleImageAnalysis);
 
     // === Kontrol di Bagian Output ===
     document.querySelectorAll('.copy-button').forEach(button => {
@@ -428,7 +497,7 @@ function addEventListeners() {
         btn.addEventListener('click', e => {
             const index = Number(e.currentTarget.dataset.sceneIndex);
             state.openAccordionScene = state.openAccordionScene === index ? null : index;
-            renderApp();
+            renderApp(); // Cukup render ulang, tidak perlu save state di sini
         });
     });
 
@@ -464,7 +533,7 @@ function handleFormChange(e) {
     } else if (state.formState[modeOrPrefix]) {
         stateSlice = state.formState[modeOrPrefix];
     } else {
-        return; // Tidak ada state slice yang cocok
+        return;
     }
 
     if (!stateSlice || !stateSlice[fieldId]) return;
@@ -479,13 +548,19 @@ function handleFormChange(e) {
         const selectEl = document.getElementById(`${id}-select`);
         if (selectEl) selectEl.value = '';
     }
+    saveState();
 }
 
 
 function handleLockToggle(e) {
     const { lockMode, lockField } = e.currentTarget.dataset;
+    // Pastikan objek ada sebelum diakses
+    if (!state.lockedFields[lockMode]) {
+        state.lockedFields[lockMode] = {};
+    }
     state.lockedFields[lockMode][lockField] = !state.lockedFields[lockMode][lockField];
     renderApp();
+    saveState();
 }
 
 function handleToggleChange(e) {
@@ -496,14 +571,17 @@ function handleToggleChange(e) {
         state.filmState.linkScenes = e.target.checked;
     }
     renderApp();
+    saveState();
 }
 
 async function callGeminiAPI(prompt, generationConfig = {}) {
     try {
+        const requestBody = typeof prompt === 'string' ? { prompt } : { promptWithImage: prompt };
+
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, generationConfig }),
+            body: JSON.stringify({ ...requestBody, generationConfig }),
         });
         if (!response.ok) throw new Error(`API error: ${await response.text()}`);
         return await response.json().then(result => result?.candidates?.[0]?.content?.parts?.[0]?.text || null);
@@ -515,10 +593,83 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 }
 
 function getFinalValue(fieldState) {
-    // Pastikan fieldState tidak null atau undefined sebelum diakses
     if (!fieldState) return '';
     return (fieldState.custom || '').trim() || fieldState.select || '';
 }
+
+async function handleImageAnalysis() {
+    const fileInput = document.getElementById('product-image-upload');
+    const imageFile = fileInput.files[0];
+    if (!imageFile) {
+        alert("Please select an image file first.");
+        return;
+    }
+
+    state.isLoading.suggest = true; 
+    renderApp();
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]); 
+        reader.onerror = error => reject(error);
+    });
+
+    try {
+        const imageBase64 = await toBase64(imageFile);
+        const mimeType = imageFile.type;
+
+        const fieldsToFill = PROMPT_OPTIONS.product.fields
+            .map(field => PROMPT_OPTIONS.product.fieldLabels[field])
+            .join('\n');
+
+        const promptForAI = `
+            Analyze the following product image. Based ONLY on what you see in the image, provide the most fitting values for the following categories.
+            Return your answer as a simple key-value list (e.g., "Key: Value"), with each item on a new line. Do not add any other text, explanation, or markdown.
+
+            Categories to fill:
+            ${fieldsToFill}
+        `;
+
+        const resultText = await callGeminiAPI({
+            text: promptForAI,
+            image: {
+                mimeType: mimeType,
+                data: imageBase64
+            }
+        });
+        
+        if (resultText) {
+            const labelToFieldIdMap = {};
+            PROMPT_OPTIONS.product.fields.forEach(fieldId => {
+                labelToFieldIdMap[PROMPT_OPTIONS.product.fieldLabels[fieldId]] = fieldId;
+            });
+
+            const lines = resultText.split('\n');
+            lines.forEach(line => {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const label = parts[0].trim();
+                    const value = parts.slice(1).join(':').trim();
+                    const fieldId = labelToFieldIdMap[label];
+                    if (fieldId && state.formState.product[fieldId]) {
+                        state.formState.product[fieldId].custom = value;
+                        state.formState.product[fieldId].select = '';
+                    }
+                }
+            });
+        }
+
+    } catch (error) {
+        console.error("Image analysis failed:", error);
+        alert("Failed to analyze the image. Please check the console for details.");
+    } finally {
+        state.isLoading.suggest = false;
+        renderApp();
+        saveState();
+    }
+}
+
 
 async function handleSubmit() {
     state.isLoading.generate = true;
@@ -535,9 +686,6 @@ async function handleSubmit() {
         PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
     }
 
-    // =======================================================================
-    // BAGIAN BARU: Menyusun brief berdasarkan peran profesional
-    // =======================================================================
     const structureBriefByRole = (currentMode, briefData) => {
         let briefs = "";
         const labels = PROMPT_OPTIONS[currentMode].fieldLabels;
@@ -591,12 +739,9 @@ async function handleSubmit() {
     
     const professionalBriefs = structureBriefByRole(mode, data);
 
-    // =======================================================================
-    // BAGIAN BARU: Prompt utama untuk "Prompt Engineer"
-    // =======================================================================
     const promptEngineerPersona = `You are a world-class prompt engineer. Your task is to act as the final synthesizer on a professional creative team. You will receive briefs from various department heads (Director, Photographer, Stylist, etc.). Your job is to synthesize all these inputs into a single, powerful, and cohesive prompt. The final prompt should be a vivid, detailed paragraph that seamlessly integrates all requirements.`;
     
-    const finalInstruction = `Return ONLY the synthesized prompt itself, without any introductory phrases, explanations, or quotation marks.`;
+    const finalInstruction = `Ensure every single detail from the briefs is represented in the final paragraph. Return ONLY the synthesized prompt itself, without any introductory phrases, explanations, or quotation marks.`;
 
     const cleanAIText = (rawText) => {
         if (!rawText) return '';
@@ -635,6 +780,7 @@ async function handleSubmit() {
 
     state.isLoading.generate = false;
     renderApp();
+    saveState();
 }
 
 async function handleAISuggest() {
@@ -644,9 +790,8 @@ async function handleAISuggest() {
     try {
         const { mode, formState, lockedFields, humanState } = state;
         const labelToFieldIdMap = {};
-        const fieldIdToModeMap = {}; // To know if a field is 'product', 'film', or 'human'
+        const fieldIdToModeMap = {};
 
-        // Populate maps for main mode
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             labelToFieldIdMap[label] = fieldId;
@@ -666,16 +811,14 @@ async function handleAISuggest() {
             }
         });
 
-        let humanPromptPart = '';
         let unlockedHumanFieldsLabels = [];
-        // Populate maps and context for human-in-shot if applicable
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
             lockedContext['Human in Shot Details'] = {};
             humanConfig.fields.forEach(fieldId => {
                 const label = humanConfig.fieldLabels[fieldId];
                 labelToFieldIdMap[label] = fieldId;
-                fieldIdToModeMap[fieldId] = 'product_human'; // Special mode identifier
+                fieldIdToModeMap[fieldId] = 'product_human';
 
                 if (lockedFields.product_human?.[fieldId]) {
                     const value = getFinalValue(humanState[fieldId]);
@@ -684,20 +827,15 @@ async function handleAISuggest() {
                     unlockedHumanFieldsLabels.push(label);
                 }
             });
-            if (unlockedHumanFieldsLabels.length > 0) {
-                humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
-            }
-             if (Object.keys(lockedContext['Human in Shot Details']).length === 0) {
+            if (Object.keys(lockedContext['Human in Shot Details']).length === 0) {
                 delete lockedContext['Human in Shot Details'];
             }
         }
         
         const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
         if (allUnlockedLabels.length === 0) {
-             alert("All fields are locked. Please unlock some fields to get AI suggestions.");
-             state.isLoading.suggest = false;
-             renderApp();
-             return;
+            alert("All fields are locked. Please unlock some fields to get AI suggestions.");
+            return;
         }
 
         const prompt = `
@@ -717,23 +855,13 @@ async function handleAISuggest() {
             lines.forEach(line => {
                 const parts = line.split(':');
                 if (parts.length >= 2) {
-                    const label = parts[0].trim().replace(/\*+/g, ''); // Clean label from markdown
+                    const label = parts[0].trim().replace(/\*+/g, '');
                     const value = parts.slice(1).join(':').trim();
                     const fieldId = labelToFieldIdMap[label];
                     const fieldMode = fieldIdToModeMap[fieldId];
                     
                     if (fieldId && fieldMode) {
-                        let stateSlice;
-                        let idPrefix;
-
-                        if (fieldMode === 'product_human') {
-                            stateSlice = state.humanState;
-                            idPrefix = 'human';
-                        } else {
-                            stateSlice = state.formState[fieldMode];
-                            idPrefix = fieldMode;
-                        }
-
+                        let stateSlice = (fieldMode === 'product_human') ? state.humanState : state.formState[fieldMode];
                         if (stateSlice && stateSlice[fieldId]) {
                             stateSlice[fieldId].custom = value;
                             stateSlice[fieldId].select = '';
@@ -741,16 +869,14 @@ async function handleAISuggest() {
                     }
                 }
             });
-             // After updating state, re-render to show new values
-            renderApp();
         }
     } catch (e) {
         console.error("An error occurred during AI suggestion:", e);
         alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
         state.isLoading.suggest = false;
-        // Re-render one last time to ensure button state is updated
         renderApp();
+        saveState();
     }
 }
 
@@ -787,6 +913,7 @@ async function handleGenerateVariations(originalPrompt) {
     }
     state.isLoading.variations = false;
     renderApp();
+    saveState();
 }
 
 // =======================================================================
@@ -795,4 +922,4 @@ async function handleGenerateVariations(originalPrompt) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeState();
     renderApp();
-});
+});, bagaimana cara agar saya bisa menambahkan tombol generate variation?
