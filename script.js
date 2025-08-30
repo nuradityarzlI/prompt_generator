@@ -81,7 +81,7 @@ function initializeState() {
         formState: initialFormState,
         lockedFields: initialLockState,
         humanState: initialHumanState,
-        filmState: { numScenes: 1, linkScenes: true},
+        filmState: { numScenes: 1, linkScenes: true },
         openAccordionScene: 0,
     };
 
@@ -121,30 +121,7 @@ function LockIcon(locked) {
 function Tooltip(text) {
     return `<span class="group relative ml-2"><span class="flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-400 rounded-full cursor-help">?</span><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">${text}</span></span>`;
 }
-// TAMBAHKAN FUNGSI HELPER BARU INI DI SCRIPT ANDA
-function parseKeyValueFallback(text) {
-    try {
-        const lines = text.split('\n').filter(line => line.includes(':'));
-        const components = {};
-        
-        // Cari key yang relevan dari output teks biasa
-        const subjectLine = lines.find(l => /subject/i.test(l));
-        const settingLine = lines.find(l => /background|setting/i.test(l));
-        const styleLine = lines.find(l => /mood|aesthetic|style/i.test(l));
 
-        if (subjectLine) components.subjectDescription = subjectLine.split(':')[1].trim();
-        if (settingLine) components.settingDescription = settingLine.split(':')[1].trim();
-        if (styleLine) components.styleConcept = styleLine.split(':')[1].trim();
-
-        // Jika semua komponen utama ditemukan, kembalikan objeknya
-        if (components.subjectDescription && components.settingDescription && components.styleConcept) {
-            return components;
-        }
-        return null; // Fallback gagal jika komponen penting tidak ada
-    } catch {
-        return null; // Gagal total
-    }
-}
 function SegmentedControl({ options, selected, id }) {
     return `<div id="${id}" class="flex p-1 bg-gray-100 rounded-lg">${options.map(({ value, label }) => `<button type="button" data-value="${value}" class="flex-1 py-2 px-1 text-sm font-semibold rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selected === value ? 'bg-white text-gray-800 shadow-sm' : 'bg-transparent text-gray-500 hover:bg-gray-200'}">${label}</button>`).join('')}</div>`;
 }
@@ -185,7 +162,6 @@ function ToggleSwitch({ id, label, checked }) {
 }
 
 function OutputSection({ title, content }) {
-    // Versi sederhana tanpa tombol dan logika variasi
     return `
         <div class="mb-6">
             <div class="flex justify-between items-center mb-2">
@@ -262,8 +238,6 @@ function ProductFormExtras() {
             ${fieldsHTML}
         </div>`;
 }
-
-// Replace the entire FilmFormExtras function with this one
 
 function FilmFormExtras() {
     const { filmState } = state;
@@ -460,22 +434,32 @@ function addEventListeners() {
 function handleFormChange(e) {
     const target = e.target;
     const id = target.id.replace('-select', '').replace('-text', '');
-    const [mode, ...fieldIdParts] = id.split('-');
+    const [modeOrPrefix, ...fieldIdParts] = id.split('-');
     const fieldId = fieldIdParts.join('-');
-    let stateSlice = (mode === 'human') ? state.humanState : state.formState[mode];
+
+    let stateSlice;
+    if (modeOrPrefix === 'human') {
+        stateSlice = state.humanState;
+    } else if (state.formState[modeOrPrefix]) {
+        stateSlice = state.formState[modeOrPrefix];
+    } else {
+        return; // Tidak ada state slice yang cocok
+    }
 
     if (!stateSlice || !stateSlice[fieldId]) return;
 
     if (target.classList.contains('form-select')) {
         stateSlice[fieldId].select = target.value;
         stateSlice[fieldId].custom = '';
-        document.getElementById(`${id}-text`).value = '';
+        const textEl = document.getElementById(`${id}-text`);
+        if(textEl) textEl.value = '';
     } else {
         stateSlice[fieldId].custom = target.value;
         const selectEl = document.getElementById(`${id}-select`);
         if (selectEl) selectEl.value = '';
     }
 }
+
 
 function handleLockToggle(e) {
     const { lockMode, lockField } = e.currentTarget.dataset;
@@ -510,241 +494,226 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 }
 
 function getFinalValue(fieldState) {
-    return fieldState.custom.trim() || fieldState.select;
+    // Pastikan fieldState tidak null atau undefined sebelum diakses
+    if (!fieldState) return '';
+    return (fieldState.custom || '').trim() || fieldState.select || '';
 }
 
-// GANTI SELURUH FUNGSI LAMA ANDA DENGAN YANG INI
 async function handleSubmit() {
     state.isLoading.generate = true;
     state.outputs = null;
+    state.promptVariations = { original: null, variations: [] };
     renderApp();
 
-    const { mode, formState } = state;
+    const { mode, formState, humanState, filmState } = state;
+    const data = { ...state, ...filmState };
+    PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
 
-    // 1. Kumpulkan semua data berkualitas dari form
-    const data = {};
-    PROMPT_OPTIONS[mode].fields.forEach(field => {
-        data[field] = getFinalValue(formState[mode][field]);
-    });
+    if (mode === 'product' && humanState.enabled) {
+        data.humanInShot = {};
+        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
+    }
 
-    // 2. Buat string parameter untuk dikirim sebagai brief ke AI
-    const parameterString = PROMPT_OPTIONS[mode].fields
-        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: "${data[field]}"`)
+    let parameterString = PROMPT_OPTIONS[mode].fields
+        .filter(field => field !== 'characterAnchor' && data[field]) // Filter out empty values
+        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
         .join(', ');
 
-    // 3. Buat perintah ke AI untuk meminta ide dalam format JSON yang terstruktur
-    const finalPromptToAI = `
-    Your task is to act as an AI Art Director. Your output MUST be a single, valid JSON object and nothing else.
-    Do not include markdown formatting like \`\`\`json.
-
-    **EXAMPLE OF THE REQUIRED JSON OUTPUT FORMAT:**
-    {
-      "subjectDescription": "A detailed and evocative description of the main subject.",
-      "settingDescription": "A vivid description of the environment and background.",
-      "styleConcept": "A short, powerful phrase for the mood and style."
+    if (data.humanInShot) {
+        const humanParams = Object.entries(data.humanInShot)
+            .filter(([, value]) => value) // Filter out empty values
+            .map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
+        if(humanParams) {
+             parameterString += `. Human in shot details: ${humanParams}`;
+        }
     }
 
-    **CREATIVE BRIEF (Use these parameters below to generate the content for the JSON object above):**
-    ---
-    ${parameterString}
-    ---
-`;
+    const cleanAIText = (rawText) => {
+        if (!rawText) return '';
+        let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
+        cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim();
+        return cleaned;
+    };
 
-    // 4. Panggil AI untuk mendapatkan komponen kreatif
-    // Pastikan backend Anda bisa meneruskan konfigurasi untuk meminta JSON
-    const rawJSON = await callGeminiAPI(finalPromptToAI, { response_mime_type: "application/json" });
+    let textPrompts = [];
 
-    try {
-    let creativeComponents;
-    try {
-        // Upaya pertama: Parse JSON seperti yang seharusnya
-        creativeComponents = JSON.parse(rawJSON);
-    } catch (e) {
-        // Jika JSON.parse gagal, jalankan Rencana B (Fallback)
-        console.warn("AI did not return valid JSON. Attempting fallback text parse.");
-        creativeComponents = parseKeyValueFallback(rawJSON);
+    if (data.mode === 'film') {
+        const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
+        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
+        const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
+
+        if (filmState.numScenes > 1 && filmState.linkScenes) {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
+            }
+        } else {
+             // Generate scenes independently or just one scene
+             const sceneCount = filmState.numScenes;
+             const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
+                 const sceneInstruction = sceneCount > 1 ? ` This is scene ${i+1} of ${sceneCount}.` : '';
+                 const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`;
+                 return callGeminiAPI(finalPrompt);
+             });
+             const results = await Promise.all(promptsPromises);
+             textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
+        }
+    } else {
+        const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
+        let rawText = await callGeminiAPI(finalPrompt);
+        if (rawText) {
+            textPrompts = [cleanAIText(rawText)];
+        }
     }
 
-    if (!creativeComponents) {
-        // Jika kedua upaya gagal, beri tahu pengguna dan hentikan
-        throw new Error("AI returned an unreadable format.");
+    if (textPrompts.length > 0) {
+        state.outputs = textPrompts.map(imagePrompt => {
+            const videoPrompts = generateVideoPrompts(data, imagePrompt);
+            return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
+        });
     }
-
-    // KODE SELANJUTNYA SAMA SEPERTI SEBELUMNYA...
-    // Rakit komponen menjadi prompt gambar yang sempurna
-    const finalImagePrompt = `${data.cameraAngle || 'cinematic shot'} of ${creativeComponents.subjectDescription}, set within ${creativeComponents.settingDescription}. The overall aesthetic is ${creativeComponents.styleConcept}. Shot on ${data.cameraLens}, inspired by ${data.references}, photorealistic, 8k, hyperdetailed, cinematic color grading.`;
-    
-    // Hasilkan video prompts menggunakan komponen kreatif tersebut
-    const videoPrompts = generateVideoPrompts(data, creativeComponents, finalImagePrompt);
-
-    state.outputs = [{
-        text: finalImagePrompt,
-        videoLong: videoPrompts.long,
-        videoShort: videoPrompts.short
-    }];
-
-} catch (error) {
-    console.error("Failed to generate prompts:", error);
-    alert("Sorry, there was an error processing the AI response. Please try again.");
-}
 
     state.isLoading.generate = false;
     renderApp();
 }
 
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL DAN PALING BENAR INI
 async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
 
     try {
-        const { mode, intensity, formState, lockedFields, humanState } = state;
-
+        const { mode, formState, lockedFields, humanState } = state;
         const labelToFieldIdMap = {};
+        const fieldIdToModeMap = {}; // To know if a field is 'product', 'film', or 'human'
+
+        // Populate maps for main mode
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
-            labelToFieldIdMap[PROMPT_OPTIONS[mode].fieldLabels[fieldId]] = fieldId;
+            const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
+            labelToFieldIdMap[label] = fieldId;
+            fieldIdToModeMap[fieldId] = mode;
         });
 
         const lockedContext = {};
         const unlockedFieldsLabels = [];
 
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             if (lockedFields[mode]?.[fieldId]) {
-                const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
-                lockedContext[label] = getFinalValue(formState[mode][fieldId]);
+                const value = getFinalValue(formState[mode][fieldId]);
+                if (value) lockedContext[label] = value;
             } else {
-                unlockedFieldsLabels.push(PROMPT_OPTIONS[mode].fieldLabels[fieldId]);
+                unlockedFieldsLabels.push(label);
             }
         });
 
-        let characterAnchorInstruction = '';
         let humanPromptPart = '';
         let unlockedHumanFieldsLabels = [];
-
-        if (mode === 'film') {
-            const characterAnchorLabel = PROMPT_OPTIONS.film.fieldLabels.characterAnchor;
-            if (unlockedFieldsLabels.includes(characterAnchorLabel)) {
-                characterAnchorInstruction = `
-                    For the "Character Anchor / Key Visual Details" field, you MUST provide a detailed physical description of a new character.
-                    Invent a name, an approximate age, and at least three distinct visual features (e.g., hairstyle, facial features, iconic clothing).
-                    Do not give a concept, give a concrete visual description.
-                `;
-            }
-        }
-
+        // Populate maps and context for human-in-shot if applicable
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
+            lockedContext['Human in Shot Details'] = {};
             humanConfig.fields.forEach(fieldId => {
-                labelToFieldIdMap[humanConfig.fieldLabels[fieldId]] = fieldId;
-            });
-            if (!lockedContext['Human in Shot Details']) {
-                lockedContext['Human in Shot Details'] = {};
-            }
-            humanConfig.fields.forEach(fieldId => {
+                const label = humanConfig.fieldLabels[fieldId];
+                labelToFieldIdMap[label] = fieldId;
+                fieldIdToModeMap[fieldId] = 'product_human'; // Special mode identifier
+
                 if (lockedFields.product_human?.[fieldId]) {
-                    const label = humanConfig.fieldLabels[fieldId];
-                    lockedContext['Human in Shot Details'][label] = getFinalValue(humanState[fieldId]);
+                    const value = getFinalValue(humanState[fieldId]);
+                    if (value) lockedContext['Human in Shot Details'][label] = value;
                 } else {
-                    unlockedHumanFieldsLabels.push(humanConfig.fieldLabels[fieldId]);
+                    unlockedHumanFieldsLabels.push(label);
                 }
             });
             if (unlockedHumanFieldsLabels.length > 0) {
                 humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
             }
+             if (Object.keys(lockedContext['Human in Shot Details']).length === 0) {
+                delete lockedContext['Human in Shot Details'];
+            }
+        }
+        
+        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
+        if (allUnlockedLabels.length === 0) {
+             alert("All fields are locked. Please unlock some fields to get AI suggestions.");
+             state.isLoading.suggest = false;
+             renderApp();
+             return;
         }
 
-        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
-
         const prompt = `
-            You are an expert art director.
-            Given the following locked parameters: ${JSON.stringify(lockedContext)}
-            Suggest coherent values for the following unlocked fields.
-            ${characterAnchorInstruction}
-            ${humanPromptPart}
-            Return your answer as a simple key-value list, with each item on a new line. Do not add any other text, explanation, or markdown.
-            Here are the fields you need to suggest values for:
+            You are an expert creative art director.
+            Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
+            Suggest coherent and creative values for the following unlocked fields to complete the concept.
+            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
+            
+            Fields to suggest:
             ${allUnlockedLabels.join('\n')}
         `;
 
         const resultText = await callGeminiAPI(prompt);
-
-        console.log("--- RAW AI RESPONSE ---");
-        console.log(resultText);
 
         if (resultText) {
             const lines = resultText.split('\n');
             lines.forEach(line => {
                 const parts = line.split(':');
                 if (parts.length >= 2) {
-                    const label = parts[0].trim();
+                    const label = parts[0].trim().replace(/\*+/g, ''); // Clean label from markdown
                     const value = parts.slice(1).join(':').trim();
                     const fieldId = labelToFieldIdMap[label];
-                    if (fieldId) {
-                        let idPrefix = mode;
-                        let stateSlice = state.formState[mode];
+                    const fieldMode = fieldIdToModeMap[fieldId];
+                    
+                    if (fieldId && fieldMode) {
+                        let stateSlice;
+                        let idPrefix;
 
-                        // --- INI BAGIAN UTAMA PERBAIKANNYA ---
-                        // Tambahkan pengecekan mode 'product' dan humanState.enabled
-                        if (mode === 'product' && humanState.enabled && PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]) {
-                            idPrefix = 'human';
+                        if (fieldMode === 'product_human') {
                             stateSlice = state.humanState;
+                            idPrefix = 'human';
+                        } else {
+                            stateSlice = state.formState[fieldMode];
+                            idPrefix = fieldMode;
                         }
 
                         if (stateSlice && stateSlice[fieldId]) {
                             stateSlice[fieldId].custom = value;
                             stateSlice[fieldId].select = '';
-
-                            const inputElement = document.getElementById(`${idPrefix}-${fieldId}-text`);
-                            if (inputElement) inputElement.value = value;
-
-                            const selectElement = document.getElementById(`${idPrefix}-${fieldId}-select`);
-                            if (selectElement) selectElement.value = '';
                         }
                     }
                 }
             });
+             // After updating state, re-render to show new values
+            renderApp();
         }
     } catch (e) {
         console.error("An error occurred during AI suggestion:", e);
         alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
         state.isLoading.suggest = false;
-        const suggestBtn = document.getElementById('suggest-btn');
-        if (suggestBtn) {
-            suggestBtn.innerHTML = 'Suggest with AI ✨';
-            suggestBtn.disabled = false;
-        }
+        // Re-render one last time to ensure button state is updated
+        renderApp();
     }
 }
 
-// GANTI SELURUH FUNGSI LAMA ANDA DENGAN YANG INI
-function generateVideoPrompts(data, creativeComponents, imagePrompt) {
-    let longPrompt = '';
-    let shortPrompt = '';
-    const { mode } = data; // Ambil mode saat ini
 
-    if (mode === 'product') {
-        // Logika spesifik untuk video PRODUK
-        const composition = data.composition || "a smooth tracking shot";
-        const extraElements = data.extraElements || "subtle light glints";
+function generateVideoPrompts(data, imagePrompt) {
+    let long = '', short = '';
+    const { cameraMovement, lighting, mood, sceneType, expression, cameraAngle, composition, extraElements } = data;
 
-        longPrompt = `**Visual Foundation:** "${imagePrompt}"
-**Action:** The video showcases the product with dynamic effects like ${extraElements}. The camera uses a ${composition} to highlight its premium features and textures.`;
-        shortPrompt = `Product showcase video. A ${composition} highlights the product's features with effects like ${extraElements}.`;
-
-    } else {
-        // Logika untuk subjek MANUSIA (Model dan Film)
-        const cameraMovement = data.cameraMovement || "a slow, subtle panning shot";
-        const subjectExpression = data.expression || "a calm, neutral expression";
-        const sceneType = data.sceneType || "an unfolding moment";
-
-        longPrompt = `**Visual Foundation:** "${imagePrompt}"
-**Action:** The scene depicts ${sceneType}. The camera performs ${cameraMovement}, capturing the subject's main expression of ${subjectExpression} as the scene unfolds.`;
-        shortPrompt = `A video of ${data.mainSubject || data.characters}. The primary camera movement is a ${cameraMovement}, focusing on the subject's expression.`;
+    if (data.mode === 'model') {
+        long = `Scene: ${imagePrompt} Camera: ${cameraAngle || 'eye-level'}. Lighting: ${lighting || 'soft light'}. Aesthetic: ${mood || 'neutral'}. Flow: The scene should depict a ${sceneType || 'portrait session'} and the character should show an expression of "${expression || 'subtle emotion'}".`;
+        short = `Camera is ${cameraAngle || 'eye-level'}. The character's expression is "${expression || 'neutral'}". The mood is ${mood || 'calm'}.`;
+    } else if (data.mode === 'product') {
+        long = `Scene: ${imagePrompt} Camera: ${composition || 'centered'}. Lighting: ${lighting || 'studio light'}. Effects: Add visual effects like ${extraElements || 'subtle highlights'}. Mood: ${mood || 'premium'}.`;
+        short = `Animate this product shot with a ${composition || 'centered'} style. Add effects like ${extraElements || 'subtle highlights'}. Mood is ${mood || 'premium'}.`;
+    } else if (data.mode === 'film') {
+        long = `Scene: ${imagePrompt} Camera: ${cameraMovement || 'static shot'}. Lighting: ${lighting || 'natural daylight'}. Aesthetic: ${mood || 'cinematic'}. Flow: The scene should depict a ${sceneType || 'dialogue'} and the character should show an expression of "${expression || 'subtle emotion'}".`;
+        short = `The camera performs a ${cameraMovement || 'static shot'}. The character's expression is "${expression || 'neutral'}". The atmosphere is ${mood || 'cinematic'}.`;
     }
 
-    return { long: longPrompt, short: shortPrompt };
-}
+    return { long, short };
+};
 
 async function handleGenerateVariations(originalPrompt) {
     state.isLoading.variations = true;
