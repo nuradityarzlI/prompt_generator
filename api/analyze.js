@@ -1,17 +1,6 @@
-// File: api/analyze.js
-// Endpoint ini HANYA untuk fitur "Analyze Product from Image" menggunakan LLaVA via Hugging Face.
+// File: api/analyze.js (Versi Perbaikan)
 
-function base64ToArrayBuffer(base64) {
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-}
-
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
@@ -27,12 +16,16 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: "Image data is required." });
         }
 
-        const imageBuffer = base64ToArrayBuffer(promptWithImage.image.data);
+        // Di lingkungan Node.js, cara terbaik mengubah base64 adalah menggunakan Buffer
+        const imageBuffer = Buffer.from(promptWithImage.image.data, 'base64');
         
         const response = await fetch(
             "https://api-inference.huggingface.co/models/llava-hf/llava-1.5-7b-hf",
             {
-                headers: { "Authorization": `Bearer ${hfToken}` },
+                headers: { 
+                    "Authorization": `Bearer ${hfToken}`,
+                    "Content-Type": promptWithImage.image.mimeType,
+                },
                 method: "POST",
                 body: imageBuffer,
             }
@@ -47,8 +40,10 @@ export default async function handler(req, res) {
         }
 
         const result = await response.json();
-        // LLaVA mengembalikan seluruh prompt, kita ekstrak jawabannya saja
-        const answer = result[0]?.generated_text.split('<|im_end|>')[1]?.trim() || "Could not parse answer.";
+        const generatedText = result[0]?.generated_text || "";
+        
+        // Ekstrak jawaban bersih dari output LLaVA
+        const answer = generatedText.split('[/INST]')[1]?.trim() || "Could not parse the answer from model response.";
         
         const finalResponse = {
             candidates: [{ content: { parts: [{ text: answer }] } }]
@@ -60,4 +55,4 @@ export default async function handler(req, res) {
         console.error('Internal Server Error in /api/analyze:', error);
         return res.status(500).json({ message: 'An internal error occurred.', details: error.message });
     }
-}
+};
