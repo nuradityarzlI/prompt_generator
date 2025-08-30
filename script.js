@@ -922,4 +922,4 @@ async function handleGenerateVariations(originalPrompt) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeState();
     renderApp();
-});, bagaimana cara agar saya bisa menambahkan tombol generate variation?
+});
