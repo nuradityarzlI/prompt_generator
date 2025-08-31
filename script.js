@@ -614,25 +614,26 @@ async function handleSubmit() {
     };
 
     let textPrompts = [];
+    const sceneCount = (mode === 'film') ? filmState.numScenes : 1;
 
-    if (mode === 'film' && filmState.numScenes > 1 && filmState.linkScenes) {
-        const multiSceneInstruction = `Based on the provided briefs, write ${filmState.numScenes} connected text-to-image prompts that form a coherent narrative sequence. Separate each prompt clearly with "---SCENE BREAK---".`;
-        const finalPrompt = `${promptEngineerPersona}\n\n${multiSceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
-        let rawText = await callGeminiAPI(finalPrompt);
-        if (rawText) {
-            rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-            textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
+    const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
+        let sceneContextInstruction = '';
+        // Beri konteks pada AI untuk setiap scene
+        if (sceneCount > 1) {
+            if (filmState.linkScenes) {
+                sceneContextInstruction = `\nIMPORTANT CONTEXT: This is Scene ${i + 1} of a ${sceneCount}-scene connected sequence. Ensure it feels like a continuation.`;
+            } else {
+                sceneContextInstruction = `\nIMPORTANT CONTEXT: This is for Scene ${i + 1} of ${sceneCount} (these scenes are independent).`;
+            }
         }
-    } else {
-        const sceneCount = (mode === 'film') ? filmState.numScenes : 1;
-        const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
-            const sceneInstruction = (sceneCount > 1) ? ` This is for scene ${i + 1} of ${sceneCount} (scenes are independent).` : '';
-            const finalPrompt = `${promptEngineerPersona}\n\n${sceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
-            return callGeminiAPI(finalPrompt);
-        });
-        const results = await Promise.all(promptsPromises);
-        textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
-    }
+
+        const finalPrompt = `${promptEngineerPersona}\n${sceneContextInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n--- FINAL INSTRUCTION ---\n${finalInstruction}`;
+        return callGeminiAPI(finalPrompt);
+    });
+
+    // Jalankan semua panggilan API secara bersamaan dan tunggu hasilnya
+    const results = await Promise.all(promptsPromises);
+    textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
     
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
