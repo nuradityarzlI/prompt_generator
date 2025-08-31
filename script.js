@@ -595,7 +595,7 @@ async function handleSubmit() {
     // =======================================================================
     // BAGIAN BARU: Prompt utama untuk "Prompt Engineer"
     // =======================================================================
-    const promptEngineerPersona = `You are a world-class prompt engineer. Your task is to act as the final synthesizer on a professional creative team. You will receive briefs from various department heads (Director, Photographer, Stylist, etc.). Your job is to synthesize all these inputs into a single, powerful, and cohesive prompt. The final prompt should be a vivid, detailed paragraph that seamlessly integrates all requirements.`;
+    const promptEngineerPersona = `You are a world-class prompt designer. Your role is to act as the final drafter on a professional creative team. You will receive direction from various department heads (Director, Photographer, Stylist, etc.). Your job is to synthesize all of this input into a single, strong, cohesive, and realistic prompt. The final prompt should be a clear, detailed paragraph that seamlessly integrates all requirements and is user-friendly for image and video generators.`;
     
     const finalInstruction = `Ensure every single detail from the briefs is represented in the final paragraph. Return ONLY the synthesized prompt itself, without any introductory phrases, explanations, or quotation marks.`;
 
