@@ -595,10 +595,17 @@ async function handleSubmit() {
     // =======================================================================
     // BAGIAN BARU: Prompt utama untuk "Prompt Engineer"
     // =======================================================================
-    const promptEngineerPersona = `You are a world-class prompt designer. Your role is to act as the final drafter on a professional creative team. You will receive direction from various department heads (Director, Photographer, Stylist, etc.). Your job is to synthesize all of this input into a single, strong, and cohesive prompt. The final prompt should be a clear, detailed paragraph that seamlessly integrates all requirements and is user-friendly for image and video generators.`;
-    
-    const finalInstruction = `Ensure every single detail from the briefs is represented in the final paragraph. Return ONLY the synthesized prompt itself, without any introductory phrases, explanations, or quotation marks.`;
+    const currentIntensity = state.intensity; 
 
+    const promptEngineerPersona = `You are a world-class prompt designer with a specific creative mandate. 
+    Your primary goal is to synthesize all inputs into a single, cohesive prompt that strictly adheres to a **'${currentIntensity}'** aesthetic. 
+    You will receive direction from various department heads. Even if some inputs seem to contradict the primary aesthetic, your job is to creatively interpret them within the '${currentIntensity}' framework.`;
+    
+    const finalInstruction = `Synthesize all the professional briefs into a single descriptive paragraph. 
+    **Crucially, the final output's tone and style MUST feel like a '${currentIntensity}' concept.** For example, if the user provides an 'experimental' camera angle but the mandate is 'conservative', you must describe it as a 'conservative and subtle take on that angle'. 
+    Ensure every detail is included, but viewed through this '${currentIntensity}' lens. 
+    Return ONLY the synthesized prompt itself, without any introductory phrases or explanations.`;
+    
     const cleanAIText = (rawText) => {
         if (!rawText) return '';
         let cleaned = rawText.replace(/^(Here's|Certainly|Based on|The synthesized|Here is|Sure, here's).*?(:|\n)/i, '');
@@ -701,15 +708,22 @@ async function handleAISuggest() {
              return;
         }
 
-        const prompt = `
-            You are an expert creative art director.
-            Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
-            Suggest coherent and creative values for the following unlocked fields to complete the concept.
-            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
-            
-            Fields to suggest:
-            ${allUnlockedLabels.join('\n')}
-        `;
+        const currentIntensity = state.intensity; // Ambil intensitas saat ini
+
+        const prompt = `
+            You are an expert creative art director working within a specific creative constraint.
+            The primary creative mandate for this project is: **'${currentIntensity}'**.
+            
+            Given the following creative direction that is already decided (locked parameters): ${JSON.stringify(lockedContext)}
+            
+            Your task is to suggest coherent and creative values for the following unlocked fields. 
+            **All of your suggestions MUST align with the '${currentIntensity}' mandate**, even if the locked parameters seem to suggest a different style. Your suggestions should bridge the gap and bring the whole concept closer to the '${currentIntensity}' aesthetic.
+            
+            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text or explanation.
+
+            Fields to suggest:
+            ${allUnlockedLabels.join('\n')}
+        `;
 
         const resultText = await callGeminiAPI(prompt);
 
