@@ -1,4 +1,8 @@
 
+
+script js versi baru v4
+
+
 // =======================================================================
 // DATA STORE LENGKAP
 // =======================================================================
@@ -593,8 +597,9 @@ async function handleSubmit() {
     const professionalBriefs = structureBriefByRole(mode, data);
 
     // =======================================================================
-    // BAGIAN BARU: Prompt utama untuk "Prompt Engineer"
-    // =======================================================================
+    // BAGIAN BARU: Prompt utama untuk "Prompt Engineer" dengan Penekanan pada Intensitas
+    // =======================================================================
+    // Ambil intensitas yang dipilih dari state
     const currentIntensity = state.intensity; 
 
     const promptEngineerPersona = `You are a world-class prompt designer with a specific creative mandate. 
@@ -605,7 +610,7 @@ async function handleSubmit() {
     **Crucially, the final output's tone and style MUST feel like a '${currentIntensity}' concept.** For example, if the user provides an 'experimental' camera angle but the mandate is 'conservative', you must describe it as a 'conservative and subtle take on that angle'. 
     Ensure every detail is included, but viewed through this '${currentIntensity}' lens. 
     Return ONLY the synthesized prompt itself, without any introductory phrases or explanations.`;
-    
+
     const cleanAIText = (rawText) => {
         if (!rawText) return '';
         let cleaned = rawText.replace(/^(Here's|Certainly|Based on|The synthesized|Here is|Sure, here's).*?(:|\n)/i, '');
@@ -616,28 +621,23 @@ async function handleSubmit() {
     let textPrompts = [];
 
     if (mode === 'film' && filmState.numScenes > 1 && filmState.linkScenes) {
-            const multiSceneInstruction = `Based on the provided briefs, write ${filmState.numScenes} connected text-to-image prompts that form a coherent narrative sequence. **YOU MUST separate each scene with the exact text "---SCENE BREAK---". This is a critical instruction for parsing.**`;
-            const finalPrompt = `${promptEngineerPersona}\n\n${multiSceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
-            
-            let rawText = await callGeminiAPI(finalPrompt);
-            if (rawText) {
-                const sceneSplitRegex = /---SCENE BREAK---|\n\s*(\*\*|__)?Scene \d+:?(\*\*|__)?\s*/i;
-                
-                textPrompts = rawText.split(sceneSplitRegex)
-                    .map(s => s ? s.trim() : "") // Trim setiap bagian
-                    .filter(s => s && s.length > 10); // Filter hasil split yang kosong atau tidak relevan
-            }
-        } else {
-            // Logika untuk scene tunggal atau tidak terhubung (sudah benar, tidak perlu diubah)
-            const sceneCount = (mode === 'film') ? filmState.numScenes : 1;
-            const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
-                const sceneInstruction = (sceneCount > 1) ? ` This is for scene ${i + 1} of ${sceneCount} (scenes are independent).` : '';
-                const finalPrompt = `${promptEngineerPersona}\n\n${sceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
-                return callGeminiAPI(finalPrompt);
-            });
-            const results = await Promise.all(promptsPromises);
-            textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
+        const multiSceneInstruction = `Based on the provided briefs, write ${filmState.numScenes} connected text-to-image prompts that form a coherent narrative sequence. Separate each prompt clearly with "---SCENE BREAK---".`;
+        const finalPrompt = `${promptEngineerPersona}\n\n${multiSceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
+        let rawText = await callGeminiAPI(finalPrompt);
+        if (rawText) {
+            rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+            textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
         }
+    } else {
+        const sceneCount = (mode === 'film') ? filmState.numScenes : 1;
+        const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
+            const sceneInstruction = (sceneCount > 1) ? ` This is for scene ${i + 1} of ${sceneCount} (scenes are independent).` : '';
+            const finalPrompt = `${promptEngineerPersona}\n\n${sceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
+            return callGeminiAPI(finalPrompt);
+        });
+        const results = await Promise.all(promptsPromises);
+        textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
+    }
     
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
@@ -729,123 +729,6 @@ async function handleAISuggest() {
             Fields to suggest:
             ${allUnlockedLabels.join('\n')}
         `;
-
-        const resultText = await callGeminiAPI(prompt);
-
-        if (resultText) {
-            const lines = resultText.split('\n');
-            lines.forEach(line => {
-                const parts = line.split(':');
-                if (parts.length >= 2) {
-                    const label = parts[0].trim().replace(/\*+/g, ''); // Clean label from markdown
-                    const value = parts.slice(1).join(':').trim();
-                    const fieldId = labelToFieldIdMap[label];
-                    const fieldMode = fieldIdToModeMap[fieldId];
-                    
-                    if (fieldId && fieldMode) {
-                        let stateSlice;
-                        let idPrefix;
-
-                        if (fieldMode === 'product_human') {
-                            stateSlice = state.humanState;
-                            idPrefix = 'human';
-                        } else {
-                            stateSlice = state.formState[fieldMode];
-                            idPrefix = fieldMode;
-                        }
-
-                        if (stateSlice && stateSlice[fieldId]) {
-                            stateSlice[fieldId].custom = value;
-                            stateSlice[fieldId].select = '';
-                        }
-                    }
-                }
-            });
-             // After updating state, re-render to show new values
-            renderApp();
-        }
-    } catch (e) {
-        console.error("An error occurred during AI suggestion:", e);
-        alert("Terjadi kesalahan saat memproses sugesti AI.");
-    } finally {
-        state.isLoading.suggest = false;
-        // Re-render one last time to ensure button state is updated
-        renderApp();
-    }
-}
-
-async function handleAISuggest() {
-    state.isLoading.suggest = true;
-    renderApp();
-
-    try {
-        const { mode, formState, lockedFields, humanState } = state;
-        const labelToFieldIdMap = {};
-        const fieldIdToModeMap = {}; // To know if a field is 'product', 'film', or 'human'
-
-        // Populate maps for main mode
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
-            const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
-            labelToFieldIdMap[label] = fieldId;
-            fieldIdToModeMap[fieldId] = mode;
-        });
-
-        const lockedContext = {};
-        const unlockedFieldsLabels = [];
-
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
-            const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
-            if (lockedFields[mode]?.[fieldId]) {
-                const value = getFinalValue(formState[mode][fieldId]);
-                if (value) lockedContext[label] = value;
-            } else {
-                unlockedFieldsLabels.push(label);
-            }
-        });
-
-        let humanPromptPart = '';
-        let unlockedHumanFieldsLabels = [];
-        // Populate maps and context for human-in-shot if applicable
-        if (mode === 'product' && humanState.enabled) {
-            const humanConfig = PROMPT_OPTIONS.special.humanInShot;
-            lockedContext['Human in Shot Details'] = {};
-            humanConfig.fields.forEach(fieldId => {
-                const label = humanConfig.fieldLabels[fieldId];
-                labelToFieldIdMap[label] = fieldId;
-                fieldIdToModeMap[fieldId] = 'product_human'; // Special mode identifier
-
-                if (lockedFields.product_human?.[fieldId]) {
-                    const value = getFinalValue(humanState[fieldId]);
-                    if (value) lockedContext['Human in Shot Details'][label] = value;
-                } else {
-                    unlockedHumanFieldsLabels.push(label);
-                }
-            });
-            if (unlockedHumanFieldsLabels.length > 0) {
-                humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
-            }
-             if (Object.keys(lockedContext['Human in Shot Details']).length === 0) {
-                delete lockedContext['Human in Shot Details'];
-            }
-        }
-        
-        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
-        if (allUnlockedLabels.length === 0) {
-             alert("All fields are locked. Please unlock some fields to get AI suggestions.");
-             state.isLoading.suggest = false;
-             renderApp();
-             return;
-        }
-
-        const prompt = `
-            You are an expert creative art director.
-            Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
-            Suggest coherent and creative values for the following unlocked fields to complete the concept.
-            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
-            
-            Fields to suggest:
-            ${allUnlockedLabels.join('\n')}
-        `;
 
         const resultText = await callGeminiAPI(prompt);
 
