@@ -617,7 +617,9 @@ async function handleSubmit() {
     let textPrompts = [];
 
     if (mode === 'film' && filmState.numScenes > 1 && filmState.linkScenes) {
-        const multiSceneInstruction = `Based on the provided briefs, write ${filmState.numScenes} connected text-to-image prompts that form a coherent narrative sequence. Separate each prompt clearly with "---SCENE BREAK---".`;
+        const multiSceneInstruction = `You MUST generate exactly ${filmState.numScenes} distinct text-to-image prompts for a connected narrative sequence.
+        It is CRITICAL that you separate each individual prompt with the exact separator string "---SCENE BREAK---".
+        Do not write any introductory text or summaries. Your entire response must follow this format: [Prompt for Scene 1] ---SCENE BREAK--- [Prompt for Scene 2] ---SCENE BREAK--- [Prompt for Scene 3]`;
         const finalPrompt = `${promptEngineerPersona}\n\n${multiSceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
         let rawText = await callGeminiAPI(finalPrompt);
         if (rawText) {
