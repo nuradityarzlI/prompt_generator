@@ -621,12 +621,27 @@ async function handleSubmit() {
         It is CRITICAL that you separate each individual prompt with the exact separator string "---SCENE BREAK---".
         Do not write any introductory text or summaries. Your entire response must follow this format: [Prompt for Scene 1] ---SCENE BREAK--- [Prompt for Scene 2] ---SCENE BREAK--- [Prompt for Scene 3]`;
         const finalPrompt = `${promptEngineerPersona}\n\n${multiSceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
-        let rawText = await callGeminiAPI(finalPrompt);
+        let rawText = await callGeminiAPI(finalPrompt, { responseMimeType: "application/json" });
         if (rawText) {
-            rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-            textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
-        }
-    } else {
+            try {
+                // Hapus logika .split() yang lama
+                // textPrompts = rawText.split('---SCENE BREAK---')...
+        
+                // Ganti dengan parsing JSON
+                const cleanedText = rawText.replace(/```json|```/g, '').trim(); // Membersihkan jika AI masih menyertakan markdown
+                textPrompts = JSON.parse(cleanedText);
+                
+                // Pastikan hasilnya adalah array
+                if (!Array.isArray(textPrompts)) {
+                    console.error("AI did not return a valid array. Response:", cleanedText);
+                    textPrompts = []; // Reset jika format salah
+                }
+            } catch (error) {
+                console.error("Failed to parse JSON response from AI:", error);
+                console.error("Raw AI response:", rawText);
+                textPrompts = []; // Gagal parse, jadi kosongkan hasilnya
+            }
+        } else {
         const sceneCount = (mode === 'film') ? filmState.numScenes : 1;
         const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
             const sceneInstruction = (sceneCount > 1) ? ` This is for scene ${i + 1} of ${sceneCount} (scenes are independent).` : '';
