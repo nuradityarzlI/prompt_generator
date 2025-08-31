@@ -616,23 +616,28 @@ async function handleSubmit() {
     let textPrompts = [];
 
     if (mode === 'film' && filmState.numScenes > 1 && filmState.linkScenes) {
-        const multiSceneInstruction = `Based on the provided briefs, write ${filmState.numScenes} connected text-to-image prompts that form a coherent narrative sequence. Separate each prompt clearly with "---SCENE BREAK---".`;
-        const finalPrompt = `${promptEngineerPersona}\n\n${multiSceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
-        let rawText = await callGeminiAPI(finalPrompt);
-        if (rawText) {
-            rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-            textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
+            const multiSceneInstruction = `Based on the provided briefs, write ${filmState.numScenes} connected text-to-image prompts that form a coherent narrative sequence. **YOU MUST separate each scene with the exact text "---SCENE BREAK---". This is a critical instruction for parsing.**`;
+            const finalPrompt = `${promptEngineerPersona}\n\n${multiSceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
+            
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                const sceneSplitRegex = /---SCENE BREAK---|\n\s*(\*\*|__)?Scene \d+:?(\*\*|__)?\s*/i;
+                
+                textPrompts = rawText.split(sceneSplitRegex)
+                    .map(s => s ? s.trim() : "") // Trim setiap bagian
+                    .filter(s => s && s.length > 10); // Filter hasil split yang kosong atau tidak relevan
+            }
+        } else {
+            // Logika untuk scene tunggal atau tidak terhubung (sudah benar, tidak perlu diubah)
+            const sceneCount = (mode === 'film') ? filmState.numScenes : 1;
+            const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
+                const sceneInstruction = (sceneCount > 1) ? ` This is for scene ${i + 1} of ${sceneCount} (scenes are independent).` : '';
+                const finalPrompt = `${promptEngineerPersona}\n\n${sceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
+                return callGeminiAPI(finalPrompt);
+            });
+            const results = await Promise.all(promptsPromises);
+            textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
         }
-    } else {
-        const sceneCount = (mode === 'film') ? filmState.numScenes : 1;
-        const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
-            const sceneInstruction = (sceneCount > 1) ? ` This is for scene ${i + 1} of ${sceneCount} (scenes are independent).` : '';
-            const finalPrompt = `${promptEngineerPersona}\n\n${sceneInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n${finalInstruction}`;
-            return callGeminiAPI(finalPrompt);
-        });
-        const results = await Promise.all(promptsPromises);
-        textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
-    }
     
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
