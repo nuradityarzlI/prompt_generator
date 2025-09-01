@@ -669,7 +669,7 @@ async function handleAISuggest() {
         }
 
         const prompt = `
-          You are an expert creative art director. Your task is to generate suggestions for a visual concept with a '${state.intensity}' creative intensity.
+          You are a creative art director and skilled photographer. Your task is to generate suggestions for an out-of-the-box visual concept with a '${state.intensity}' creative intensity.
           Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
           Suggest coherent and creative values for the following unlocked fields to complete the concept, ensuring they align with the '${state.intensity}' style.
           Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
