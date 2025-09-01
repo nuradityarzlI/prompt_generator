@@ -1,6 +1,6 @@
 
 
-// script js versi baru v2
+// script js versi baru v6
 
 
 // =======================================================================
@@ -88,7 +88,6 @@ function initializeState() {
         humanState: initialHumanState,
         filmState: { numScenes: 1, linkScenes: true },
         openAccordionScene: 0,
-        seed: { value: '', locked: false }
     };
 
     updateDefaults();
@@ -319,7 +318,7 @@ function renderApp() {
     let outputHTML = '';
     if (outputs) {
         if (outputs.length > 1) {
-            outputHTML = SceneAccordion(); // Catatan: SceneAccordion juga perlu disederhanakan
+            outputHTML = SceneAccordion();
         } else if (outputs.length === 1) {
             const scene = outputs[0];
             outputHTML = `
@@ -363,21 +362,6 @@ function renderApp() {
                 </div>
 
                 ${extrasHTML}
-                
-              <div class="mt-8 pt-6 border-t border-gray-200">
-                  <div class="flex items-end space-x-4">
-                      <div class="flex-grow">
-                          <label for="seed-input" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                              Seed
-                              ${Tooltip("Isi untuk mereproduksi gambar. Kosongkan untuk hasil acak.")}
-                          </label>
-                          <input type="text" id="seed-input" value="${state.seed.value}" placeholder="Kosongkan untuk acak" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800" ${state.seed.locked ? 'readonly' : ''}>
-                      </div>
-                      <button type="button" id="seed-lock-btn" class="p-3 rounded-lg transition-colors ${state.seed.locked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 bg-gray-200 hover:bg-gray-300'}" title="Lock Seed">
-                          ${LockIcon(state.seed.locked)}
-                      </button>
-                  </div>
-              </div>
 
                 <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>
@@ -433,10 +417,6 @@ function addEventListeners() {
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
     document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
     document.getElementById('clear-btn')?.addEventListener('click', clearFormAndOutputs);
-
-    // === TAMBAHKAN KONTROL SEED BARU DI SINI ===
-    document.getElementById('seed-input')?.addEventListener('input', handleSeedChange);
-    document.getElementById('seed-lock-btn')?.addEventListener('click', handleSeedLockToggle);
 
     // === Kontrol di Bagian Output ===
     document.querySelectorAll('.copy-button').forEach(button => {
@@ -520,17 +500,6 @@ function handleToggleChange(e) {
     } else if (id === 'film-linkScenes-toggle') {
         state.filmState.linkScenes = e.target.checked;
     }
-    renderApp();
-}
-
-function handleSeedChange(e) {
-    if (!state.seed.locked) {
-        state.seed.value = e.target.value.trim();
-    }
-}
-
-function handleSeedLockToggle() {
-    state.seed.locked = !state.seed.locked;
     renderApp();
 }
 
@@ -626,20 +595,9 @@ async function handleSubmit() {
     }
 
     if (textPrompts.length > 0) {
-        const seedValue = (state.seed.value || '').replace(/[^0-9]/g, '');
-        const seedParam = seedValue ? ` --seed ${seedValue}` : '';
-
         state.outputs = textPrompts.map(imagePrompt => {
             const videoPrompts = generateVideoPrompts(data, imagePrompt);
-            
-            // Langsung gabungkan seed ke dalam properti 'text'
-            const finalPromptText = `${imagePrompt}${seedParam}`;
-
-            return {
-                text: finalPromptText, 
-                videoLong: videoPrompts.long,
-                videoShort: videoPrompts.short
-            };
+            return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
         });
     }
 
@@ -714,52 +672,46 @@ async function handleAISuggest() {
           You are an expert creative art director. Your task is to generate suggestions for a visual concept with a '${state.intensity}' creative intensity.
           Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
           Suggest coherent and creative values for the following unlocked fields to complete the concept, ensuring they align with the '${state.intensity}' style.
-          
-          Additionally, suggest a random 7-digit positive integer for the 'Seed' field.
-
           Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
           
           Fields to suggest:
           ${allUnlockedLabels.join('\n')}
-          Seed
       `;
 
         const resultText = await callGeminiAPI(prompt);
 
         if (resultText) {
-          const lines = resultText.split('\n');
-          lines.forEach(line => {
-              const parts = line.split(':');
-              if (parts.length >= 2) {
-                  const label = parts[0].trim().replace(/\*+/g, '');
-                  const value = parts.slice(1).join(':').trim();
+            const lines = resultText.split('\n');
+            lines.forEach(line => {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const label = parts[0].trim().replace(/\*+/g, ''); // Clean label from markdown
+                    const value = parts.slice(1).join(':').trim();
+                    const fieldId = labelToFieldIdMap[label];
+                    const fieldMode = fieldIdToModeMap[fieldId];
+                    
+                    if (fieldId && fieldMode) {
+                        let stateSlice;
+                        let idPrefix;
 
-                  if (label.toLowerCase() === 'seed') {
-                      if (!state.seed.locked) {
-                          state.seed.value = value.replace(/[^0-9]/g, '');
-                      }
-                  } else {
-                      const fieldId = labelToFieldIdMap[label];
-                      const fieldMode = fieldIdToModeMap[fieldId];
-                      
-                      if (fieldId && fieldMode) {
-                          let stateSlice;
-                          if (fieldMode === 'product_human') {
-                              stateSlice = state.humanState;
-                          } else {
-                              stateSlice = state.formState[fieldMode];
-                          }
+                        if (fieldMode === 'product_human') {
+                            stateSlice = state.humanState;
+                            idPrefix = 'human';
+                        } else {
+                            stateSlice = state.formState[fieldMode];
+                            idPrefix = fieldMode;
+                        }
 
-                          if (stateSlice && stateSlice[fieldId]) {
-                              stateSlice[fieldId].custom = value;
-                              stateSlice[fieldId].select = '';
-                          }
-                      }
-                  }
-              }
-          });
-          renderApp();
-      }
+                        if (stateSlice && stateSlice[fieldId]) {
+                            stateSlice[fieldId].custom = value;
+                            stateSlice[fieldId].select = '';
+                        }
+                    }
+                }
+            });
+             // After updating state, re-render to show new values
+            renderApp();
+        }
     } catch (e) {
         console.error("An error occurred during AI suggestion:", e);
         alert("Terjadi kesalahan saat memproses sugesti AI.");
