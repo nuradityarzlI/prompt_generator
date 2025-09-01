@@ -368,7 +368,7 @@ function renderApp() {
 
                 ${extrasHTML}
 
-                {/* ===== MULAI BLOK KODE BARU UNTUK SEED ===== */}
+               // {/* ===== MULAI BLOK KODE BARU UNTUK SEED ===== */}
               <div class="mt-8 pt-6 border-t border-gray-200">
                   <div class="flex items-end space-x-4">
                       <div class="flex-grow">
@@ -383,7 +383,7 @@ function renderApp() {
                       </button>
                   </div>
               </div>
-              {/* ===== AKHIR BLOK KODE BARU UNTUK SEED ===== */}
+             // {/* ===== AKHIR BLOK KODE BARU UNTUK SEED ===== */}
 
                 <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>
