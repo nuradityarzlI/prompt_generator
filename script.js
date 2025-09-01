@@ -1,5 +1,8 @@
 
 
+// script js versi baru v2
+
+
 // =======================================================================
 // DATA STORE LENGKAP
 // =======================================================================
@@ -537,106 +540,60 @@ async function handleSubmit() {
         PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
     }
 
-    // =======================================================================
-    // BAGIAN BARU: Menyusun brief berdasarkan peran profesional
-    // =======================================================================
-    const structureBriefByRole = (currentMode, briefData) => {
-        let briefs = "";
-        const labels = PROMPT_OPTIONS[currentMode].fieldLabels;
+    let parameterString = PROMPT_OPTIONS[mode].fields
+        .filter(field => field !== 'characterAnchor' && data[field]) // Filter out empty values
+        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
+        .join(', ');
 
-        const addBrief = (title, fields) => {
-            const content = fields
-                .map(field => briefData[field] ? `${labels[field]}: ${briefData[field]}` : null)
-                .filter(Boolean)
-                .join(', ');
-            if (content) {
-                briefs += `\n**${title}:**\n- ${content}\n`;
-            }
-        };
-
-        switch (currentMode) {
-            case 'model':
-                addBrief("Creative Director / Art Director's Brief", ['sceneStyle', 'mood', 'references', 'mainSubject', 'ethnicity']);
-                addBrief("Photographer's Shot List", ['cameraAngle', 'lighting', 'cameraLens', 'expression']);
-                addBrief("Stylist & HMUA's Notes", ['styling']);
-                addBrief("Set Designer's Plan", ['background']);
-                break;
-            
-            case 'product':
-                addBrief("Client / Brand Mandate", ['productType', 'material']);
-                addBrief("Creative Director / Art Director's Concept", ['composition', 'mood', 'references']);
-                addBrief("Product Stylist's Plan", ['surface', 'background', 'extraElements']);
-                addBrief("Photographer's Technical Specs", ['lightingStyle', 'cameraLens']);
-                if (briefData.humanInShot) {
-                    const humanContent = Object.entries(briefData.humanInShot)
-                        .filter(([, value]) => value)
-                        .map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
-                    if(humanContent) briefs += `\n**Human Talent Brief:**\n- ${humanContent}\n`;
-                }
-                break;
-            
-            case 'film':
-                addBrief("Director's Vision", ['genre', 'sceneType', 'mood', 'visualAesthetic', 'characters', 'characterRelationship']);
-                addBrief("Screenwriter's Notes", ['genre', 'sceneType']);
-                addBrief("Director of Photography's Plan", ['timeOfDay', 'cameraMovement', 'cameraLens']);
-                addBrief("Production Designer's Breakdown", ['setting', 'permanentProps']);
-                addBrief("Wardrobe Department's Look", ['wardrobeLock']);
-                addBrief("Hair & Makeup Department's Look", ['hairMakeup']);
-                const charAnchor = getFinalValue(formState.film.characterAnchor);
-                if (charAnchor) {
-                     briefs += `\n**CHARACTER ANCHOR (MUST FOLLOW):**\n- ${charAnchor}\n`;
-                }
-                break;
+    if (data.humanInShot) {
+        const humanParams = Object.entries(data.humanInShot)
+            .filter(([, value]) => value) // Filter out empty values
+            .map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
+        if(humanParams) {
+             parameterString += `. Human in shot details: ${humanParams}`;
         }
-        return briefs.trim();
-    };
-    
-    const professionalBriefs = structureBriefByRole(mode, data);
-
-    // =======================================================================
-    // BAGIAN BARU: Prompt utama untuk "Prompt Engineer" dengan Penekanan pada Intensitas
-    // =======================================================================
-    // Ambil intensitas yang dipilih dari state
-    const currentIntensity = state.intensity; 
-
-    const promptEngineerPersona = `You are a world-class prompt designer with a specific creative mandate. 
-    Your primary goal is to synthesize all inputs into a single, cohesive prompt that strictly adheres to a **'${currentIntensity}'** aesthetic. 
-    You will receive direction from various department heads. Even if some inputs seem to contradict the primary aesthetic, your job is to creatively interpret them within the '${currentIntensity}' framework.`;
-    
-    const finalInstruction = `Synthesize all the professional briefs into a single descriptive paragraph. 
-    **Crucially, the final output's tone and style MUST feel like a '${currentIntensity}' concept.** For example, if the user provides an 'experimental' camera angle but the mandate is 'conservative', you must describe it as a 'conservative and subtle take on that angle'. 
-    Ensure every detail is included, but viewed through this '${currentIntensity}' lens. 
-    Return ONLY the synthesized prompt itself, without any introductory phrases or explanations.`;
+    }
 
     const cleanAIText = (rawText) => {
         if (!rawText) return '';
-        let cleaned = rawText.replace(/^(Here's|Certainly|Based on|The synthesized|Here is|Sure, here's).*?(:|\n)/i, '');
+        let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
         cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim();
         return cleaned;
     };
 
     let textPrompts = [];
-    const sceneCount = (mode === 'film') ? filmState.numScenes : 1;
 
-    const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
-        let sceneContextInstruction = '';
-        // Beri konteks pada AI untuk setiap scene
-        if (sceneCount > 1) {
-            if (filmState.linkScenes) {
-                sceneContextInstruction = `\nIMPORTANT CONTEXT: This is Scene ${i + 1} of a ${sceneCount}-scene connected sequence. Ensure it feels like a continuation.`;
-            } else {
-                sceneContextInstruction = `\nIMPORTANT CONTEXT: This is for Scene ${i + 1} of ${sceneCount} (these scenes are independent).`;
+    if (data.mode === 'film') {
+        const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
+        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
+        const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
+
+        if (filmState.numScenes > 1 && filmState.linkScenes) {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
             }
+        } else {
+             // Generate scenes independently or just one scene
+             const sceneCount = filmState.numScenes;
+             const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
+                 const sceneInstruction = sceneCount > 1 ? ` This is scene ${i+1} of ${sceneCount}.` : '';
+                 const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`;
+                 return callGeminiAPI(finalPrompt);
+             });
+             const results = await Promise.all(promptsPromises);
+             textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
         }
+    } else {
+        const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
+        let rawText = await callGeminiAPI(finalPrompt);
+        if (rawText) {
+            textPrompts = [cleanAIText(rawText)];
+        }
+    }
 
-        const finalPrompt = `${promptEngineerPersona}\n${sceneContextInstruction}\n\n--- PROFESSIONAL BRIEFS ---\n${professionalBriefs}\n\n--- FINAL INSTRUCTION ---\n${finalInstruction}`;
-        return callGeminiAPI(finalPrompt);
-    });
-
-    // Jalankan semua panggilan API secara bersamaan dan tunggu hasilnya
-    const results = await Promise.all(promptsPromises);
-    textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
-    
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
             const videoPrompts = generateVideoPrompts(data, imagePrompt);
@@ -711,22 +668,15 @@ async function handleAISuggest() {
              return;
         }
 
-        const currentIntensity = state.intensity; // Ambil intensitas saat ini
-
-        const prompt = `
-            You are an expert creative art director working within a specific creative constraint.
-            The primary creative mandate for this project is: **'${currentIntensity}'**.
-            
-            Given the following creative direction that is already decided (locked parameters): ${JSON.stringify(lockedContext)}
-            
-            Your task is to suggest coherent and creative values for the following unlocked fields. 
-            **All of your suggestions MUST align with the '${currentIntensity}' mandate**, even if the locked parameters seem to suggest a different style. Your suggestions should bridge the gap and bring the whole concept closer to the '${currentIntensity}' aesthetic.
-            
-            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text or explanation.
-
-            Fields to suggest:
-            ${allUnlockedLabels.join('\n')}
-        `;
+        const prompt = `
+            You are an expert creative art director.
+            Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
+            Suggest coherent and creative values for the following unlocked fields to complete the concept.
+            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
+            
+            Fields to suggest:
+            ${allUnlockedLabels.join('\n')}
+        `;
 
         const resultText = await callGeminiAPI(prompt);
 
