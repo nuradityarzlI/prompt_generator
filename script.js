@@ -319,19 +319,15 @@ function renderApp() {
     let outputHTML = '';
     if (outputs) {
         if (outputs.length > 1) {
-            outputHTML = SceneAccordion(); // Catatan: SceneAccordion juga perlu dimodifikasi untuk menampilkan 'fullPrompt' jika ingin optimal
+            outputHTML = SceneAccordion(); // Catatan: SceneAccordion juga perlu disederhanakan
         } else if (outputs.length === 1) {
             const scene = outputs[0];
             outputHTML = `
                 <div>
-                    ${OutputSection({ title: "Full Prompt (Ready to Use)", content: scene.fullPrompt })}
-                    <div class="mt-4 p-4 border-t border-gray-200">
-                        <h4 class="text-md font-semibold text-gray-600 mb-2">Prompt Breakdown:</h4>
-                        ${OutputSection({ title: "Text Prompt (Creative Description)", content: scene.text })}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                            ${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}
-                            ${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}
-                        </div>
+                    ${OutputSection({ title: "Text Prompt", content: scene.text })}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        ${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}
+                        ${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}
                     </div>
                 </div>`;
         }
@@ -367,8 +363,7 @@ function renderApp() {
                 </div>
 
                 ${extrasHTML}
-
-               // {/* ===== MULAI BLOK KODE BARU UNTUK SEED ===== */}
+                
               <div class="mt-8 pt-6 border-t border-gray-200">
                   <div class="flex items-end space-x-4">
                       <div class="flex-grow">
@@ -383,7 +378,6 @@ function renderApp() {
                       </button>
                   </div>
               </div>
-             // {/* ===== AKHIR BLOK KODE BARU UNTUK SEED ===== */}
 
                 <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>
@@ -637,11 +631,12 @@ async function handleSubmit() {
 
         state.outputs = textPrompts.map(imagePrompt => {
             const videoPrompts = generateVideoPrompts(data, imagePrompt);
-            const fullPrompt = `${imagePrompt}${seedParam}`;
+            
+            // Langsung gabungkan seed ke dalam properti 'text'
+            const finalPromptText = `${imagePrompt}${seedParam}`;
 
             return {
-                text: imagePrompt,
-                fullPrompt: fullPrompt,
+                text: finalPromptText, 
                 videoLong: videoPrompts.long,
                 videoShort: videoPrompts.short
             };
