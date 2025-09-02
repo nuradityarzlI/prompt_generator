@@ -5,7 +5,7 @@
 
 const PROMPT_OPTIONS = {
     model: {
-        fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'subjectProps', 'postProcessing', 'atmosphere', 'references', 'cameraLens'],
+        fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'postProcessing', 'atmosphere', 'references', 'cameraLens'],
         fieldLabels: { 
             sceneStyle: "Scene Style / Photography", 
             mainSubject: "Main Subject", 
@@ -21,7 +21,6 @@ const PROMPT_OPTIONS = {
             focusTechnique: "Focus & Depth of Field",
             colorPalette: "Color Palette",
             filmStock: "Texture & Grain",
-            subjectProps: "Subject Props",
             postProcessing: "Post-Processing Style",
             atmosphere: "Atmosphere",
             references: "Visual References", 
@@ -43,7 +42,6 @@ const PROMPT_OPTIONS = {
             focusTechnique: ["sharp focus on eyes", "soft focus background", "shallow depth of field", "deep focus", "f/1.8 aperture effect", "f/8 aperture effect", "everything in focus", "selective focus on face", "bokeh background", "crisp focus on subject"],
             colorPalette: ["neutral tones", "monochromatic black & white", "muted color palette", "warm tones", "cool tones", "earthy tones", "pastel colors", "high-contrast B&W", "sepia tone", "natural skin tones"],
             filmStock: ["crisp digital", "subtle grain", "smooth digital", "fine grain texture", "Ilford HP5 look", "Kodak Portra 400 look", "no grain", "high-definition", "medium format look", "clean sensor look"],
-            subjectProps: ["holding a book", "wearing glasses", "briefcase nearby", "fountain pen", "cup of tea", "laptop in background", "a single flower", "simple jewelry", "a classic watch", "no props, just the person"],
             postProcessing: ["lightroom clean edit", "natural retouching", "contrast enhancement", "sharpening", "dodge and burn", "color correction", "desaturated look", "warmth added", "vignette", "blemish removal"],
             atmosphere: ["calm and composed", "professional and serious", "warm and inviting", "serene and quiet", "thoughtful and introspective", "elegant and poised", "trustworthy", "dignified", "peaceful", "approachable"],
             references: ["Vogue", "Harper’s Bazaar", "WSJ", "Vanity Fair", "COS campaign", "Ralph Lauren ads", "Jil Sander minimal", "National Geographic portraits", "Fortune 500 campaigns", "Smithsonian archives"], 
@@ -64,7 +62,6 @@ const PROMPT_OPTIONS = {
             focusTechnique: ["shallow depth of field (bokeh)", "rack focus effect", "subject in sharp focus, background blurred", "motion blur in background", "split diopter effect", "lens flare focus", "soft focus aesthetic", "deep focus with wide lens", "focus tracking on subject", "manual focus look"],
             colorPalette: ["teal and orange", "vibrant pastels", "cinematic color grade", "warm and cool contrast", "neon colors", "desaturated urban tones", "golden hour palette", "bold primary colors", "analogous colors", "complementary colors"],
             filmStock: ["Kodak Portra 400 grain", "Fuji Superia look", "cinematic digital (Arri Alexa look)", "light film grain", "35mm film texture", "clean digital with high dynamic range", "vintage Ektachrome", "lomo film effect", "disposable camera look", "sharp medium format digital"],
-            subjectProps: ["smartphone", "coffee cup", "sunglasses", "tote bag", "headphones", "vintage film camera", "skateboard", "a novel", "laptop", "a musical instrument"],
             postProcessing: ["VSCO filter look", "cinematic LUT applied", "bleach bypass effect", "high saturation and contrast", "split toning (shadows/highlights)", "frequency separation skin retouching", "dehaze and clarity boost", "cross-processed look", "glow and bloom effect", "lens distortion correction"],
             atmosphere: ["energetic and bustling", "melancholy and cinematic", "intimate and candid", "dreamy and romantic", "gritty and urban", "sun-drenched and carefree", "mysterious and moody", "vibrant and alive", "quiet and observational", "aspirational and luxurious"],
             references: ["Mario Testino fashion", "Annie Leibovitz portraits", "A24 stills", "Zara lookbook", "Dior campaigns", "The Row luxury", "Prada resort shoots", "Gucci lifestyle", "Uniqlo editorial", "H&M commercial"], 
@@ -85,7 +82,6 @@ const PROMPT_OPTIONS = {
             focusTechnique: ["tilt-shift effect", "lens-whacking / freelensing", "extreme bokeh", "pinhole camera focus", "intentional motion blur", "out-of-focus subject", "focus on reflection only", "vaseline on lens effect", "deep focus with distortion", "split-field focus"],
             colorPalette: ["infrared photography colors", "glitchy RGB split", "monochromatic with one spot color", "inverted colors", "thermal imaging palette", "UV blacklight colors", "dissonant color clashes", "acidic neons", "holographic iridescent colors", "oversaturated film look"],
             filmStock: ["heavy data moshing", "VHS glitch effect", "damaged film look", "thermal sensor texture", "CCTV footage grain", "infrared film grain", "experimental chemical processing", "digital noise and artifacts", "holographic texture overlay", "liquid light show effect"],
-            subjectProps: ["glowing orb", "liquid chrome", "fragmented mirror", "cybernetic implant", "a mask", "holographic device", "an abstract sculpture", "smoke bombs", "laser pointers", "projection screen"],
             postProcessing: ["pixel sorting", "databending", "color channel shifting", "solarization effect", "heavy compositing", "surreal photo-manipulation", "anamorphic lens flare", "fractal rendering", "generative fill", "AI-inpainting"],
             atmosphere: ["unsettling and uncanny", "chaotic and energetic", "dreamlike and ethereal", "dystopian and cold", "psychedelic and disorienting", "meditative and abstract", "transcendent and spiritual", "glitchy and technological", "raw and visceral", "sublime and awe-inspiring"],
             references: ["Nick Knight SHOWstudio", "Tim Walker surreal", "Dazed Magazine", "Comme des Garçons visuals", "Balenciaga dystopian", "Vogue Italia experimental", "Helmut Newton bold", "i-D conceptual", "Björk visuals", "arthouse exhibition stills"], 
@@ -106,7 +102,6 @@ const PROMPT_OPTIONS = {
             focusTechnique: ["soft focus", "manual focus miss", "deep focus (70s film)", "dreamy haze", "sharp center, soft edges", "Petzval lens swirl bokeh", "zone focusing street style", "split focus on two subjects", "rack focus with a zoom", "everything slightly soft"],
             colorPalette: ["faded Polaroid colors", "Kodachrome 64", "Ektachrome blues", "Technicolor saturation", "warm sepia tones", "gritty 70s colors", "vibrant 80s neon", "desaturated 90s grunge", "aged paper tones", "cross-processed colors"],
             filmStock: ["Polaroid SX-70 film", "Kodak Tri-X 400 grain", "Super 8mm film grain", "VHS tape artifacts", "16mm film grain", "dust and scratches", "light leaks", "expired film look", "Betacam tape quality", "half-frame camera look"],
-            subjectProps: ["vinyl record", "rotary phone", "cassette player", "vintage car", "Polaroid camera", "cigarette", "boombox", "old television", "View-Master", "lava lamp"],
             postProcessing: ["chemical stains and dust", "vignetting", "pushed film look", "film border overlay", "reticulation", "dodging and burning (darkroom style)", "color shifts from aging", "scanner texture", "grain overlay", "authentic light leaks"],
             atmosphere: ["nostalgic and warm", "cool and detached (90s)", "energetic and glamorous (80s)", "free-spirited and earthy (70s)", "dreamy and melancholic", "authentic and raw", "cinematic and timeless", "intimate and personal", "gritty and real", "sun-soaked and hazy"],
             references: ["Richard Avedon classic", "Irving Penn Vogue", "Guy Bourdin 70s", "Herb Ritts 80s B&W", "Slim Aarons lifestyle", "Polaroid SX-70 ads", "Kodak film campaigns", "90s Calvin Klein", "Bruce Weber lifestyle", "MTV 80s/90s fashion"], 
