@@ -109,7 +109,7 @@ const PROMPT_OPTIONS = {
         }
     },
     product: {
-        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'packagingInteraction', 'advertisingStyle', 'references', 'cameraLens'],
+        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens'],
         fieldLabels: { 
             productType: "Product Type", 
             material: "Material / Texture", 
@@ -122,7 +122,6 @@ const PROMPT_OPTIONS = {
             shadowStyle: "Shadow Style",
             colorHarmony: "Color Harmony",
             motionEffect: "Motion Effect (for Video)",
-            packagingInteraction: "Packaging Interaction",
             advertisingStyle: "Advertising Style",
             references: "Reference Style", 
             cameraLens: "Camera & Lens",
@@ -140,7 +139,6 @@ const PROMPT_OPTIONS = {
             shadowStyle: ["soft drop shadow", "no shadow (floating look)", "subtle ambient occlusion", "gentle gradient shadow", "natural window light shadow", "product casting shadow on self", "clean, hard shadow", "long soft shadow", "diffused shadow", "reflective shadow on surface"],
             colorHarmony: ["monochromatic", "analogous colors", "neutral with accent color", "high-key white on white", "low-key dark on dark", "complementary colors", "split-complementary", "triadic color harmony", "achromatic (B&W)", "earth tones"],
             motionEffect: ["none, static shot", "slow 360 rotation", "gentle light sweep", "subtle dust particles floating", "a single water droplet falls", "slow zoom in on detail", "gentle focus pull", "steam rising slowly", "fabric gently waving", "camera slowly tilts up"],
-            packagingInteraction: ["product next to box", "product emerging from box", "product with packaging elements", "clean, no packaging", "box in soft focus background", "product and box side-by-side", "minimalist packaging display", "unboxing sequence still", "stacked boxes", "product on top of its box"],
             advertisingStyle: ["clean catalog shot", "luxury magazine ad", "minimalist e-commerce", "heritage brand print ad", "tech product launch style", "pharmaceutical clean", "beverage commercial look", "timeless jewelry ad", "automotive ad polish", "fashion accessory lookbook"],
             references: ["Rolex print ads", "Chanel perfume campaigns", "Tiffany jewelry catalog", "Apple clean product", "Muji minimal design", "Dior timeless ads", "Cartier luxury catalog", "Hermes timeless campaigns", "Montblanc lifestyle", "Hugo Boss classic ads"], 
             cameraLens: ["Canon EOS R5 + 100mm macro", "Nikon Z7 + 105mm macro", "Sony A7R IV + 90mm macro", "Hasselblad X2D + 80mm", "Fujifilm GFX 100 + 120mm", "Canon 6D + 100mm", "Nikon D850 + 85mm", "Sony A7 III + 55mm", "Hasselblad H6D + 100mm", "Fujifilm X-T4 + 35mm"] 
@@ -157,7 +155,6 @@ const PROMPT_OPTIONS = {
             shadowStyle: ["long dramatic shadow (golden hour)", "hard graphic shadow", "caustic light reflections", "patterned shadow (from leaves, etc.)", "soft, moody shadow", "neon-colored shadow", "split lighting shadow", "reflective color bounce shadow", "no shadow, high-key", "backlit with shadow towards camera"],
             colorHarmony: ["bold complementary colors", "vibrant triadic", "analogous with a pop of contrast", "pastel on pastel", "neon on dark background", "monochromatic with texture", "desaturated with one vibrant color", "color blocking", "warm cinematic grade", "cool, moody tones"],
             motionEffect: ["dramatic water splash", "product dropping into water (slow-mo)", "smoke swirling around product", "fast pan with motion blur", "stop-motion animation style", "ingredients flying around product", "fabric rippling in the wind", "camera orbiting the product", "liquid pouring action", "light trails effect"],
-            packagingInteraction: ["unboxing sequence", "product and packaging in a lifestyle scene", "packaging used as a prop", "flat-lay of box and contents", "artistic arrangement of packaging", "packaging reflecting in surface", "partially opened box", "eco-friendly packaging emphasized", "product balanced on packaging"],
             advertisingStyle: ["social media ad (e.g., Instagram)", "lifestyle brand campaign", "energetic beverage commercial", "trendy fashion e-comm", "modern tech ad", "influencer-style shot", "aspirational travel ad", "sports brand ad", "cosmetics campaign", "editorial magazine spread"],
             references: ["Nike e-comm", "Adidas commercial", "Samsung lifestyle", "Sephora campaigns", "Zara accessories", "COS minimal modern", "Prada fashion catalog", "H&M lifestyle ads", "Uniqlo clean commercial", "Sony stylish promo"], 
             cameraLens: ["Canon 5D MkIV + 50mm", "Sony A7 IV + 24–70mm", "Nikon Z9 + 70–200mm", "Fujifilm X-T5 + 56mm", "Leica SL2 + 90mm", "Canon R5 + 35mm f/1.4", "Sony A7R V + 24–70mm", "Leica SL2 + 50mm Summilux", "Nikon Z9 + 24–120mm", "Panasonic S1R + 50mm"] 
@@ -174,7 +171,6 @@ const PROMPT_OPTIONS = {
             shadowStyle: ["no shadows, pure light", "shadow is a liquid pool", "glitching, fragmented shadow", "shadow projects a different image", "shadow is a solid object", "colored gel shadow", "shadow that moves independently", "inverse shadow (light)", "shadow made of particles", "long, distorted, surreal shadow"],
             colorHarmony: ["inverted colors", "RGB split effect", "thermal camera palette", "monochromatic with a glitching accent", "holographic spectrum", "dissonant, clashing colors", "UV blacklight reactive", "acidic color palette", "achromatic with light refraction", "color palette shifts over time"],
             motionEffect: ["product morphs into liquid", "explodes and reassembles", "glitches in and out of existence", "time-lapse of product decaying/growing", "surrounded by a particle vortex", "leaves a trail of light", "rotates on impossible axes", "camera flies through the product", "surface texture constantly shifts", "holographic projection emanates from product"],
-            packagingInteraction: ["product phasing through its packaging", "packaging unfolds like origami", "exploded view of product and packaging", "packaging is made of light", "product and packaging merge", "packaging dissolves into particles", "holographic packaging", "packaging is a cage for the product", "anti-gravity packaging", "packaging is a living organism"],
             advertisingStyle: ["conceptual art installation", "dystopian sci-fi commercial", "surreal fashion film", "glitch art advertisement", "avant-garde magazine ad", "trippy music video product placement", "CGI tech demo", "dream sequence ad", "brutalist web design ad", "post-humanist campaign"],
             references: ["Balenciaga dystopian", "Comme des Garçons product art", "Dazed surreal sets", "Nick Knight SHOWstudio", "Tim Walker fantasy objects", "Björk product visuals", "Vogue Italia experimental ads", "conceptual gallery props", "fashion-tech art shoots", "cyber-installation campaigns"], 
             cameraLens: ["Phase One XF IQ4 + tilt-shift", "RED Komodo + probe lens", "Sony Venice + anamorphic", "Blackmagic 6K + vintage cine glass", "Canon R5C + fisheye 14mm", "RED Helium + 18mm", "Phase One + macro tilt-shift", "Sony A7R IV + 15mm", "Canon C500 MkII + tilt-shift", "Blackmagic Pocket 6K + probe"] 
@@ -191,7 +187,6 @@ const PROMPT_OPTIONS = {
             shadowStyle: ["harsh direct flash shadow", "long, warm tungsten shadow", "soft, grainy shadow", "no shadow, flat catalog look", "shadow from a window blind", "dappled light shadow", "neon sign casting shadow", "indistinct, dark room shadow", "shadow with film grain", "authentic, unstyled shadow"],
             colorHarmony: ["faded Kodachrome palette", "warm 70s earth tones", "vibrant 80s neons and pastels", "muted 90s grunge tones", "sepia-toned", "black and white with heavy grain", "cross-processed greens and magentas", "Technicolor saturation", "aged, yellowed paper tones", "Polaroid's unique color cast"],
             motionEffect: ["VHS tracking lines", "Super 8mm film jitter", "projector flicker effect", "lens flare from an old lens", "slow, grainy zoom-in", "record spinning on a turntable", "cassette tape unspooling", "Polaroid picture developing", "light leak transition", "film reel burn"],
-            packagingInteraction: ["product in its original, aged box", "torn, vintage packaging", "sun-faded box art", "promotional display from the era", "product with its user manual", "packaging with old price tag", "collection of products in boxes", "a stack of sealed, vintage products", "packaging with retro typography"],
             advertisingStyle: ["70s print magazine ad", "80s neon-drenched poster", "90s minimalist ad (like Calvin Klein)", "old Sears catalog page", "grainy TV commercial still", "Polaroid ad style", "lifestyle ad from the era", "product placement in a retro scene", "direct mail flyer style", "pre-internet era advertising"],
             references: ["Coca-Cola 70s print ads", "Polaroid SX-70 campaigns", "Kodak film catalog", "80s Sony Walkman ads", "90s Calvin Klein product shots", "retro Nike sneakers catalog", "Marlboro lifestyle ads", "Pepsi 80s neon poster", "VHS camcorder product still", "old Vogue retro spreads"], 
             cameraLens: ["Nikon FM2 + 50mm AI-S", "Canon AE-1 + 50mm FD", "Leica M6 + 35mm Summicron", "Pentax 67 + 105mm", "Mamiya RZ67 + 110mm", "Contax T2 + 38mm", "Polaroid SX-70 instant", "Hasselblad 500CM + 80mm", "Olympus OM-1 + 50mm", "VHS camcorder lens"] 
