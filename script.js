@@ -674,6 +674,27 @@ function renderApp() {
                     <div>${renderFields(rightFields)}</div>
                 </div>
 
+                <div class="mt-2">
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="${mode}-customKey-text" class="flex items-center text-sm font-semibold text-gray-700">
+                                Custom Key (Elemen Wajib)
+                                ${Tooltip("Masukkan kata kunci utama (e.g., skateboard, fisheye, neon city) untuk memandu sugesti AI.")}
+                            </label>
+                            <button type="button" data-lock-mode="${mode}" data-lock-field="customKey" class="lock-button p-1 rounded-full transition-colors ${lockedFields[mode]?.customKey ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">
+                                ${LockIcon(lockedFields[mode]?.customKey)}
+                            </button>
+                        </div>
+                        <textarea 
+                            id="${mode}-customKey-text" 
+                            rows="2"
+                            placeholder="e.g., skateboard, fisheye, neon city at night" 
+                            class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800"
+                            ${lockedFields[mode]?.customKey ? 'readonly' : ''}
+                        >${formState[mode]?.customKey?.custom || ''}</textarea>
+                    </div>
+                </div>
+
                 ${extrasHTML}
 
                 <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
