@@ -989,14 +989,18 @@ async function handleAISuggest() {
         }
 
         const prompt = `
-          You are a creative art director and skilled photographer. Your task is to generate suggestions for an out-of-the-box visual concept with a '${state.intensity}' creative intensity.
-          Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
-          Suggest coherent and creative values for the following unlocked fields to complete the concept, ensuring they align with the '${state.intensity}' style.
-          Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
-          
-          Fields to suggest:
-          ${allUnlockedLabels.join('\n')}
-      `;
+        You are an expert creative art director and a practical filmmaker. Your task is to generate suggestions for a visual concept with a '${state.intensity}' creative intensity.
+        Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
+        Suggest coherent and creative values for the following unlocked fields.
+
+        For the "Action / Gerakan (Untuk Video)" field, describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject and the scene.
+        For example, if the Main Subject is a 'skateboarder', suggest a realistic action like 'pushes off the ground to start rolling in a riding stance' or 'performs a simple kickturn'. Avoid suggesting outcomes like 'capturing motion blur', instead describe the action that *causes* it.
+
+        Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
+        
+        Fields to suggest:
+        ${allUnlockedLabels.join('\n')}
+    `;
 
         const resultText = await callGeminiAPI(prompt);
 
