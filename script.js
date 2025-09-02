@@ -1,6 +1,6 @@
 
 
-// script js versi baru v8
+// script js versi baru v9
 
 
 const PROMPT_OPTIONS = {
@@ -109,7 +109,7 @@ const PROMPT_OPTIONS = {
         }
     },
     product: {
-        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'extraElements', 'compositionScale', 'shadowStyle', 'colorHarmony', 'propTheme', 'motionEffect', 'packagingInteraction', 'advertisingStyle', 'references', 'cameraLens'],
+        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'extraElements', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'packagingInteraction', 'advertisingStyle', 'references', 'cameraLens'],
         fieldLabels: { 
             productType: "Product Type", 
             material: "Material / Texture", 
@@ -122,7 +122,6 @@ const PROMPT_OPTIONS = {
             compositionScale: "Composition Scale",
             shadowStyle: "Shadow Style",
             colorHarmony: "Color Harmony",
-            propTheme: "Prop Theme",
             motionEffect: "Motion Effect (for Video)",
             packagingInteraction: "Packaging Interaction",
             advertisingStyle: "Advertising Style",
@@ -142,7 +141,6 @@ const PROMPT_OPTIONS = {
             compositionScale: ["product centered full", "medium shot of product", "macro detail shot", "product in context (wide)", "slightly angled medium shot", "top-down flat-lay", "hero shot filling frame", "group shot of collection", "environmental product shot", "isometric view"],
             shadowStyle: ["soft drop shadow", "no shadow (floating look)", "subtle ambient occlusion", "gentle gradient shadow", "natural window light shadow", "product casting shadow on self", "clean, hard shadow", "long soft shadow", "diffused shadow", "reflective shadow on surface"],
             colorHarmony: ["monochromatic", "analogous colors", "neutral with accent color", "high-key white on white", "low-key dark on dark", "complementary colors", "split-complementary", "triadic color harmony", "achromatic (B&W)", "earth tones"],
-            propTheme: ["minimalist geometric blocks", "natural elements (leaves, stones)", "office supplies (desk setting)", "luxury fabrics (silk, velvet)", "architectural elements", "raw ingredients (for food/cosmetics)", "tech components", "water droplets", "art supplies", "no props, just the product"],
             motionEffect: ["none, static shot", "slow 360 rotation", "gentle light sweep", "subtle dust particles floating", "a single water droplet falls", "slow zoom in on detail", "gentle focus pull", "steam rising slowly", "fabric gently waving", "camera slowly tilts up"],
             packagingInteraction: ["product next to box", "product emerging from box", "product with packaging elements", "clean, no packaging", "box in soft focus background", "product and box side-by-side", "minimalist packaging display", "unboxing sequence still", "stacked boxes", "product on top of its box"],
             advertisingStyle: ["clean catalog shot", "luxury magazine ad", "minimalist e-commerce", "heritage brand print ad", "tech product launch style", "pharmaceutical clean", "beverage commercial look", "timeless jewelry ad", "automotive ad polish", "fashion accessory lookbook"],
@@ -161,7 +159,6 @@ const PROMPT_OPTIONS = {
             compositionScale: ["product in use by model", "lifestyle flat-lay", "environmental wide shot", "dynamic close-up on detail", "over-the-shoulder product view", "hand-held product shot", "group of products in scene", "product on-the-go", "from the user's POV", "exploded view of components"],
             shadowStyle: ["long dramatic shadow (golden hour)", "hard graphic shadow", "caustic light reflections", "patterned shadow (from leaves, etc.)", "soft, moody shadow", "neon-colored shadow", "split lighting shadow", "reflective color bounce shadow", "no shadow, high-key", "backlit with shadow towards camera"],
             colorHarmony: ["bold complementary colors", "vibrant triadic", "analogous with a pop of contrast", "pastel on pastel", "neon on dark background", "monochromatic with texture", "desaturated with one vibrant color", "color blocking", "warm cinematic grade", "cool, moody tones"],
-            propTheme: ["coffee shop items", "travel essentials (passport, map)", "sports equipment", "office tech and stationery", "bathroom lifestyle props", "kitchen ingredients", "fashion accessories", "outdoor/nature elements", "artistic/creative tools", "party/festive props"],
             motionEffect: ["dramatic water splash", "product dropping into water (slow-mo)", "smoke swirling around product", "fast pan with motion blur", "stop-motion animation style", "ingredients flying around product", "fabric rippling in the wind", "camera orbiting the product", "liquid pouring action", "light trails effect"],
             packagingInteraction: ["unboxing sequence", "product and packaging in a lifestyle scene", "packaging used as a prop", "flat-lay of box and contents", "hand reaching for product in box", "artistic arrangement of packaging", "packaging reflecting in surface", "partially opened box", "eco-friendly packaging emphasized", "product balanced on packaging"],
             advertisingStyle: ["social media ad (e.g., Instagram)", "lifestyle brand campaign", "energetic beverage commercial", "trendy fashion e-comm", "modern tech ad", "influencer-style shot", "aspirational travel ad", "sports brand ad", "cosmetics campaign", "editorial magazine spread"],
@@ -180,7 +177,6 @@ const PROMPT_OPTIONS = {
             compositionScale: ["impossible macro shot", "product dwarfed by surreal environment", "infinite zoom-in (fractal)", "multi-perspective view", "anamorphic wide-screen", "product seen through a crystal", "microscopic texture view", "product as a planet in space", "fisheye extreme close-up", "worm's-eye view from below"],
             shadowStyle: ["no shadows, pure light", "shadow is a liquid pool", "glitching, fragmented shadow", "shadow projects a different image", "shadow is a solid object", "colored gel shadow", "shadow that moves independently", "inverse shadow (light)", "shadow made of particles", "long, distorted, surreal shadow"],
             colorHarmony: ["inverted colors", "RGB split effect", "thermal camera palette", "monochromatic with a glitching accent", "holographic spectrum", "dissonant, clashing colors", "UV blacklight reactive", "acidic color palette", "achromatic with light refraction", "color palette shifts over time"],
-            propTheme: ["levitating geometric shapes", "liquid chrome splashes", "fractal structures", "holographic data streams", "organic alien plants", "shattered mirrors", "glowing crystals", "AI-generated artifacts", "dissected technology", "clouds of colored smoke"],
             motionEffect: ["product morphs into liquid", "explodes and reassembles", "glitches in and out of existence", "time-lapse of product decaying/growing", "surrounded by a particle vortex", "leaves a trail of light", "rotates on impossible axes", "camera flies through the product", "surface texture constantly shifts", "holographic projection emanates from product"],
             packagingInteraction: ["product phasing through its packaging", "packaging unfolds like origami", "exploded view of product and packaging", "packaging is made of light", "product and packaging merge", "packaging dissolves into particles", "holographic packaging", "packaging is a cage for the product", "anti-gravity packaging", "packaging is a living organism"],
             advertisingStyle: ["conceptual art installation", "dystopian sci-fi commercial", "surreal fashion film", "glitch art advertisement", "avant-garde magazine ad", "trippy music video product placement", "CGI tech demo", "dream sequence ad", "brutalist web design ad", "post-humanist campaign"],
@@ -199,7 +195,6 @@ const PROMPT_OPTIONS = {
             compositionScale: ["product in a vintage scene", "close-up on worn texture", "hand holding the retro product", "product on a store shelf (vintage)", "flat-lay with other retro items", "Polaroid of the product", "magazine ad layout", "old catalog style", "product seen on a vintage TV", "full table setting"],
             shadowStyle: ["harsh direct flash shadow", "long, warm tungsten shadow", "soft, grainy shadow", "no shadow, flat catalog look", "shadow from a window blind", "dappled light shadow", "neon sign casting shadow", "indistinct, dark room shadow", "shadow with film grain", "authentic, unstyled shadow"],
             colorHarmony: ["faded Kodachrome palette", "warm 70s earth tones", "vibrant 80s neons and pastels", "muted 90s grunge tones", "sepia-toned", "black and white with heavy grain", "cross-processed greens and magentas", "Technicolor saturation", "aged, yellowed paper tones", "Polaroid's unique color cast"],
-            propTheme: ["ashtray and cigarettes", "old magazines or newspapers", "rotary phone", "vintage board games", "cassette tapes and a Walkman", "vinyl records", "checkered tablecloth", "wood-paneled electronics", "old glass soda bottles", "a classic car interior"],
             motionEffect: ["VHS tracking lines", "Super 8mm film jitter", "projector flicker effect", "lens flare from an old lens", "slow, grainy zoom-in", "record spinning on a turntable", "cassette tape unspooling", "Polaroid picture developing", "light leak transition", "film reel burn"],
             packagingInteraction: ["product in its original, aged box", "torn, vintage packaging", "sun-faded box art", "promotional display from the era", "hand removing product from blister pack", "product with its user manual", "packaging with old price tag", "collection of products in boxes", "a stack of sealed, vintage products", "packaging with retro typography"],
             advertisingStyle: ["70s print magazine ad", "80s neon-drenched poster", "90s minimalist ad (like Calvin Klein)", "old Sears catalog page", "grainy TV commercial still", "Polaroid ad style", "lifestyle ad from the era", "product placement in a retro scene", "direct mail flyer style", "pre-internet era advertising"],
@@ -208,7 +203,7 @@ const PROMPT_OPTIONS = {
         }
     },
     film: {
-        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'permanentProps', 'hairMakeup', 'characterRelationship'],
+        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'characterRelationship'],
         fieldLabels: { 
             genre: "Genre", 
             sceneType: "Scene Type", 
@@ -230,7 +225,6 @@ const PROMPT_OPTIONS = {
             cameraLens: "Camera & Lens", 
             characterAnchor: "Character Anchor / Identity", 
             wardrobeLock: "Wardrobe Lock (Main Outfit)", 
-            permanentProps: "Permanent Props (Always Present)", 
             hairMakeup: "Hair & Makeup Details", 
             characterRelationship: "Character Relationship / Interaction Style",
             customKey: "Custom Key (Elemen Wajib)"
@@ -256,7 +250,6 @@ const PROMPT_OPTIONS = {
             cameraLens: ["ARRI Alexa Mini + 35mm", "Canon C300 MkIII + 85mm", "Sony FX3 + 50mm", "RED Helium + 40mm", "Leica SL Cine + 50mm", "ARRI Amira + 28mm", "Canon R5C cine + 35mm", "Sony A7S III + 24mm", "Blackmagic 6K + 35mm", "RED Raven + 50mm"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
-            permanentProps: ["Coffee cup / tea cup", "Leather-bound journal / notebook", "Old book / manuscript", "Necklace / pendant", "Ring (visible on hand)", "Glasses (eyewear)", "Cigarette / lighter", "Handbag / satchel", "Camera", "Walking stick / cane"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
@@ -281,7 +274,6 @@ const PROMPT_OPTIONS = {
             cameraLens: ["Sony FX6 + 24–70mm", "RED Komodo + 50mm", "Canon C500 MkII + 35mm", "DJI Ronin 4D + 35mm", "ARRI Alexa LF + 47mm", "Sony Venice + 50mm prime", "Nikon Z9 cine + 28mm", "Blackmagic Pocket 6K + 85mm", "Canon R5C + 50mm", "Leica SL2 cine + 90mm"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
-            permanentProps: ["Coffee cup / tea cup", "Leather-bound journal / notebook", "Old book / manuscript", "Necklace / pendant", "Ring (visible on hand)", "Glasses (eyewear)", "Cigarette / lighter", "Handbag / satchel", "Camera", "Walking stick / cane"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
             consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
@@ -307,7 +299,6 @@ const PROMPT_OPTIONS = {
             cameraLens: ["Sony Venice + anamorphic", "RED Komodo + fisheye", "Canon C500 MkII + tilt-shift", "Blackmagic 6K + probe lens", "360 VR rig", "RED Komodo + 16mm wide", "Phase One + cinema back", "Canon R5C + 8mm fisheye", "Blackmagic URSA Mini + vintage glass", "experimental Lomo lenses"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
-            permanentProps: ["Coffee cup / tea cup", "Leather-bound journal / notebook", "Old book / manuscript", "Necklace / pendant", "Ring (visible on hand)", "Glasses (eyewear)", "Cigarette / lighter", "Handbag / satchel", "Camera", "Walking stick / cane"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
             consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
@@ -333,7 +324,6 @@ const PROMPT_OPTIONS = {
             cameraLens: ["Super 8mm film camera", "VHS camcorder (Sony Handycam)", "Betacam SP", "Bolex 16mm", "Panasonic M7 VHS shoulder cam", "Polaroid instant film recorder", "Arriflex 435 (70s)", "Mitchell BNCR (classic Hollywood)", "Hi8 camcorder", "analog 35mm Panavision"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
-            permanentProps: ["Coffee cup / tea cup", "Leather-bound journal / notebook", "Old book / manuscript", "Necklace / pendant", "Ring (visible on hand)", "Glasses (eyewear)", "Cigarette / lighter", "Handbag / satchel", "Camera", "Walking stick / cane"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
             consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
