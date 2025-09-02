@@ -1026,7 +1026,7 @@ async function handleAISuggest() {
 
         // --- PROMPT FINAL UNTUK AI ---
         const prompt = `
-        You are an expert creative art director and a practical filmmaker based in Jakarta. Your task is to generate suggestions for a visual concept with a '${intensity}' creative intensity.
+        You are an expert creative art director and a practical filmmaker. Your task is to generate suggestions for a visual concept with a '${intensity}' creative intensity.
 
         ${customKeyInstruction}
 
