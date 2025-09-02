@@ -1,6 +1,6 @@
 
 
-// script js versi baru v7
+// script js versi baru v8
 
 
 const PROMPT_OPTIONS = {
@@ -25,7 +25,8 @@ const PROMPT_OPTIONS = {
             postProcessing: "Post-Processing Style",
             atmosphere: "Atmosphere",
             references: "Visual References", 
-            cameraLens: "Camera Model + Lens Type" 
+            cameraLens: "Camera Model + Lens Type",
+            customKey: "Custom Key (Elemen Wajib)"
         },
         conservative: { 
             sceneStyle: ["editorial portrait", "studio portrait", "fashion lookbook", "beauty shot", "corporate headshot", "catalogue clean shot", "bridal studio session", "black & white studio headshot", "formal fashion editorial", "graduation portrait"], 
@@ -131,7 +132,8 @@ const PROMPT_OPTIONS = {
             packagingInteraction: "Packaging Interaction",
             advertisingStyle: "Advertising Style",
             references: "Reference Style", 
-            cameraLens: "Camera & Lens" 
+            cameraLens: "Camera & Lens",
+            customKey: "Custom Key (Elemen Wajib)"
         },
         conservative: { 
             productType: ["skincare bottle", "perfume flacon", "luxury watch", "leather bag", "beverage can", "premium laptop", "jewelry ring", "fountain pen", "wine bottle", "classic book cover"], 
@@ -235,7 +237,8 @@ const PROMPT_OPTIONS = {
             wardrobeLock: "Wardrobe Lock (Main Outfit)", 
             permanentProps: "Permanent Props (Always Present)", 
             hairMakeup: "Hair & Makeup Details", 
-            characterRelationship: "Character Relationship / Interaction Style" 
+            characterRelationship: "Character Relationship / Interaction Style",
+            customKey: "Custom Key (Elemen Wajib)"
         },
         conservative: { 
             genre: ["period drama", "romantic comedy", "slice-of-life", "historical biopic", "family melodrama", "coming-of-age", "literary adaptation", "courtroom drama", "social realism", "classic love story"], 
@@ -604,7 +607,7 @@ function renderApp() {
     const modeConfig = PROMPT_OPTIONS[mode];
     if (!modeConfig) return console.error("Invalid mode selected:", mode);
 
-    const fields = modeConfig.fields;
+    const fields = modeConfig.fields.filter(f => f !== 'customKey');
     const middleIndex = Math.ceil(fields.length / 2);
     const leftFields = fields.slice(0, middleIndex);
     const rightFields = fields.slice(middleIndex);
@@ -930,9 +933,9 @@ async function handleAISuggest() {
     renderApp();
 
     try {
-        const { mode, formState, lockedFields, humanState } = state;
+        const { mode, formState, lockedFields, humanState, intensity } = state;
         const labelToFieldIdMap = {};
-        const fieldIdToModeMap = {}; // To know if a field is 'product', 'film', or 'human'
+        const fieldIdToModeMap = {};
 
         // Populate maps for main mode
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
@@ -945,6 +948,9 @@ async function handleAISuggest() {
         const unlockedFieldsLabels = [];
 
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            // Jangan minta sugesti untuk Custom Key, karena itu adalah input
+            if (fieldId === 'customKey') return;
+
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             if (lockedFields[mode]?.[fieldId]) {
                 const value = getFinalValue(formState[mode][fieldId]);
@@ -953,17 +959,16 @@ async function handleAISuggest() {
                 unlockedFieldsLabels.push(label);
             }
         });
-
-        let humanPromptPart = '';
+        
+        // --- LOGIKA BARU UNTUK HUMAN IN SHOT ---
         let unlockedHumanFieldsLabels = [];
-        // Populate maps and context for human-in-shot if applicable
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
             lockedContext['Human in Shot Details'] = {};
             humanConfig.fields.forEach(fieldId => {
                 const label = humanConfig.fieldLabels[fieldId];
                 labelToFieldIdMap[label] = fieldId;
-                fieldIdToModeMap[fieldId] = 'product_human'; // Special mode identifier
+                fieldIdToModeMap[fieldId] = 'product_human';
 
                 if (lockedFields.product_human?.[fieldId]) {
                     const value = getFinalValue(humanState[fieldId]);
@@ -972,35 +977,51 @@ async function handleAISuggest() {
                     unlockedHumanFieldsLabels.push(label);
                 }
             });
-            if (unlockedHumanFieldsLabels.length > 0) {
-                humanPromptPart = `\nAdditionally, suggest values for the human model in the shot for these fields: ${unlockedHumanFieldsLabels.join(', ')}.`;
-            }
-             if (Object.keys(lockedContext['Human in Shot Details']).length === 0) {
+            if (Object.keys(lockedContext['Human in Shot Details']).length === 0) {
                 delete lockedContext['Human in Shot Details'];
             }
         }
         
         const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
+        
         if (allUnlockedLabels.length === 0) {
-             alert("All fields are locked. Please unlock some fields to get AI suggestions.");
-             state.isLoading.suggest = false;
-             renderApp();
-             return;
+            alert("All fields are locked. Please unlock some fields to get AI suggestions.");
+            state.isLoading.suggest = false;
+            renderApp();
+            return;
         }
 
+        // --- LOGIKA BARU UNTUK CUSTOM KEY ---
+        const customKeyValue = getFinalValue(formState[mode].customKey);
+        let customKeyInstruction = '';
+        if (customKeyValue) {
+            customKeyInstruction = `
+        // --- MANDATORY CREATIVE KEYS ---
+        The user has provided the following mandatory keywords or concepts that MUST be central to your suggestions: "${customKeyValue}".
+        All of your suggestions for the unlocked fields must revolve around, be inspired by, and be coherent with these keys. This is the primary creative direction.
+        // --- END MANDATORY KEYS ---
+            `;
+        }
+
+        // --- PROMPT FINAL UNTUK AI ---
         const prompt = `
-        You are an expert creative art director and a practical filmmaker. Your task is to generate suggestions for a visual concept with a '${state.intensity}' creative intensity.
+        You are an expert creative art director and a practical filmmaker based in Jakarta. Your task is to generate suggestions for a visual concept with a '${intensity}' creative intensity.
+
+        ${customKeyInstruction}
+
         Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
         Suggest coherent and creative values for the following unlocked fields.
 
-        For the "Action / Gerakan (Untuk Video)" field, describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject and the scene.
+        // --- SPECIAL INSTRUCTIONS ---
+        For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject and the scene.
         For example, if the Main Subject is a 'skateboarder', suggest a realistic action like 'pushes off the ground to start rolling in a riding stance' or 'performs a simple kickturn'. Avoid suggesting outcomes like 'capturing motion blur', instead describe the action that *causes* it.
+        // --- END SPECIAL INSTRUCTIONS ---
 
         Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
         
         Fields to suggest:
         ${allUnlockedLabels.join('\n')}
-    `;
+        `;
 
         const resultText = await callGeminiAPI(prompt);
 
@@ -1009,21 +1030,17 @@ async function handleAISuggest() {
             lines.forEach(line => {
                 const parts = line.split(':');
                 if (parts.length >= 2) {
-                    const label = parts[0].trim().replace(/\*+/g, ''); // Clean label from markdown
+                    const label = parts[0].trim().replace(/\*+/g, '');
                     const value = parts.slice(1).join(':').trim();
                     const fieldId = labelToFieldIdMap[label];
                     const fieldMode = fieldIdToModeMap[fieldId];
                     
                     if (fieldId && fieldMode) {
                         let stateSlice;
-                        let idPrefix;
-
                         if (fieldMode === 'product_human') {
                             stateSlice = state.humanState;
-                            idPrefix = 'human';
                         } else {
                             stateSlice = state.formState[fieldMode];
-                            idPrefix = fieldMode;
                         }
 
                         if (stateSlice && stateSlice[fieldId]) {
@@ -1033,7 +1050,6 @@ async function handleAISuggest() {
                     }
                 }
             });
-             // After updating state, re-render to show new values
             renderApp();
         }
     } catch (e) {
@@ -1041,7 +1057,6 @@ async function handleAISuggest() {
         alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
         state.isLoading.suggest = false;
-        // Re-render one last time to ensure button state is updated
         renderApp();
     }
 }
