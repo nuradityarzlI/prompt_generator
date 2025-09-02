@@ -806,18 +806,27 @@ function handleFormChange(e) {
         return; // Tidak ada state slice yang cocok
     }
 
-    if (!stateSlice || !stateSlice[fieldId]) return;
+    if (!stateSlice[fieldId]) {
+        stateSlice[fieldId] = { select: '', custom: '' };
+    }
+
+    // --- AWAL PERBAIKAN ---
+    const isTextOnly = !PROMPT_OPTIONS[modeOrPrefix]?.hasOwnProperty(state.intensity) || !PROMPT_OPTIONS[modeOrPrefix][state.intensity]?.hasOwnProperty(fieldId);
 
     if (target.classList.contains('form-select')) {
         stateSlice[fieldId].select = target.value;
         stateSlice[fieldId].custom = '';
         const textEl = document.getElementById(`${id}-text`);
         if(textEl) textEl.value = '';
-    } else {
+    } else { // Ini berlaku untuk semua input teks, termasuk Custom Key
         stateSlice[fieldId].custom = target.value;
-        const selectEl = document.getElementById(`${id}-select`);
-        if (selectEl) selectEl.value = '';
+        // Jika bukan field text-only, kosongkan dropdownnya
+        if (!isTextOnly) {
+            const selectEl = document.getElementById(`${id}-select`);
+            if (selectEl) selectEl.value = '';
+        }
     }
+    // --- AKHIR PERBAIKAN ---
 }
 
 
