@@ -1,46 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Visual Prompt Art Director</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .dot { transition: transform 0.3s ease; }
-        .group:hover .group-hover\:opacity-100 { opacity: 1; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Visual Prompt Art Director</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Style tambahan untuk transisi yang lebih halus */
+        .dot { transition: transform 0.3s ease; }
+        .group:hover .group-hover\:opacity-100 { opacity: 1; }
+    </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
 
-    <div id="root"></div>
+    <div id="root"></div>
 
-    <div id="help-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-gray-900 bg-opacity-70 backdrop-blur-sm">
-        <div class="w-full max-w-2xl p-6 sm:p-8 m-4 bg-white rounded-lg shadow-xl transform transition-all">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Cara Penggunaan</h2>
-                <button id="close-help-modal-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </div>
-            <div class="prose max-w-none text-gray-700 max-h-[70vh] overflow-y-auto pr-2">
-                <p>Aplikasi ini menggunakan beberapa layanan AI untuk memberikan hasil terbaik:</p>
-                <ul>
-                    <li><strong>Groq:</strong> Untuk sugesti prompt teks yang super cepat.</li>
-                    <li><strong>Hugging Face:</strong> Untuk menganalisis gambar referensi.</li>
-                    <li><strong>OpenAI (DALL-E 3):</strong> Untuk men-generate gambar final.</li>
-                </ul>
-                <h4>Langkah Penggunaan</h4>
-                <ol>
-                    <li><strong>Masukkan OpenAI API Key:</strong> Untuk bisa men-generate gambar, Anda harus memasukkan API key dari akun OpenAI Anda. Fitur referensi gambar dan generate gambar hanya akan muncul setelah kunci dimasukkan.</li>
-                    <li><strong>(Opsional) Unggah Gambar Referensi:</strong> Unggah gambar produk atau manusia untuk memberikan konteks pada AI saat Anda meminta sugesti.</li>
-                    <li><strong>Suggest with AI ✨:</strong> Klik untuk mendapatkan sugesti prompt berdasarkan input Anda dan gambar referensi (jika ada).</li>
-                    <li><strong>Generate Prompts:</strong> Klik untuk menghasilkan prompt teks final.</li>
-                    <li><strong>Generate Image 🚀:</strong> Tombol ini akan muncul di bawah prompt. Klik untuk membuat gambar final menggunakan OpenAI.</li>
-                </ol>
-            </div>
-        </div>
-    </div>
+    <div id="help-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-gray-900 bg-opacity-70 backdrop-blur-sm">
+        <div class="w-full max-w-2xl p-6 sm:p-8 m-4 bg-white rounded-lg shadow-xl transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Cara Penggunaan Aplikasi</h2>
+                <button id="close-help-modal-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="prose max-w-none text-gray-700 max-h-[70vh] overflow-y-auto pr-2">
+                <h4>Selamat Datang di Visual Prompt Art Director!</h4>
+                <p>Aplikasi ini dirancang untuk membantu kamu membuat prompt visual yang kaya dan detail untuk AI Generator seperti seorang Art Director Profesional.</p>
+                
+                <ol>
+                    <li>
+                        <strong>Pilih Mode:</strong> Tentukan jenis visual yang ingin kamu buat (Model, Produk, atau Film).
+                    </li>
+                    <li>
+                        <strong>Pilih Creative Intensity:</strong> Tentukan gaya visual, dari yang umum (Conservative) hingga yang paling kreatif (Experimental). Pilihan dropdown akan otomatis menyesuaikan.
+                    </li>
+                    <li>
+                        <strong>Isi Detail:</strong> Pilih opsi dari setiap dropdown atau tulis arahan unik kamu sendiri di kolom "Custom text".
+                    </li>
+                    <li>
+                        <strong>Suggest with AI ✨:</strong> Bingung? Klik tombol ini. AI akan mengisi semua kolom yang tidak terkunci 🔒 dengan sugesti yang kreatif dan selaras.
+                    </li>
+                     <li>
+                        <strong>Lock Field 🔒:</strong> Klik ikon gembok untuk mengunci isian. Isian yang terkunci tidak akan berubah saat Anda menekan "Suggest with AI" atau mengubah "Intensity".
+                    </li>
+                    <li>
+                        <strong>Generate Prompts:</strong> Setelah semua terisi, klik tombol ini untuk mendapatkan hasil akhir prompt Anda yang siap di copy-paste.
+                    </li>
+                </ol>
 
-    <script src="script.js" defer></script>
+                <h4>Tips untuk Short Film Scene</h4>
+                <ul>
+                    <li><strong>Character Anchor:</strong> Gunakan kolom ini untuk mendeskripsikan karakter utama Anda secara detail (nama, umur, ciri fisik, pakaian ikonik). Deskripsi ini akan secara otomatis ditambahkan ke setiap prompt adegan untuk menjaga konsistensi visual.</li>
+                    <li><strong>Number of Scenes:</strong> Jika Anda memilih 1 adegan, outputnya akan dioptimalkan untuk satu gambar sinematik (concept art). Jika Anda memilih lebih dari 1 adegan, AI akan menulis cerita pendek, dan outputnya akan dioptimalkan untuk video.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    
 </body>
 </html>
