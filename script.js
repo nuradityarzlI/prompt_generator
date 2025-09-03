@@ -1,4 +1,4 @@
-// script js versi baru v9
+// script js versi baru v11
 
 
 const PROMPT_OPTIONS = {
