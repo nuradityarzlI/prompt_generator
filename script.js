@@ -352,67 +352,67 @@ const PROMPT_OPTIONS = {
     }
 };
 
-// =======================================================================
+/ =======================================================================
 // GLOBAL STATE MANAGEMENT
 // =======================================================================
 let state = {};
 
 function initializeState() {
-    const initialFormState = {};
-    ['model', 'product', 'film'].forEach(m => {
-        initialFormState[m] = {};
-        if (PROMPT_OPTIONS[m]) {
-            PROMPT_OPTIONS[m].fields.forEach(f => {
-                initialFormState[m][f] = { select: '', custom: '' };
-            });
-        }
-    });
+    const initialFormState = {};
+    ['model', 'product', 'film'].forEach(m => {
+        initialFormState[m] = {};
+        if (PROMPT_OPTIONS[m]) {
+            PROMPT_OPTIONS[m].fields.forEach(f => {
+                initialFormState[m][f] = { select: '', custom: '' };
+            });
+        }
+    });
 
-    const initialHumanState = { enabled: false };
-    PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => {
-        if (field === 'styling') {
-            initialHumanState[field] = { custom: '' };
-        } else {
-            initialHumanState[field] = { select: PROMPT_OPTIONS.special.humanInShot.options[field][0], custom: '' };
-        }
-    });
+    const initialHumanState = { enabled: false };
+    PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => {
+        if (field === 'styling') {
+            initialHumanState[field] = { custom: '' };
+        } else {
+            initialHumanState[field] = { select: PROMPT_OPTIONS.special.humanInShot.options[field][0], custom: '' };
+        }
+    });
 
-    const initialLockState = {};
-    ['model', 'product', 'film', 'product_human'].forEach(m => {
-        initialLockState[m] = {};
-    });
+    const initialLockState = {};
+    ['model', 'product', 'film', 'product_human'].forEach(m => {
+        initialLockState[m] = {};
+    });
 
-    state = {
-        mode: 'model',
-        intensity: 'conservative',
-        outputs: null,
-        promptVariations: { original: null, variations: [] },
-        formState: initialFormState,
-        lockedFields: initialLockState,
-        humanState: initialHumanState,
-        filmState: { numScenes: 1, linkScenes: true },
-        openAccordionScene: 0,
-        googleApiKey: localStorage.getItem('googleApiKey') || null,
-        isApiKeyValid: false,
-        referenceImage: { data: null, name: null, mimeType: null },
-        isLoading: { suggest: false, generate: false, variations: false, apiKey: false }
-    };
+    state = {
+        mode: 'model',
+        intensity: 'conservative',
+        outputs: null,
+        promptVariations: { original: null, variations: [] },
+        formState: initialFormState,
+        lockedFields: initialLockState,
+        humanState: initialHumanState,
+        filmState: { numScenes: 1, linkScenes: true },
+        openAccordionScene: 0,
+        googleApiKey: localStorage.getItem('googleApiKey') || null,
+        isApiKeyValid: false,
+        referenceImage: { data: null, name: null, mimeType: null },
+        isLoading: { suggest: false, generate: false, variations: false, apiKey: false }
+    };
 
-    updateDefaults();
+    updateDefaults();
 }
 
 function updateDefaults() {
-    const { mode, intensity, formState, lockedFields } = state;
-    const newModeState = { ...formState[mode] };
+    const { mode, intensity, formState, lockedFields } = state;
+    const newModeState = { ...formState[mode] };
 
-    PROMPT_OPTIONS[mode].fields.forEach(field => {
-        if (lockedFields[mode]?.[field]) return;
-        const options = PROMPT_OPTIONS[mode][intensity]?.[field] || [];
-        const newDefault = options[0] || '';
-        newModeState[field].select = newDefault;
-        newModeState[field].custom = '';
-    });
-    state.formState[mode] = newModeState;
+    PROMPT_OPTIONS[mode].fields.forEach(field => {
+        if (lockedFields[mode]?.[field]) return;
+        const options = PROMPT_OPTIONS[mode][intensity]?.[field] || [];
+        const newDefault = options[0] || '';
+        newModeState[field].select = newDefault;
+        newModeState[field].custom = '';
+    });
+    state.formState[mode] = newModeState;
 }
 
 // =======================================================================
@@ -431,12 +431,12 @@ function FilmFormExtras() { const { filmState } = state; return `<div class="mt-
 function clearFormAndOutputs() { const currentMode = state.mode; const currentIntensity = state.intensity; initializeState(); state.mode = currentMode; state.intensity = currentIntensity; updateDefaults(); renderApp(); }
 
 function renderApp() {
-    const root = document.getElementById('root');
-    if (!root) return;
+    const root = document.getElementById('root');
+    if (!root) return;
 
-    const { mode, intensity, formState, isLoading, outputs, lockedFields } = state;
-    const modeConfig = PROMPT_OPTIONS[mode];
-    if (!modeConfig) return console.error("Invalid mode selected:", mode);
+    const { mode, intensity, formState, isLoading, outputs, lockedFields } = state;
+    const modeConfig = PROMPT_OPTIONS[mode];
+    if (!modeConfig) return console.error("Invalid mode selected:", mode);
 
     const apiKeySectionHTML = `
         <section class="mb-8 p-4 border rounded-lg shadow-sm bg-gray-50">
@@ -468,26 +468,26 @@ function renderApp() {
         `;
     }
 
-    const fields = modeConfig.fields.filter(f => f !== 'customKey');
-    const middleIndex = Math.ceil(fields.length / 2);
-    const leftFields = fields.slice(0, middleIndex);
-    const rightFields = fields.slice(middleIndex);
+    const fields = modeConfig.fields.filter(f => f !== 'customKey');
+    const middleIndex = Math.ceil(fields.length / 2);
+    const leftFields = fields.slice(0, middleIndex);
+    const rightFields = fields.slice(middleIndex);
 
-    const renderFields = (fieldList) => fieldList.map(fieldId => FormField({ id: `${mode}-${fieldId}`, mode, fieldId, label: modeConfig.fieldLabels[fieldId], options: modeConfig[intensity]?.[fieldId], value: formState[mode]?.[fieldId]?.select || '', customValue: formState[mode]?.[fieldId]?.custom || '', isLocked: lockedFields[mode]?.[fieldId] })).join('');
+    const renderFields = (fieldList) => fieldList.map(fieldId => FormField({ id: `${mode}-${fieldId}`, mode, fieldId, label: modeConfig.fieldLabels[fieldId], options: modeConfig[intensity]?.[fieldId], value: formState[mode]?.[fieldId]?.select || '', customValue: formState[mode]?.[fieldId]?.custom || '', isLocked: lockedFields[mode]?.[fieldId] })).join('');
 
-    let extrasHTML = '';
-    if (mode === 'product') extrasHTML = ProductFormExtras();
-    if (mode === 'film') extrasHTML = FilmFormExtras();
+    let extrasHTML = '';
+    if (mode === 'product') extrasHTML = ProductFormExtras();
+    if (mode === 'film') extrasHTML = FilmFormExtras();
 
-    let outputHTML = '';
-    if (outputs) {
+    let outputHTML = '';
+    if (outputs) {
         let sceneContentHTML = '';
-        if (outputs.length > 1) {
-            sceneContentHTML = SceneAccordion();
-        } else if (outputs.length === 1) {
-            const scene = outputs[0];
-            sceneContentHTML = `<div>${OutputSection({ title: "Text Prompt", content: scene.text })}<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}</div></div>`;
-        }
+        if (outputs.length > 1) {
+            sceneContentHTML = SceneAccordion();
+        } else if (outputs.length === 1) {
+            const scene = outputs[0];
+            sceneContentHTML = `<div>${OutputSection({ title: "Text Prompt", content: scene.text })}<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}</div></div>`;
+        }
 
         let generateButtonsHTML = '';
         if (state.isApiKeyValid) {
@@ -500,65 +500,65 @@ function renderApp() {
         }
 
         outputHTML = `<section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">${sceneContentHTML}${generateButtonsHTML}</section>`;
-    }
+    }
 
-    const appHTML = `
-        <div class="w-full max-w-4xl mx-auto p-4 sm:p-6">
-            <main class="bg-white rounded-2xl shadow-xl p-6 sm:p-10">
-                <header class="text-center mb-8 relative">
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Professional Visual Prompt Art Director</h1>
-                    <p class="text-gray-500 mt-1">by HeyReena Studio</p>
-                    <button id="open-help-modal-btn" title="Cara Penggunaan" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-blue-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </button>
-                </header>
+    const appHTML = `
+        <div class="w-full max-w-4xl mx-auto p-4 sm:p-6">
+            <main class="bg-white rounded-2xl shadow-xl p-6 sm:p-10">
+                <header class="text-center mb-8 relative">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Professional Visual Prompt Art Director</h1>
+                    <p class="text-gray-500 mt-1">by HeyReena Studio</p>
+                    <button id="open-help-modal-btn" title="Cara Penggunaan" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </button>
+                </header>
                 ${apiKeySectionHTML}
-                <div class="space-y-6">
-                    <div><label class="text-sm font-semibold text-gray-700 mb-2 block">Mode</label>${SegmentedControl({ id: 'mode-selector', options: [{ value: 'model', label: 'Model Photography' }, { value: 'product', label: 'Product Photography' }, { value: 'film', label: 'Short Film Scene' }], selected: mode })}</div>
-                    <div><label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}</div>
-                </div>
+                <div class="space-y-6">
+                    <div><label class="text-sm font-semibold text-gray-700 mb-2 block">Mode</label>${SegmentedControl({ id: 'mode-selector', options: [{ value: 'model', label: 'Model Photography' }, { value: 'product', label: 'Product Photography' }, { value: 'film', label: 'Short Film Scene' }], selected: mode })}</div>
+                    <div><label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}</div>
+                </div>
                 ${referenceImageSectionHTML}
-                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
-                    <div>${renderFields(leftFields)}</div>
-                    <div>${renderFields(rightFields)}</div>
-                </div>
-                <div class="mt-2">
-                    <div class="mb-6"><div class="flex items-center justify-between mb-2"><label for="${mode}-customKey-text" class="flex items-center text-sm font-semibold text-gray-700">Custom Key (Elemen Wajib)${Tooltip("Masukkan kata kunci utama (e.g., skateboard, fisheye, neon city) untuk memandu sugesti AI.")}</label><button type="button" data-lock-mode="${mode}" data-lock-field="customKey" class="lock-button p-1 rounded-full transition-colors ${lockedFields[mode]?.customKey ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(lockedFields[mode]?.customKey)}</button></div><textarea id="${mode}-customKey-text" rows="2" placeholder="e.g., skateboard, fisheye, neon city at night" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800" ${lockedFields[mode]?.customKey ? 'readonly' : ''}>${formState[mode]?.customKey?.custom || ''}</textarea></div>
-                </div>
-                ${extrasHTML}
-                <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>${isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}</button>
-                    <button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" ${isLoading.generate ? 'disabled' : ''}>${isLoading.generate ? 'Generating...' : 'Generate Prompts'}</button>
-                    <button id="clear-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">Clear All</button>
-                </div>
-            </main>
-            ${outputHTML}
-        </div>
-    `;
-    root.innerHTML = appHTML;
-    addEventListeners();
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+                    <div>${renderFields(leftFields)}</div>
+                    <div>${renderFields(rightFields)}</div>
+                </div>
+                <div class="mt-2">
+                    <div class="mb-6"><div class="flex items-center justify-between mb-2"><label for="${mode}-customKey-text" class="flex items-center text-sm font-semibold text-gray-700">Custom Key (Elemen Wajib)${Tooltip("Masukkan kata kunci utama (e.g., skateboard, fisheye, neon city) untuk memandu sugesti AI.")}</label><button type="button" data-lock-mode="${mode}" data-lock-field="customKey" class="lock-button p-1 rounded-full transition-colors ${lockedFields[mode]?.customKey ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(lockedFields[mode]?.customKey)}</button></div><textarea id="${mode}-customKey-text" rows="2" placeholder="e.g., skateboard, fisheye, neon city at night" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800" ${lockedFields[mode]?.customKey ? 'readonly' : ''}>${formState[mode]?.customKey?.custom || ''}</textarea></div>
+                </div>
+                ${extrasHTML}
+                <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>${isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}</button>
+                    <button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" ${isLoading.generate ? 'disabled' : ''}>${isLoading.generate ? 'Generating...' : 'Generate Prompts'}</button>
+                    <button id="clear-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">Clear All</button>
+                </div>
+            </main>
+            ${outputHTML}
+        </div>
+    `;
+    root.innerHTML = appHTML;
+    addEventListeners();
 }
 
 // =======================================================================
 // EVENT LISTENERS & HANDLERS
 // =======================================================================
 function addEventListeners() {
-    document.getElementById('mode-selector')?.addEventListener('click', e => { if (e.target.dataset.value && state.mode !== e.target.dataset.value) { state.mode = e.target.dataset.value; updateDefaults(); renderApp(); } });
-    document.getElementById('intensity-selector')?.addEventListener('click', e => { if (e.target.dataset.value && state.intensity !== e.target.dataset.value) { state.intensity = e.target.dataset.value; updateDefaults(); renderApp(); } });
-    document.querySelectorAll('.form-select').forEach(el => el.addEventListener('change', handleFormChange));
-    document.querySelectorAll('.form-custom-text').forEach(el => el.addEventListener('input', handleFormChange));
-    document.querySelectorAll('.lock-button').forEach(el => el.addEventListener('click', handleLockToggle));
-    document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
-    document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
-    document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
-    document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
-    document.getElementById('clear-btn')?.addEventListener('click', clearFormAndOutputs);
-    document.querySelectorAll('.copy-button').forEach(button => { button.addEventListener('click', e => { const content = e.target.dataset.copyContent.replace(/&quot;/g, '"'); navigator.clipboard.writeText(content).then(() => { e.target.textContent = 'Copied!'; setTimeout(() => { e.target.textContent = 'Copy'; }, 2000); }); }); });
-    document.querySelectorAll('.accordion-toggle').forEach(btn => { btn.addEventListener('click', e => { const index = Number(e.currentTarget.dataset.sceneIndex); state.openAccordionScene = state.openAccordionScene === index ? null : index; renderApp(); }); });
-    const helpModal = document.getElementById('help-modal');
-    document.getElementById('open-help-modal-btn')?.addEventListener('click', () => helpModal?.classList.remove('hidden'));
-    document.getElementById('close-help-modal-btn')?.addEventListener('click', () => helpModal?.classList.add('hidden'));
-    helpModal?.addEventListener('click', (e) => { if (e.target.id === 'help-modal') helpModal.classList.add('hidden'); });
+    document.getElementById('mode-selector')?.addEventListener('click', e => { if (e.target.dataset.value && state.mode !== e.target.dataset.value) { state.mode = e.target.dataset.value; updateDefaults(); renderApp(); } });
+    document.getElementById('intensity-selector')?.addEventListener('click', e => { if (e.target.dataset.value && state.intensity !== e.target.dataset.value) { state.intensity = e.target.dataset.value; updateDefaults(); renderApp(); } });
+    document.querySelectorAll('.form-select').forEach(el => el.addEventListener('change', handleFormChange));
+    document.querySelectorAll('.form-custom-text').forEach(el => el.addEventListener('input', handleFormChange));
+    document.querySelectorAll('.lock-button').forEach(el => el.addEventListener('click', handleLockToggle));
+    document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
+    document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
+    document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
+    document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
+    document.getElementById('clear-btn')?.addEventListener('click', clearFormAndOutputs);
+    document.querySelectorAll('.copy-button').forEach(button => { button.addEventListener('click', e => { const content = e.target.dataset.copyContent.replace(/&quot;/g, '"'); navigator.clipboard.writeText(content).then(() => { e.target.textContent = 'Copied!'; setTimeout(() => { e.target.textContent = 'Copy'; }, 2000); }); }); });
+    document.querySelectorAll('.accordion-toggle').forEach(btn => { btn.addEventListener('click', e => { const index = Number(e.currentTarget.dataset.sceneIndex); state.openAccordionScene = state.openAccordionScene === index ? null : index; renderApp(); }); });
+    const helpModal = document.getElementById('help-modal');
+    document.getElementById('open-help-modal-btn')?.addEventListener('click', () => helpModal?.classList.remove('hidden'));
+    document.getElementById('close-help-modal-btn')?.addEventListener('click', () => helpModal?.classList.add('hidden'));
+    helpModal?.addEventListener('click', (e) => { if (e.target.id === 'help-modal') helpModal.classList.add('hidden'); });
     
     // ✨ BARU: Listeners untuk fitur baru
     document.getElementById('save-api-key-btn')?.addEventListener('click', handleApiKeySave);
@@ -646,65 +646,65 @@ async function callGeminiAPI(prompt, generationConfig = {}) { try { const respon
 function getFinalValue(fieldState) { if (!fieldState) return ''; return (fieldState.custom || '').trim() || fieldState.select || ''; }
 
 async function handleSubmit() {
-    state.isLoading.generate = true;
-    state.outputs = null;
-    state.promptVariations = { original: null, variations: [] };
-    renderApp();
+    state.isLoading.generate = true;
+    state.outputs = null;
+    state.promptVariations = { original: null, variations: [] };
+    renderApp();
 
-    const { mode, formState, humanState, filmState } = state;
-    const data = { ...state, ...filmState };
-    PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
+    const { mode, formState, humanState, filmState } = state;
+    const data = { ...state, ...filmState };
+    PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
 
-    if (mode === 'product' && humanState.enabled) { data.humanInShot = {}; PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); }); }
+    if (mode === 'product' && humanState.enabled) { data.humanInShot = {}; PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); }); }
 
     // ✅ PERBAIKAN: Hapus 'aspectRatio' dari daftar pengecualian
-    const fieldsToExcludeForImage = [ 'actionVerb', 'motionEffect', 'editingStyle', 'soundDesignCue', 'pacing', 'characterAnchor' ];
-    let parameterString = PROMPT_OPTIONS[mode].fields.filter(field => !fieldsToExcludeForImage.includes(field) && data[field]).map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`).join(', ');
+    const fieldsToExcludeForImage = [ 'actionVerb', 'motionEffect', 'editingStyle', 'soundDesignCue', 'pacing', 'characterAnchor' ];
+    let parameterString = PROMPT_OPTIONS[mode].fields.filter(field => !fieldsToExcludeForImage.includes(field) && data[field]).map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`).join(', ');
 
-    if (data.humanInShot) { const humanParams = Object.entries(data.humanInShot).filter(([, value]) => value).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', '); if (humanParams) { parameterString += `. Human in shot details: ${humanParams}`; } }
-    const cleanAIText = (rawText) => { if (!rawText) return ''; let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, ''); cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim(); return cleaned; };
-    let textPrompts = [];
+    if (data.humanInShot) { const humanParams = Object.entries(data.humanInShot).filter(([, value]) => value).map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', '); if (humanParams) { parameterString += `. Human in shot details: ${humanParams}`; } }
+    const cleanAIText = (rawText) => { if (!rawText) return ''; let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, ''); cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim(); return cleaned; };
+    let textPrompts = [];
 
-    if (data.mode === 'film') {
-        const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
-        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
-        const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
-        if (filmState.numScenes > 1 && filmState.linkScenes) {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
-            let rawText = await callGeminiAPI(finalPrompt);
-            if (rawText) { rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim(); textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean); }
-        } else {
-            const sceneCount = filmState.numScenes;
-            const promptsPromises = Array.from({ length: sceneCount }, (_, i) => { const sceneInstruction = sceneCount > 1 ? ` This is scene ${i + 1} of ${sceneCount}.` : ''; const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`; return callGeminiAPI(finalPrompt); });
-            const results = await Promise.all(promptsPromises);
-            textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
-        }
-    } else {
-        const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
-        let rawText = await callGeminiAPI(finalPrompt);
-        if (rawText) { textPrompts = [cleanAIText(rawText)]; }
-    }
-    if (textPrompts.length > 0) { state.outputs = textPrompts.map(imagePrompt => { const videoPrompts = generateVideoPrompts(data, imagePrompt); return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short }; }); }
-    state.isLoading.generate = false;
-    renderApp();
+    if (data.mode === 'film') {
+        const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
+        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
+        const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
+        if (filmState.numScenes > 1 && filmState.linkScenes) {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) { rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim(); textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean); }
+        } else {
+            const sceneCount = filmState.numScenes;
+            const promptsPromises = Array.from({ length: sceneCount }, (_, i) => { const sceneInstruction = sceneCount > 1 ? ` This is scene ${i + 1} of ${sceneCount}.` : ''; const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`; return callGeminiAPI(finalPrompt); });
+            const results = await Promise.all(promptsPromises);
+            textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
+        }
+    } else {
+        const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
+        let rawText = await callGeminiAPI(finalPrompt);
+        if (rawText) { textPrompts = [cleanAIText(rawText)]; }
+    }
+    if (textPrompts.length > 0) { state.outputs = textPrompts.map(imagePrompt => { const videoPrompts = generateVideoPrompts(data, imagePrompt); return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short }; }); }
+    state.isLoading.generate = false;
+    renderApp();
 }
 
 async function handleAISuggest() {
-    state.isLoading.suggest = true;
-    renderApp();
+    state.isLoading.suggest = true;
+    renderApp();
 
-    try {
-        const { mode, formState, lockedFields, humanState, intensity } = state;
-        const labelToFieldIdMap = {};
-        const fieldIdToModeMap = {};
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => { const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId]; labelToFieldIdMap[label] = fieldId; fieldIdToModeMap[fieldId] = mode; });
-        const lockedContext = {};
-        const unlockedFieldsLabels = [];
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => { if (fieldId === 'customKey') return; const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId]; if (lockedFields[mode]?.[fieldId]) { const value = getFinalValue(formState[mode][fieldId]); if (value) lockedContext[label] = value; } else { unlockedFieldsLabels.push(label); } });
-        let unlockedHumanFieldsLabels = [];
-        if (mode === 'product' && humanState.enabled) { const humanConfig = PROMPT_OPTIONS.special.humanInShot; lockedContext['Human in Shot Details'] = {}; humanConfig.fields.forEach(fieldId => { const label = humanConfig.fieldLabels[fieldId]; labelToFieldIdMap[label] = fieldId; fieldIdToModeMap[fieldId] = 'product_human'; if (lockedFields.product_human?.[fieldId]) { const value = getFinalValue(humanState[fieldId]); if (value) lockedContext['Human in Shot Details'][label] = value; } else { unlockedHumanFieldsLabels.push(label); } }); if (Object.keys(lockedContext['Human in Shot Details']).length === 0) { delete lockedContext['Human in Shot Details']; } }
-        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
-        if (allUnlockedLabels.length === 0) { alert("All fields are locked. Please unlock some fields to get AI suggestions."); state.isLoading.suggest = false; renderApp(); return; }
+    try {
+        const { mode, formState, lockedFields, humanState, intensity } = state;
+        const labelToFieldIdMap = {};
+        const fieldIdToModeMap = {};
+        PROMPT_OPTIONS[mode].fields.forEach(fieldId => { const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId]; labelToFieldIdMap[label] = fieldId; fieldIdToModeMap[fieldId] = mode; });
+        const lockedContext = {};
+        const unlockedFieldsLabels = [];
+        PROMPT_OPTIONS[mode].fields.forEach(fieldId => { if (fieldId === 'customKey') return; const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId]; if (lockedFields[mode]?.[fieldId]) { const value = getFinalValue(formState[mode][fieldId]); if (value) lockedContext[label] = value; } else { unlockedFieldsLabels.push(label); } });
+        let unlockedHumanFieldsLabels = [];
+        if (mode === 'product' && humanState.enabled) { const humanConfig = PROMPT_OPTIONS.special.humanInShot; lockedContext['Human in Shot Details'] = {}; humanConfig.fields.forEach(fieldId => { const label = humanConfig.fieldLabels[fieldId]; labelToFieldIdMap[label] = fieldId; fieldIdToModeMap[fieldId] = 'product_human'; if (lockedFields.product_human?.[fieldId]) { const value = getFinalValue(humanState[fieldId]); if (value) lockedContext['Human in Shot Details'][label] = value; } else { unlockedHumanFieldsLabels.push(label); } }); if (Object.keys(lockedContext['Human in Shot Details']).length === 0) { delete lockedContext['Human in Shot Details']; } }
+        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
+        if (allUnlockedLabels.length === 0) { alert("All fields are locked. Please unlock some fields to get AI suggestions."); state.isLoading.suggest = false; renderApp(); return; }
 
         let resultText = null;
 
@@ -719,29 +719,29 @@ async function handleAISuggest() {
             resultText = await callGeminiAPI(prompt);
         }
 
-        if (resultText) {
-            const lines = resultText.split('\n');
-            lines.forEach(line => {
-                const parts = line.split(':');
-                if (parts.length >= 2) {
-                    const label = parts[0].trim().replace(/\*+/g, '');
-                    const value = parts.slice(1).join(':').trim();
-                    const fieldId = labelToFieldIdMap[label];
-                    const fieldMode = fieldIdToModeMap[fieldId];
-                    if (fieldId && fieldMode) {
-                        let stateSlice = (fieldMode === 'product_human') ? state.humanState : state.formState[fieldMode];
-                        if (stateSlice && stateSlice[fieldId]) { stateSlice[fieldId].custom = value; stateSlice[fieldId].select = ''; }
-                    }
-                }
-            });
-        }
-    } catch (e) {
-        console.error("An error occurred during AI suggestion:", e);
-        alert("Terjadi kesalahan saat memproses sugesti AI.");
-    } finally {
-        state.isLoading.suggest = false;
-        renderApp();
-    }
+        if (resultText) {
+            const lines = resultText.split('\n');
+            lines.forEach(line => {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const label = parts[0].trim().replace(/\*+/g, '');
+                    const value = parts.slice(1).join(':').trim();
+                    const fieldId = labelToFieldIdMap[label];
+                    const fieldMode = fieldIdToModeMap[fieldId];
+                    if (fieldId && fieldMode) {
+                        let stateSlice = (fieldMode === 'product_human') ? state.humanState : state.formState[fieldMode];
+                        if (stateSlice && stateSlice[fieldId]) { stateSlice[fieldId].custom = value; stateSlice[fieldId].select = ''; }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error("An error occurred during AI suggestion:", e);
+        alert("Terjadi kesalahan saat memproses sugesti AI.");
+    } finally {
+        state.isLoading.suggest = false;
+        renderApp();
+    }
 }
 
 function generateVideoPrompts(data, imagePrompt) { let long = '', short = ''; const { mode, mainSubject, characters, actionVerb, motionEffect, cameraAngle, cameraMovement, shotType, lighting, mood, atmosphere, pacing, editingStyle, lensEffects, soundDesignCue, composition, aspectRatio } = data; const subject = mainSubject || characters || "The subject"; const primaryAction = actionVerb || motionEffect || `shows an expression of "${data.expression || 'neutral'}"`; const cameraInstruction = cameraMovement || shotType || cameraAngle || 'a static shot'; const sceneAtmosphere = atmosphere || mood || 'cinematic'; if (mode === 'model' || mode === 'film') { let longParts = [`Create a short, cinematic video based on the visual style of "${imagePrompt}".`, `The scene opens focusing on ${subject}. The primary action is: the subject **${primaryAction}**.`, `The camera work should be a **${cameraInstruction}**.`, `Utilize **${lighting || 'natural lighting'}** to establish a **${sceneAtmosphere}** atmosphere.`]; if (pacing) longParts.push(`The pacing is **${pacing}**.`); if (editingStyle) longParts.push(`The editing style should feel like **${editingStyle}**.`); if (lensEffects) longParts.push(`Incorporate lens effects like **${lensEffects}**.`); if (soundDesignCue) longParts.push(`The mood is enhanced by sound design suggesting **${soundDesignCue}**.`); if (aspectRatio) longParts.push(`Render in a **${aspectRatio}** aspect ratio.`); long = longParts.join(' '); let shortParts = [`Video of ${subject} who **${primaryAction}**.`, `Camera: **${cameraInstruction}**.`, `Atmosphere: **${sceneAtmosphere}**.`]; if (pacing) shortParts.push(`Pacing: **${pacing}**.`); short = shortParts.join(' '); } else if (mode === 'product') { const productAction = motionEffect || 'subtle highlights and reflections'; long = `Animate the product shot from "${imagePrompt}". The camera move is a **${composition || 'slow push-in'}**. Introduce dynamic motion effects like **${productAction}** to bring the product to life. The lighting is **${lighting || 'clean studio light'}**, maintaining a **${mood || 'premium'}** feel.`; short = `Animate product shot with **${productAction}**. Camera: **${composition || 'slow push-in'}**. Mood: **${mood || 'premium'}**.`; } long = long.replace(/\s\s+/g, ' ').trim(); short = short.replace(/\s\s+/g, ' ').trim(); return { long, short }; };
@@ -750,6 +750,11 @@ function generateVideoPrompts(data, imagePrompt) { let long = '', short = ''; co
 // INITIALIZE APP
 // =======================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    initializeState();
-    renderApp();
+    initializeState();
+    // ✨ BARU: Lakukan validasi kunci API yang tersimpan saat aplikasi pertama kali dimuat
+    if(state.googleApiKey) {
+        handleApiKeySave(); 
+    } else {
+        renderApp();
+    }
 });
