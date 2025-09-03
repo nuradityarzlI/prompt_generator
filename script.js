@@ -5,7 +5,7 @@
 
 const PROMPT_OPTIONS = {
     model: {
-        fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'postProcessing', 'atmosphere', 'references', 'cameraLens'],
+        fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'postProcessing', 'atmosphere', 'references', 'cameraLens','aspectRatio'],
         fieldLabels: { 
             sceneStyle: "Scene Style / Photography", 
             mainSubject: "Main Subject", 
@@ -25,7 +25,8 @@ const PROMPT_OPTIONS = {
             atmosphere: "Atmosphere",
             references: "Visual References", 
             cameraLens: "Camera Model + Lens Type",
-            customKey: "Custom Key (Elemen Wajib)"
+            aspectRatio: "Aspect Ratio",
+            customKey: "Custom Key (Elemen Wajib)" 
         },
         conservative: { 
             sceneStyle: ["editorial portrait", "studio portrait", "fashion lookbook", "beauty shot", "corporate headshot", "catalogue clean shot", "bridal studio session", "black & white studio headshot", "formal fashion editorial", "graduation portrait"], 
@@ -45,7 +46,8 @@ const PROMPT_OPTIONS = {
             postProcessing: ["lightroom clean edit", "natural retouching", "contrast enhancement", "sharpening", "dodge and burn", "color correction", "desaturated look", "warmth added", "vignette", "blemish removal"],
             atmosphere: ["calm and composed", "professional and serious", "warm and inviting", "serene and quiet", "thoughtful and introspective", "elegant and poised", "trustworthy", "dignified", "peaceful", "approachable"],
             references: ["Vogue", "Harper’s Bazaar", "WSJ", "Vanity Fair", "COS campaign", "Ralph Lauren ads", "Jil Sander minimal", "National Geographic portraits", "Fortune 500 campaigns", "Smithsonian archives"], 
-            cameraLens: ["Canon EOS R5 + 85mm", "Nikon Z8 + 70–200mm", "Sony A7R V + 50mm", "Fujifilm GFX 100S + 110mm", "Hasselblad X2D + 80mm", "Canon 6D + 50mm", "Nikon D850 + 85mm", "Sony A7 III + 70–200mm", "Hasselblad H6D + 100mm", "Fujifilm X-T4 + 35mm"] 
+            cameraLens: ["Canon EOS R5 + 85mm", "Nikon Z8 + 70–200mm", "Sony A7R V + 50mm", "Fujifilm GFX 100S + 110mm", "Hasselblad X2D + 80mm", "Canon 6D + 50mm", "Nikon D850 + 85mm", "Sony A7 III + 70–200mm", "Hasselblad H6D + 100mm", "Fujifilm X-T4 + 35mm"],
+            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"]
         },
         balanced: { 
             sceneStyle: ["lifestyle candid", "street fashion editorial", "cinematic portrait", "environmental portrait", "rooftop editorial", "café lifestyle set", "seaside fashion spread", "documentary style", "luxury commercial lookbook", "art gallery editorial set"], 
@@ -65,7 +67,8 @@ const PROMPT_OPTIONS = {
             postProcessing: ["VSCO filter look", "cinematic LUT applied", "bleach bypass effect", "high saturation and contrast", "split toning (shadows/highlights)", "frequency separation skin retouching", "dehaze and clarity boost", "cross-processed look", "glow and bloom effect", "lens distortion correction"],
             atmosphere: ["energetic and bustling", "melancholy and cinematic", "intimate and candid", "dreamy and romantic", "gritty and urban", "sun-drenched and carefree", "mysterious and moody", "vibrant and alive", "quiet and observational", "aspirational and luxurious"],
             references: ["Mario Testino fashion", "Annie Leibovitz portraits", "A24 stills", "Zara lookbook", "Dior campaigns", "The Row luxury", "Prada resort shoots", "Gucci lifestyle", "Uniqlo editorial", "H&M commercial"], 
-            cameraLens: ["Canon 5D MkIV + 35mm", "Sony A7 IV + 24–70mm", "Nikon Z9 + 50mm", "Leica SL2 + 90mm", "Fujifilm X-T5 + 56mm", "Canon R5 + 35mm f/1.4", "Sony A7R V + 24–70mm", "Leica SL2 + 50mm Summilux", "Nikon Z9 + 24–120mm", "Fujifilm GFX 100 + 63mm"] 
+            cameraLens: ["Canon 5D MkIV + 35mm", "Sony A7 IV + 24–70mm", "Nikon Z9 + 50mm", "Leica SL2 + 90mm", "Fujifilm X-T5 + 56mm", "Canon R5 + 35mm f/1.4", "Sony A7R V + 24–70mm", "Leica SL2 + 50mm Summilux", "Nikon Z9 + 24–120mm", "Fujifilm GFX 100 + 63mm"],
+            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"]
         },
         experimental: { 
             sceneStyle: ["conceptual portrait", "surreal fashion editorial", "avant-garde beauty shot", "performance art documentation", "cyberpunk fantasy scene", "underwater conceptual portrait", "infrared portrait session", "mirror maze surreal shoot", "holographic fashion editorial", "glitch-inspired portrait"], 
@@ -85,7 +88,8 @@ const PROMPT_OPTIONS = {
             postProcessing: ["pixel sorting", "databending", "color channel shifting", "solarization effect", "heavy compositing", "surreal photo-manipulation", "anamorphic lens flare", "fractal rendering", "generative fill", "AI-inpainting"],
             atmosphere: ["unsettling and uncanny", "chaotic and energetic", "dreamlike and ethereal", "dystopian and cold", "psychedelic and disorienting", "meditative and abstract", "transcendent and spiritual", "glitchy and technological", "raw and visceral", "sublime and awe-inspiring"],
             references: ["Nick Knight SHOWstudio", "Tim Walker surreal", "Dazed Magazine", "Comme des Garçons visuals", "Balenciaga dystopian", "Vogue Italia experimental", "Helmut Newton bold", "i-D conceptual", "Björk visuals", "arthouse exhibition stills"], 
-            cameraLens: ["Phase One XF IQ4 + fisheye", "Canon R5C + tilt-shift 24mm", "RED Komodo + wide cine", "Sony Venice + anamorphic", "Blackmagic 6K + probe lens", "RED Komodo + 16mm cine", "Phase One XF IQ4 + fisheye 8mm", "Blackmagic URSA + vintage cine glass", "Sony A7R IV + 14mm ultra-wide", "Canon R5 + tilt-shift 50mm"] 
+            cameraLens: ["Phase One XF IQ4 + fisheye", "Canon R5C + tilt-shift 24mm", "RED Komodo + wide cine", "Sony Venice + anamorphic", "Blackmagic 6K + probe lens", "RED Komodo + 16mm cine", "Phase One XF IQ4 + fisheye 8mm", "Blackmagic URSA + vintage cine glass", "Sony A7R IV + 14mm ultra-wide", "Canon R5 + tilt-shift 50mm"],
+            aspectRatio: ["9:16 (Vertical)", "16:9 (Widescreen Cinema)", "1:1 (Square)", "4:5 (Tall)"]
         },
         vintage: { 
             sceneStyle: ["Polaroid instant snapshot", "1970s lifestyle editorial", "1980s film fashion cover", "analog street portrait", "1990s magazine spread", "bohemian 70s outdoor set", "retro film star promo", "80s music video still", "90s fashion runway backstage", "Super 8mm style candid"], 
@@ -105,11 +109,12 @@ const PROMPT_OPTIONS = {
             postProcessing: ["chemical stains and dust", "vignetting", "pushed film look", "film border overlay", "reticulation", "dodging and burning (darkroom style)", "color shifts from aging", "scanner texture", "grain overlay", "authentic light leaks"],
             atmosphere: ["nostalgic and warm", "cool and detached (90s)", "energetic and glamorous (80s)", "free-spirited and earthy (70s)", "dreamy and melancholic", "authentic and raw", "cinematic and timeless", "intimate and personal", "gritty and real", "sun-soaked and hazy"],
             references: ["Richard Avedon classic", "Irving Penn Vogue", "Guy Bourdin 70s", "Herb Ritts 80s B&W", "Slim Aarons lifestyle", "Polaroid SX-70 ads", "Kodak film campaigns", "90s Calvin Klein", "Bruce Weber lifestyle", "MTV 80s/90s fashion"], 
-            cameraLens: ["Leica M6 + 50mm Summicron", "Nikon FM2 + 35mm AI-S", "Canon AE-1 + 50mm FD", "Pentax 67 + 105mm", "Mamiya RZ67 + 110mm", "Contax T2 + 38mm Zeiss", "Polaroid SX-70", "Hasselblad 500CM + 80mm", "Olympus OM-1 + 50mm", "Super 8mm film camera"] 
+            cameraLens: ["Leica M6 + 50mm Summicron", "Nikon FM2 + 35mm AI-S", "Canon AE-1 + 50mm FD", "Pentax 67 + 105mm", "Mamiya RZ67 + 110mm", "Contax T2 + 38mm Zeiss", "Polaroid SX-70", "Hasselblad 500CM + 80mm", "Olympus OM-1 + 50mm", "Super 8mm film camera"],
+            aspectRatio: ["1:1 (Polaroid)", "4:5 (Vintage Portrait)", "16:9 (Film Still)", "9:16 (Tall Format)"]
         }
     },
     product: {
-        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens'],
+        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens','aspectRatio'],
         fieldLabels: { 
             productType: "Product Type", 
             material: "Material / Texture", 
@@ -125,6 +130,7 @@ const PROMPT_OPTIONS = {
             advertisingStyle: "Advertising Style",
             references: "Reference Style", 
             cameraLens: "Camera & Lens",
+            aspectRatio: "Aspect Ratio",
             customKey: "Custom Key (Elemen Wajib)"
         },
         conservative: { 
@@ -141,7 +147,8 @@ const PROMPT_OPTIONS = {
             motionEffect: ["none, static shot", "slow 360 rotation", "gentle light sweep", "subtle dust particles floating", "a single water droplet falls", "slow zoom in on detail", "gentle focus pull", "steam rising slowly", "fabric gently waving", "camera slowly tilts up"],
             advertisingStyle: ["clean catalog shot", "luxury magazine ad", "minimalist e-commerce", "heritage brand print ad", "tech product launch style", "pharmaceutical clean", "beverage commercial look", "timeless jewelry ad", "automotive ad polish", "fashion accessory lookbook"],
             references: ["Rolex print ads", "Chanel perfume campaigns", "Tiffany jewelry catalog", "Apple clean product", "Muji minimal design", "Dior timeless ads", "Cartier luxury catalog", "Hermes timeless campaigns", "Montblanc lifestyle", "Hugo Boss classic ads"], 
-            cameraLens: ["Canon EOS R5 + 100mm macro", "Nikon Z7 + 105mm macro", "Sony A7R IV + 90mm macro", "Hasselblad X2D + 80mm", "Fujifilm GFX 100 + 120mm", "Canon 6D + 100mm", "Nikon D850 + 85mm", "Sony A7 III + 55mm", "Hasselblad H6D + 100mm", "Fujifilm X-T4 + 35mm"] 
+            cameraLens: ["Canon EOS R5 + 100mm macro", "Nikon Z7 + 105mm macro", "Sony A7R IV + 90mm macro", "Hasselblad X2D + 80mm", "Fujifilm GFX 100 + 120mm", "Canon 6D + 100mm", "Nikon D850 + 85mm", "Sony A7 III + 55mm", "Hasselblad H6D + 100mm", "Fujifilm X-T4 + 35mm"],
+            aspectRatio: ["1:1 (Square E-commerce)", "4:5 (Social Media Post)", "16:9 (Banner)", "9:16 (Story Ad)"]
         },
         balanced: { 
             productType: ["designer sneaker", "sunglasses", "premium headphones", "tote bag", "smartphone", "coffee takeaway cup", "fashion accessory", "smartwatch", "lifestyle mug", "travel luggage"], 
@@ -157,7 +164,8 @@ const PROMPT_OPTIONS = {
             motionEffect: ["dramatic water splash", "product dropping into water (slow-mo)", "smoke swirling around product", "fast pan with motion blur", "stop-motion animation style", "ingredients flying around product", "fabric rippling in the wind", "camera orbiting the product", "liquid pouring action", "light trails effect"],
             advertisingStyle: ["social media ad (e.g., Instagram)", "lifestyle brand campaign", "energetic beverage commercial", "trendy fashion e-comm", "modern tech ad", "influencer-style shot", "aspirational travel ad", "sports brand ad", "cosmetics campaign", "editorial magazine spread"],
             references: ["Nike e-comm", "Adidas commercial", "Samsung lifestyle", "Sephora campaigns", "Zara accessories", "COS minimal modern", "Prada fashion catalog", "H&M lifestyle ads", "Uniqlo clean commercial", "Sony stylish promo"], 
-            cameraLens: ["Canon 5D MkIV + 50mm", "Sony A7 IV + 24–70mm", "Nikon Z9 + 70–200mm", "Fujifilm X-T5 + 56mm", "Leica SL2 + 90mm", "Canon R5 + 35mm f/1.4", "Sony A7R V + 24–70mm", "Leica SL2 + 50mm Summilux", "Nikon Z9 + 24–120mm", "Panasonic S1R + 50mm"] 
+            cameraLens: ["Canon 5D MkIV + 50mm", "Sony A7 IV + 24–70mm", "Nikon Z9 + 70–200mm", "Fujifilm X-T5 + 56mm", "Leica SL2 + 90mm", "Canon R5 + 35mm f/1.4", "Sony A7R V + 24–70mm", "Leica SL2 + 50mm Summilux", "Nikon Z9 + 24–120mm", "Panasonic S1R + 50mm"],
+            aspectRatio: ["4:5 (Instagram Feed)", "16:9 (Website Hero)", "1:1 (Carousel Post)", "9:16 (Reels/Shorts)"]
         },
         experimental: { 
             productType: ["floating tech gadget", "fragmented sculpture object", "surreal cosmetic form", "liquid-shaped container", "holographic wearable", "AI-designed prototype", "levitating orb device", "bioluminescent capsule", "glitch-inspired gadget", "modular abstract product"], 
@@ -173,7 +181,8 @@ const PROMPT_OPTIONS = {
             motionEffect: ["product morphs into liquid", "explodes and reassembles", "glitches in and out of existence", "time-lapse of product decaying/growing", "surrounded by a particle vortex", "leaves a trail of light", "rotates on impossible axes", "camera flies through the product", "surface texture constantly shifts", "holographic projection emanates from product"],
             advertisingStyle: ["conceptual art installation", "dystopian sci-fi commercial", "surreal fashion film", "glitch art advertisement", "avant-garde magazine ad", "trippy music video product placement", "CGI tech demo", "dream sequence ad", "brutalist web design ad", "post-humanist campaign"],
             references: ["Balenciaga dystopian", "Comme des Garçons product art", "Dazed surreal sets", "Nick Knight SHOWstudio", "Tim Walker fantasy objects", "Björk product visuals", "Vogue Italia experimental ads", "conceptual gallery props", "fashion-tech art shoots", "cyber-installation campaigns"], 
-            cameraLens: ["Phase One XF IQ4 + tilt-shift", "RED Komodo + probe lens", "Sony Venice + anamorphic", "Blackmagic 6K + vintage cine glass", "Canon R5C + fisheye 14mm", "RED Helium + 18mm", "Phase One + macro tilt-shift", "Sony A7R IV + 15mm", "Canon C500 MkII + tilt-shift", "Blackmagic Pocket 6K + probe"] 
+            cameraLens: ["Phase One XF IQ4 + tilt-shift", "RED Komodo + probe lens", "Sony Venice + anamorphic", "Blackmagic 6K + vintage cine glass", "Canon R5C + fisheye 14mm", "RED Helium + 18mm", "Phase One + macro tilt-shift", "Sony A7R IV + 15mm", "Canon C500 MkII + tilt-shift", "Blackmagic Pocket 6K + probe"],
+            aspectRatio: ["9:16 (Immersive Story)", "16:9 (Cinematic Ad)", "1:1 (Abstract)", "4:5 (Creative)"]
         },
         vintage: { 
             productType: ["vinyl record sleeve", "cassette tape player", "retro analog camera", "70s soda can", "typewriter machine", "Walkman cassette", "rotary phone", "instant Polaroid camera", "VHS tape", "vintage wrist radio"], 
@@ -189,11 +198,12 @@ const PROMPT_OPTIONS = {
             motionEffect: ["VHS tracking lines", "Super 8mm film jitter", "projector flicker effect", "lens flare from an old lens", "slow, grainy zoom-in", "record spinning on a turntable", "cassette tape unspooling", "Polaroid picture developing", "light leak transition", "film reel burn"],
             advertisingStyle: ["70s print magazine ad", "80s neon-drenched poster", "90s minimalist ad (like Calvin Klein)", "old Sears catalog page", "grainy TV commercial still", "Polaroid ad style", "lifestyle ad from the era", "product placement in a retro scene", "direct mail flyer style", "pre-internet era advertising"],
             references: ["Coca-Cola 70s print ads", "Polaroid SX-70 campaigns", "Kodak film catalog", "80s Sony Walkman ads", "90s Calvin Klein product shots", "retro Nike sneakers catalog", "Marlboro lifestyle ads", "Pepsi 80s neon poster", "VHS camcorder product still", "old Vogue retro spreads"], 
-            cameraLens: ["Nikon FM2 + 50mm AI-S", "Canon AE-1 + 50mm FD", "Leica M6 + 35mm Summicron", "Pentax 67 + 105mm", "Mamiya RZ67 + 110mm", "Contax T2 + 38mm", "Polaroid SX-70 instant", "Hasselblad 500CM + 80mm", "Olympus OM-1 + 50mm", "VHS camcorder lens"] 
+            cameraLens: ["Nikon FM2 + 50mm AI-S", "Canon AE-1 + 50mm FD", "Leica M6 + 35mm Summicron", "Pentax 67 + 105mm", "Mamiya RZ67 + 110mm", "Contax T2 + 38mm", "Polaroid SX-70 instant", "Hasselblad 500CM + 80mm", "Olympus OM-1 + 50mm", "VHS camcorder lens"],
+            aspectRatio: ["1:1 (Vintage Catalog)", "4:5 (Old Magazine Ad)", "16:9 (Retro TV Ad)", "9:16 (Tall Print)"]
         }
     },
     film: {
-        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'characterRelationship'],
+        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship'],
         fieldLabels: { 
             genre: "Genre", 
             sceneType: "Scene Type", 
@@ -215,7 +225,8 @@ const PROMPT_OPTIONS = {
             cameraLens: "Camera & Lens", 
             characterAnchor: "Character Anchor / Identity", 
             wardrobeLock: "Wardrobe Lock (Main Outfit)", 
-            hairMakeup: "Hair & Makeup Details", 
+            hairMakeup: "Hair & Makeup Details",
+            aspectRatio: "Aspect Ratio",
             characterRelationship: "Character Relationship / Interaction Style",
             customKey: "Custom Key (Elemen Wajib)"
         },
@@ -240,8 +251,11 @@ const PROMPT_OPTIONS = {
             cameraLens: ["ARRI Alexa Mini + 35mm", "Canon C300 MkIII + 85mm", "Sony FX3 + 50mm", "RED Helium + 40mm", "Leica SL Cine + 50mm", "ARRI Amira + 28mm", "Canon R5C cine + 35mm", "Sony A7S III + 24mm", "Blackmagic 6K + 35mm", "RED Raven + 50mm"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
-            hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
-            characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
+            hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"],
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"],
+            characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"],
+            
         },
         balanced: { 
             genre: ["psychological thriller", "heist drama", "mystery adventure", "romantic drama", "political intrigue", "action suspense", "crime procedural", "dystopian near-future", "satire drama", "ensemble relationship film"], 
@@ -265,6 +279,7 @@ const PROMPT_OPTIONS = {
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
             consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
@@ -290,6 +305,7 @@ const PROMPT_OPTIONS = {
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
             consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
@@ -315,6 +331,7 @@ const PROMPT_OPTIONS = {
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
             consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         }
@@ -864,7 +881,7 @@ async function handleSubmit() {
         'editingStyle', 
         'soundDesignCue', 
         'pacing', 
-        'aspectRatio',
+        //'aspectRatio',
         'characterAnchor' // characterAnchor tetap dikecualikan seperti sebelumnya
     ];
 
