@@ -739,8 +739,10 @@ function generateVideoPrompts(data, imagePrompt) { let long = '', short = ''; co
 // =======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     initializeState();
-    // ✨ BARU: Lakukan validasi kunci API yang tersimpan saat aplikasi pertama kali dimuat
+    renderApp(); // SELALU render aplikasi terlebih dahulu
+
+    // ✨ BARU: Lakukan validasi kunci API yang tersimpan SETELAH aplikasi dirender
     if(state.googleApiKey) {
         handleApiKeySave(); 
-    } 
+    }
 });
