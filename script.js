@@ -742,7 +742,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✨ BARU: Lakukan validasi kunci API yang tersimpan saat aplikasi pertama kali dimuat
     if(state.googleApiKey) {
         handleApiKeySave(); 
-    } else {
-        renderApp();
-    }
+    } 
 });
