@@ -5,12 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Visual Prompt Art Director</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     
     <style>
-        /* Style tambahan untuk transisi yang lebih halus */
+        /* Style tambahan untuk transisi toggle switch */
         .dot { transition: transform 0.3s ease; }
-        .group:hover .group-hover\:opacity-100 { opacity: 1; }
+
+        /* (Opsional) Style untuk scrollbar di dalam modal */
+        .prose::-webkit-scrollbar {
+            width: 8px;
+        }
+        .prose::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .prose::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        .prose::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
