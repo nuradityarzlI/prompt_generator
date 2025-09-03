@@ -1,6 +1,3 @@
-// script js versi baru v11
-
-
 const PROMPT_OPTIONS = {
     model: {
         fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'postProcessing', 'atmosphere', 'references', 'cameraLens','aspectRatio'],
@@ -201,7 +198,7 @@ const PROMPT_OPTIONS = {
         }
     },
     film: {
-        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship'],
+        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship'],
         fieldLabels: { 
             genre: "Genre", 
             sceneType: "Scene Type", 
@@ -224,6 +221,7 @@ const PROMPT_OPTIONS = {
             characterAnchor: "Character Anchor / Identity", 
             wardrobeLock: "Wardrobe Lock (Main Outfit)", 
             hairMakeup: "Hair & Makeup Details",
+            aspectRatio: "Aspect Ratio",
             characterRelationship: "Character Relationship / Interaction Style",
             customKey: "Custom Key (Elemen Wajib)"
         },
@@ -243,13 +241,16 @@ const PROMPT_OPTIONS = {
             lensEffects: ["no effects, clean lens", "subtle lens flare", "soft focus for romantic mood", "deep focus", "natural bokeh", "clear, sharp focus", "gentle blooming on highlights", "anamorphic bokeh (subtle)", "breathing effect (subtle)", "perfectly clean image"],
             soundDesignCue: ["quiet room tone", "gentle classical music score", "sound of birds chirping", "ticking clock", "rain against the window", "crackling fireplace", "distant church bells", "clear dialogue", "footsteps on a wooden floor", "turning pages of a book"],
             pacing: ["slow and deliberate", "gentle rhythm", "leisurely", "calm and steady", "observational", "unhurried", "thoughtful", "graceful", "naturalistic timing", "real-time feel"],
-            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"],
+            aspectRatio: ["1.85:1 (Standard Flat)", "1.37:1 (Academy Ratio)", "4:3 (Classic TV)", "1.66:1 (European Widescreen)", "2.00:1 (Univisium)", "custom narrow aspect ratio", "split screen (symmetrical)", "circular vignette", "soft-edged frame", "standard 16:9"],
             references: ["Greta Gerwig naturalism", "Wong Kar-wai nostalgia", "Ozu stillness", "Linklater realism", "Kore-eda intimacy", "Kurosawa epic drama", "Ang Lee family drama", "James Ivory heritage", "Ron Howard sincerity", "Alfonso Cuarón realism"], 
             cameraLens: ["ARRI Alexa Mini + 35mm", "Canon C300 MkIII + 85mm", "Sony FX3 + 50mm", "RED Helium + 40mm", "Leica SL Cine + 50mm", "ARRI Amira + 28mm", "Canon R5C cine + 35mm", "Sony A7S III + 24mm", "Blackmagic 6K + 35mm", "RED Raven + 50mm"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"],
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"],
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"],
+            
         },
         balanced: { 
             genre: ["psychological thriller", "heist drama", "mystery adventure", "romantic drama", "political intrigue", "action suspense", "crime procedural", "dystopian near-future", "satire drama", "ensemble relationship film"], 
@@ -267,12 +268,14 @@ const PROMPT_OPTIONS = {
             lensEffects: ["anamorphic lens flare", "rack focus", "focus pull", "lens breathing", "hazy bloom effect", "raindrops on lens", "intentional lens dirt/smudge", "dreamy soft filter", "vignetting to focus attention", "zoom lens compression"],
             soundDesignCue: ["tense, pulsing synth score", "bustling city ambience", "loud nightclub music", "inaudible muffled dialogue", "sudden, impactful sound effect", "character's heavy breathing", "non-diegetic music swells", "ominous drone", "cacophony of sounds", "sharp, jarring silence"],
             pacing: ["fast-paced and frantic", "tense and suspenseful", "dynamic and energetic", "alternating fast and slow", "driving and propulsive", "quick and rhythmic", "building to a crescendo", "relentless", "breathless", "punchy"],
-            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"],
+            aspectRatio: ["2.39:1 (Anamorphic Widescreen)", "2:1 (common for streaming)", "16:9 (HD Video)", "alternating aspect ratios", "extreme letterboxing", "vertical 9:16 (for social)", "unconventional split screen", "dynamic aspect ratio changes", "super wide 3.55:1", "claustrophobic 1:1"],
             references: ["Christopher Nolan suspense", "David Fincher noir", "Denis Villeneuve sci-fi realism", "Sofia Coppola minimalism", "Paul Thomas Anderson drama", "Ridley Scott epic", "Alfonso Cuarón hybrid", "Barry Jenkins poetic realism", "Bong Joon-ho satire", "Sam Mendes theatrical style"], 
             cameraLens: ["Sony FX6 + 24–70mm", "RED Komodo + 50mm", "Canon C500 MkII + 35mm", "DJI Ronin 4D + 35mm", "ARRI Alexa LF + 47mm", "Sony Venice + 50mm prime", "Nikon Z9 cine + 28mm", "Blackmagic Pocket 6K + 85mm", "Canon R5C + 50mm", "Leica SL2 cine + 90mm"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
         experimental: { 
@@ -291,12 +294,14 @@ const PROMPT_OPTIONS = {
             lensEffects: ["lens-whacking", "free-lensing", "prism filter effects", "kaleidoscope lens", "custom experimental lens", "liquid on lens", "broken lens effect", "extreme chromatic aberration", "anamorphic distortion", "breathing that distorts space"],
             soundDesignCue: ["deafening silence", "glitching audio", "ASMR-like textures", "atonal drone", "cacophony of overlapping voices", "a single, pure sine wave", "reversed audio", "sound that precedes the visual", "heartbeat rhythm", "white noise"],
             pacing: ["hypnotic and slow", "jarring and chaotic", "non-linear time", "cyclical / looping", "meditative and trance-like", "frenetic and explosive", "a single, long, unending moment", "fragmented and disjointed", "accelerating to infinity", "decelerating to a stop"],
-            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"],
+            aspectRatio: ["constantly shifting aspect ratio", "extreme vertical aspect ratio", "multi-frame layout (grid)", "circular or other shape frame", "anamorphic with extreme distortion", "a tiny frame in a black void", "overlapping frames", "4:3 for claustrophobia", "polyvision (multiple screens)", "no frame (immersive)"],
             references: ["Gaspar Noé surreal chaos", "Lars von Trier raw realism", "David Lynch dream logic", "Nick Knight SHOWstudio", "Tim Walker fantasy", "Alejandro Jodorowsky symbolic", "Harmony Korine fragmented", "Peter Greenaway baroque surrealism", "Shirin Neshat conceptual", "arthouse collective visuals"], 
             cameraLens: ["Sony Venice + anamorphic", "RED Komodo + fisheye", "Canon C500 MkII + tilt-shift", "Blackmagic 6K + probe lens", "360 VR rig", "RED Komodo + 16mm wide", "Phase One + cinema back", "Canon R5C + 8mm fisheye", "Blackmagic URSA Mini + vintage glass", "experimental Lomo lenses"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
         vintage: { 
@@ -315,12 +320,14 @@ const PROMPT_OPTIONS = {
             lensEffects: ["soft focus / blooming highlights", "streaky lens flare", "vaseline on the lens effect", "zoom lens breathing", "low-quality VHS lens distortion", "grainy, low-light noise", "authentic film gate weave", "dust on the lens", "anamorphic flare (70s)", "dreamy diffusion filter"],
             soundDesignCue: ["vinyl record crackle", "cassette tape hiss", "8-bit video game sounds", "sitcom laugh track", "muffled dialogue from old TV", "80s synth-pop score", "70s funk music", "rotary phone ringing", "VHS tape motor whirring", "dial-up modem sounds"],
             pacing: ["leisurely 70s pacing", "fast-paced 80s montage", "slacker 90s pacing", "home video real-time feel", "documentary observational", "music video rhythm", "suspenseful slow-burn", "comedic timing", "erratic and jittery", "nostalgic and slow"],
-            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"],
+            aspectRatio: ["4:3 (CRT Television)", "2.35:1 (70s Widescreen)", "1.85:1 (80s/90s Film)", "Super 8mm aspect ratio", "grainy 16mm aspect ratio", "rounded TV screen corners", "video camera viewfinder overlay", "split screen", "damaged film border", "authentic Polaroid frame"],
             references: ["Brian De Palma thrillers", "John Hughes teen films", "Wim Wenders road movies", "early Spike Lee", "80s MTV music videos", "70s Italian giallo", "French New Wave echoes", "Richard Donner 80s blockbusters", "VHS-era horror (Troma)", "Fellini retro surrealism"], 
             cameraLens: ["Super 8mm film camera", "VHS camcorder (Sony Handycam)", "Betacam SP", "Bolex 16mm", "Panasonic M7 VHS shoulder cam", "Polaroid instant film recorder", "Arriflex 435 (70s)", "Mitchell BNCR (classic Hollywood)", "Hi8 camcorder", "analog 35mm Panavision"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         }
     },
@@ -349,15 +356,24 @@ function initializeState() {
     const initialFormState = {};
     ['model', 'product', 'film'].forEach(m => {
         initialFormState[m] = {};
-        if (PROMPT_OPTIONS[m] && PROMPT_OPTIONS[m].fields) {
+        if (PROMPT_OPTIONS[m]) {
             PROMPT_OPTIONS[m].fields.forEach(f => {
                 initialFormState[m][f] = { select: '', custom: '' };
             });
         }
     });
 
+    const initialHumanState = { enabled: false };
+    PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => {
+        if (field === 'styling') {
+            initialHumanState[field] = { custom: '' };
+        } else {
+            initialHumanState[field] = { select: PROMPT_OPTIONS.special.humanInShot.options[field][0], custom: '' };
+        }
+    });
+
     const initialLockState = {};
-     ['model', 'product', 'film'].forEach(m => {
+    ['model', 'product', 'film', 'product_human'].forEach(m => {
         initialLockState[m] = {};
     });
 
@@ -365,12 +381,13 @@ function initializeState() {
         mode: 'model',
         intensity: 'conservative',
         outputs: null,
+        isLoading: { suggest: false, generate: false, variations: false },
+        promptVariations: { original: null, variations: [] },
         formState: initialFormState,
         lockedFields: initialLockState,
-        openaiApiKey: localStorage.getItem('openaiApiKey') || null,
-        productReferenceImage: { data: null, name: null, mimeType: null },
-        humanReferenceImage: { data: null, name: null, mimeType: null },
-        isLoading: { suggest: false, generate: false, imageAnalyze: false }
+        humanState: initialHumanState,
+        filmState: { numScenes: 1, linkScenes: true },
+        openAccordionScene: 0,
     };
 
     updateDefaults();
@@ -380,15 +397,20 @@ function updateDefaults() {
     const { mode, intensity, formState, lockedFields } = state;
     const newModeState = { ...formState[mode] };
 
-    if (PROMPT_OPTIONS[mode] && PROMPT_OPTIONS[mode].fields) {
-        PROMPT_OPTIONS[mode].fields.forEach(field => {
-            if (lockedFields[mode]?.[field]) return;
-            const options = PROMPT_OPTIONS[mode][intensity]?.[field] || [];
-            const newDefault = options[0] || '';
-            newModeState[field].select = newDefault;
-            newModeState[field].custom = '';
-        });
-    }
+    PROMPT_OPTIONS[mode].fields.forEach(field => {
+        // PENTING: Jangan ubah field yang sedang dikunci (locked)
+        if (lockedFields[mode]?.[field]) {
+            return; // Lewati field ini dan lanjut ke field berikutnya
+        }
+
+        const options = PROMPT_OPTIONS[mode][intensity]?.[field] || [];
+        const newDefault = options[0] || '';
+
+        // Selalu set ke default baru & hapus teks custom
+        newModeState[field].select = newDefault;
+        newModeState[field].custom = '';
+    });
+
     state.formState[mode] = newModeState;
 }
 
@@ -396,130 +418,328 @@ function updateDefaults() {
 // HELPER & COMPONENT FUNCTIONS
 // =======================================================================
 const capitalize = (s) => (s && typeof s === 'string' ? s.charAt(0).toUpperCase() + s.slice(1) : '');
-function LockIcon(locked) { return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">${locked ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />` : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />`}</svg>`; }
-function Tooltip(text) { return `<span class="group relative ml-2"><span class="flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-400 rounded-full cursor-help">?</span><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">${text}</span></span>`; }
-function SegmentedControl({ options, selected, id }) { return `<div id="${id}" class="flex p-1 bg-gray-100 rounded-lg">${options.map(({ value, label }) => `<button type="button" data-value="${value}" class="flex-1 py-2 px-1 text-sm font-semibold rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selected === value ? 'bg-white text-gray-800 shadow-sm' : 'bg-transparent text-gray-500 hover:bg-gray-200'}">${label}</button>`).join('')}</div>`; }
-function FormField({ id, mode, fieldId, label, options, value, customValue, isLocked = false }) { const hasValue = customValue.trim() || value; const showWarning = isLocked && !hasValue; return `<div class="mb-6"><div class="flex items-center justify-between mb-2"><label for="${id}-select" class="flex items-center text-sm font-semibold text-gray-700">${label}${Tooltip("Select a curated option or enter a custom value below.")}</label><button type="button" data-lock-mode="${mode}" data-lock-field="${fieldId}" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(isLocked)}</button></div><select id="${id}-select" class="form-select w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800" ${isLocked ? 'disabled' : ''}><option value="" disabled ${!value || customValue.trim() ? 'selected' : ''} hidden>Select an option</option>${(options || []).map(opt => `<option value="${opt}" ${value === opt && !customValue.trim() ? 'selected' : ''}>${capitalize(opt)}</option>`).join('')}</select><input type="text" id="${id}-text" value="${customValue}" placeholder="Custom text (optional)" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 mt-2" ${isLocked ? 'readonly' : ''}>${showWarning ? `<p class="text-xs text-red-500 mt-1">Field is locked but has no value.</p>` : ''}</div>`; }
-function OutputSection({ title, content }) { return `<div class="mb-6"><div class="flex justify-between items-center mb-2"><h3 class="text-lg font-semibold text-gray-800">${title}</h3><button data-copy-content="${content.replace(/"/g, '&quot;')}" class="copy-button px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition">Copy</button></div><p class="p-4 bg-gray-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap font-mono">${content}</p></div>`; }
+
+function LockIcon(locked) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">${locked ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />` : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />`}</svg>`;
+}
+
+function Tooltip(text) {
+    return `<span class="group relative ml-2"><span class="flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-400 rounded-full cursor-help">?</span><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">${text}</span></span>`;
+}
+
+function SegmentedControl({ options, selected, id }) {
+    return `<div id="${id}" class="flex p-1 bg-gray-100 rounded-lg">${options.map(({ value, label }) => `<button type="button" data-value="${value}" class="flex-1 py-2 px-1 text-sm font-semibold rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selected === value ? 'bg-white text-gray-800 shadow-sm' : 'bg-transparent text-gray-500 hover:bg-gray-200'}">${label}</button>`).join('')}</div>`;
+}
+
+function FormField({ id, mode, fieldId, label, options, value, customValue, isLocked = false }) {
+    const hasValue = customValue.trim() || value;
+    const showWarning = isLocked && !hasValue;
+    return `
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-2">
+                <label for="${id}-select" class="flex items-center text-sm font-semibold text-gray-700">
+                    ${label}
+                    ${Tooltip("Select a curated option or enter a custom value below.")}
+                </label>
+                <button type="button" data-lock-mode="${mode}" data-lock-field="${fieldId}" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">
+                    ${LockIcon(isLocked)}
+                </button>
+            </div>
+            <select id="${id}-select" class="form-select w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800" ${isLocked ? 'disabled' : ''}>
+                <option value="" disabled ${!value || customValue.trim() ? 'selected' : ''} hidden>Select an option</option>
+                ${(options || []).map(opt => `<option value="${opt}" ${value === opt && !customValue.trim() ? 'selected' : ''}>${capitalize(opt)}</option>`).join('')}
+            </select>
+            <input type="text" id="${id}-text" value="${customValue}" placeholder="Custom text (optional)" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 mt-2" ${isLocked ? 'readonly' : ''}>
+            ${showWarning ? `<p class="text-xs text-red-500 mt-1">Field is locked but has no value.</p>` : ''}
+        </div>`;
+}
+
+function ToggleSwitch({ id, label, checked }) {
+    return `
+        <label for="${id}" class="flex items-center cursor-pointer">
+            <span class="mr-3 text-sm font-semibold text-gray-700">${label}</span>
+            <div class="relative">
+                <input type="checkbox" id="${id}" class="sr-only toggle-switch" ${checked ? 'checked' : ''}>
+                <div class="block w-12 h-6 rounded-full transition ${checked ? 'bg-blue-500' : 'bg-gray-300'}"></div>
+                <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform ${checked ? 'translate-x-6' : ''}"></div>
+            </div>
+        </label>`;
+}
+
+function OutputSection({ title, content }) {
+    return `
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                <button data-copy-content="${content.replace(/"/g, '&quot;')}" class="copy-button px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition">Copy</button>
+            </div>
+            <p class="p-4 bg-gray-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap font-mono">${content}</p>
+        </div>`;
+}
+
+function SceneAccordion() {
+    const { outputs, openAccordionScene } = state;
+    return `
+        <div>
+            ${outputs.map((scene, index) => `
+                <div class="border-b border-gray-200">
+                    <button data-scene-index="${index}" class="accordion-toggle w-full flex justify-between items-center p-4 text-left font-semibold text-gray-800">
+                        Scene ${index + 1}
+                        <span>${openAccordionScene === index ? '−' : '+'}</span>
+                    </button>
+                    ${openAccordionScene === index ? `
+                        <div class="p-4 bg-gray-50">
+                            ${OutputSection({ title: "Text Prompt", content: scene.text })}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                ${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}
+                                ${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function ProductFormExtras() {
+    const { humanState, lockedFields } = state;
+    const config = PROMPT_OPTIONS.special.humanInShot;
+    let fieldsHTML = '';
+    if (humanState.enabled) {
+        fieldsHTML = `
+            <div class="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+                ${config.fields.map(fieldId => {
+                    if (fieldId === 'styling') {
+                        const isLocked = lockedFields.product_human?.styling;
+                        const customValue = humanState.styling?.custom || '';
+                        return `
+                            <div class="mb-6" key="human-styling">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label for="human-styling-text" class="flex items-center text-sm font-semibold text-gray-700">Styling</label>
+                                    <button type="button" data-lock-mode="product_human" data-lock-field="styling" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}">
+                                        ${LockIcon(isLocked)}
+                                    </button>
+                                </div>
+                                <input type="text" id="human-styling-text" placeholder="e.g., minimalist silver rings" value="${customValue}" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg" ${isLocked ? 'readonly' : ''}>
+                            </div>`;
+                    }
+                    return FormField({
+                        id: `human-${fieldId}`,
+                        mode: 'product_human',
+                        fieldId: fieldId,
+                        label: config.fieldLabels[fieldId],
+                        options: config.options[fieldId],
+                        value: humanState[fieldId]?.select || '',
+                        customValue: humanState[fieldId]?.custom || '',
+                        isLocked: lockedFields.product_human?.[fieldId]
+                    });
+                }).join('')}
+            </div>`;
+    }
+    return `
+        <div class="mt-6 border-t pt-6">
+            ${ToggleSwitch({id: 'human-in-shot-toggle', label: 'Human in Product Shot', checked: humanState.enabled})}
+            ${fieldsHTML}
+        </div>`;
+}
+
+function FilmFormExtras() {
+    const { filmState } = state;
+    return `
+        <div class="mt-6 border-t pt-6 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+            <div>
+                <label for="film-numScenes" class="text-sm font-semibold text-gray-700 mb-2 block">Number of Scenes</label>
+                <select id="film-numScenes" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                    <option value="1" ${filmState.numScenes === 1 ? 'selected' : ''}>1</option>
+                    <option value="2" ${filmState.numScenes === 2 ? 'selected' : ''}>2</option>
+                    <option value="3" ${filmState.numScenes === 3 ? 'selected' : ''}>3</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                ${ToggleSwitch({id: 'film-linkScenes-toggle', label: 'Link scenes for continuity', checked: filmState.linkScenes})}
+            </div>
+        </div>`;
+}
+
+function clearFormAndOutputs() {
+    // 1. Simpan mode dan intensity yang sedang aktif saat ini
+    const currentMode = state.mode;
+    const currentIntensity = state.intensity;
+
+    // 2. Panggil fungsi inisialisasi untuk me-reset semuanya ke kondisi awal
+    //    Ini adalah cara paling efisien untuk membersihkan semua state seperti
+    //    formState, lockedFields, humanState, dll.
+    initializeState();
+
+    // 3. Setelah semuanya bersih, kembalikan mode dan intensity yang tadi kita simpan
+    state.mode = currentMode;
+    state.intensity = currentIntensity;
+    
+    // 4. Panggil updateDefaults() lagi. Fungsi ini akan membaca mode dan intensity
+    //    yang baru saja kita kembalikan, lalu mengisi form dengan nilai default
+    //    yang sesuai.
+    updateDefaults();
+
+    // 5. Render ulang aplikasi untuk menampilkan form yang sudah bersih
+    //    namun dengan mode dan intensity yang tetap sama.
+    renderApp();
+}
 
 function renderApp() {
     const root = document.getElementById('root');
     if (!root) return;
 
-    const { mode, intensity, formState, isLoading, outputs, lockedFields, openaiApiKey } = state;
+    const { mode, intensity, formState, isLoading, outputs, lockedFields } = state;
     const modeConfig = PROMPT_OPTIONS[mode];
     if (!modeConfig) return console.error("Invalid mode selected:", mode);
-    
-    const apiKeySectionHTML = `
-        <section class="mb-8 p-4 border rounded-lg shadow-sm bg-gray-50">
-            <h2 class="text-lg font-semibold text-gray-800 mb-2">🔑 OpenAI API Key (Wajib)</h2>
-            <p class="text-sm text-gray-600 mb-3">Masukkan OpenAI API Key Anda untuk mengaktifkan fitur referensi dan generate gambar.</p>
-            <div class="flex items-center gap-2">
-                <input type="password" id="openai-api-key-input" class="w-full p-2 border rounded-md" placeholder="Masukkan OpenAI Key (sk-...)" value="${openaiApiKey || ''}">
-                <button id="save-api-key-btn" class="py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Simpan Kunci</button>
-            </div>
-             ${openaiApiKey ? `<p class="text-green-600 text-sm mt-2 font-semibold">✓ Kunci OpenAI tersimpan. Fitur gambar aktif.</p>` : `<p class="text-yellow-600 text-sm mt-2">Fitur referensi & generate gambar dinonaktifkan.</p>`}
-        </section>
-    `;
-
-    let referenceImageSectionHTML = '';
-    if (openaiApiKey) {
-        referenceImageSectionHTML = `
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 p-4 border-2 border-dashed rounded-lg bg-blue-50">
-            <div>
-                <h3 class="text-md font-semibold text-gray-700 mb-2">🖼️ Referensi Produk</h3>
-                <p class="text-xs text-gray-500 mb-3">Unggah gambar produk untuk konteks "Suggest AI".</p>
-                <input type="file" id="product-image-upload-input" class="text-sm" accept="image/png, image/jpeg, image/webp">
-                ${state.productReferenceImage.name ? `<p class="mt-2 text-sm text-gray-800">File: <strong>${state.productReferenceImage.name}</strong></p>` : ''}
-            </div>
-            <div>
-                <h3 class="text-md font-semibold text-gray-700 mb-2">👤 Referensi Manusia</h3>
-                <p class="text-xs text-gray-500 mb-3">Unggah foto manusia/model untuk konteks "Suggest AI".</p>
-                <input type="file" id="human-image-upload-input" class="text-sm" accept="image/png, image/jpeg, image/webp">
-                 ${state.humanReferenceImage.name ? `<p class="mt-2 text-sm text-gray-800">File: <strong>${state.humanReferenceImage.name}</strong></p>` : ''}
-            </div>
-        </div>
-        `;
-    }
-
-    let outputHTML = '';
-    if (outputs) {
-        const scene = outputs[0];
-        const generateButtonHTML = openaiApiKey ? `
-            <div class="mt-6 pt-4 border-t">
-                 <button id="generate-image-btn" class="w-full py-2 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition ${isLoading.generate ? 'opacity-50 cursor-not-allowed' : ''}" ${isLoading.generate ? 'disabled' : ''}>
-                    ${isLoading.generate ? 'Generating Image...' : '🚀 Generate Image with DALL-E 3'}
-                </button>
-            </div>` : '';
-
-        outputHTML = `
-        <section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">
-            <div>${OutputSection({ title: "Final Text Prompt", content: scene.text })}</div>
-            <div id="generated-image-container" class="mt-6 p-4 border rounded-lg bg-gray-100 min-h-[100px] flex items-center justify-center">
-               <p class="text-gray-500">Hasil gambar akan muncul di sini setelah di-generate...</p>
-            </div>
-            ${generateButtonHTML}
-        </section>`;
-    }
 
     const fields = modeConfig.fields.filter(f => f !== 'customKey');
     const middleIndex = Math.ceil(fields.length / 2);
     const leftFields = fields.slice(0, middleIndex);
     const rightFields = fields.slice(middleIndex);
-    const renderFields = (fieldList) => fieldList.map(fieldId => FormField({ id: `${mode}-${fieldId}`, mode, fieldId, label: modeConfig.fieldLabels[fieldId], options: modeConfig[intensity]?.[fieldId], value: formState[mode]?.[fieldId]?.select || '', customValue: formState[mode]?.[fieldId]?.custom || '', isLocked: lockedFields[mode]?.[fieldId] })).join('');
+
+    const renderFields = (fieldList) =>
+        fieldList.map(fieldId => FormField({
+            id: `${mode}-${fieldId}`,
+            mode,
+            fieldId,
+            label: modeConfig.fieldLabels[fieldId],
+            options: modeConfig[intensity]?.[fieldId],
+            value: formState[mode]?.[fieldId]?.select || '',
+            customValue: formState[mode]?.[fieldId]?.custom || '',
+            isLocked: lockedFields[mode]?.[fieldId]
+        })).join('');
+
+    let extrasHTML = '';
+    if (mode === 'product') extrasHTML = ProductFormExtras();
+    if (mode === 'film') extrasHTML = FilmFormExtras();
+
+    let outputHTML = '';
+    if (outputs) {
+        if (outputs.length > 1) {
+            outputHTML = SceneAccordion();
+        } else if (outputs.length === 1) {
+            const scene = outputs[0];
+            outputHTML = `
+                <div>
+                    ${OutputSection({ title: "Text Prompt", content: scene.text })}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        ${OutputSection({ title: "Video Prompt (Long)", content: scene.videoLong })}
+                        ${OutputSection({ title: "Video Prompt (Short)", content: scene.videoShort })}
+                    </div>
+                </div>`;
+        }
+    }
 
     const appHTML = `
         <div class="w-full max-w-4xl mx-auto p-4 sm:p-6">
             <main class="bg-white rounded-2xl shadow-xl p-6 sm:p-10">
                 <header class="text-center mb-8 relative">
                     <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Professional Visual Prompt Art Director</h1>
+                    <p class="text-gray-500 mt-1">by HeyReena Studio</p>
                     <button id="open-help-modal-btn" title="Cara Penggunaan" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-blue-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </button>
                 </header>
-                ${apiKeySectionHTML}
-                <div class="space-y-6 mt-8">
-                    <div><label class="text-sm font-semibold text-gray-700 mb-2 block">Mode</label>${SegmentedControl({ id: 'mode-selector', options: [{ value: 'model', label: 'Model Photography' }, { value: 'product', label: 'Product Photography' }], selected: mode })}</div>
-                    <div><label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}</div>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700 mb-2 block">Mode</label>
+                        ${SegmentedControl({ id: 'mode-selector', options: [{ value: 'model', label: 'Model Photography' }, { value: 'product', label: 'Product Photography' }, { value: 'film', label: 'Short Film Scene' }], selected: mode })}
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>
+                        ${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}
+                    </div>
                 </div>
-                ${referenceImageSectionHTML}
+
                 <div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
                     <div>${renderFields(leftFields)}</div>
                     <div>${renderFields(rightFields)}</div>
                 </div>
+
                 <div class="mt-2">
-                     <div class="mb-6"><div class="flex items-center justify-between mb-2"><label for="${mode}-customKey-text" class="flex items-center text-sm font-semibold text-gray-700">Custom Key (Elemen Wajib)${Tooltip("Masukkan kata kunci utama (e.g., skateboard, fisheye, neon city) untuk memandu sugesti AI.")}</label><button type="button" data-lock-mode="${mode}" data-lock-field="customKey" class="lock-button p-1 rounded-full transition-colors ${lockedFields[mode]?.customKey ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">${LockIcon(lockedFields[mode]?.customKey)}</button></div><textarea id="${mode}-customKey-text" rows="2" placeholder="e.g., skateboard, fisheye, neon city at night" class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800" ${lockedFields[mode]?.customKey ? 'readonly' : ''}>${formState[mode]?.customKey?.custom || ''}</textarea></div>
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="${mode}-customKey-text" class="flex items-center text-sm font-semibold text-gray-700">
+                                Custom Key (Elemen Wajib)
+                                ${Tooltip("Masukkan kata kunci utama (e.g., skateboard, fisheye, neon city) untuk memandu sugesti AI.")}
+                            </label>
+                            <button type="button" data-lock-mode="${mode}" data-lock-field="customKey" class="lock-button p-1 rounded-full transition-colors ${lockedFields[mode]?.customKey ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">
+                                ${LockIcon(lockedFields[mode]?.customKey)}
+                            </button>
+                        </div>
+                        <textarea 
+                            id="${mode}-customKey-text" 
+                            rows="2"
+                            placeholder="e.g., skateboard, fisheye, neon city at night" 
+                            class="form-custom-text w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800"
+                            ${lockedFields[mode]?.customKey ? 'readonly' : ''}
+                        >${formState[mode]?.customKey?.custom || ''}</textarea>
+                    </div>
                 </div>
-                <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm ${isLoading.suggest || isLoading.imageAnalyze ? 'opacity-50 cursor-not-allowed' : ''}" ${isLoading.suggest || isLoading.imageAnalyze ? 'disabled' : ''}>
-                        ${isLoading.imageAnalyze ? 'Analyzing Image...' : isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}
+
+                ${extrasHTML}
+
+                <div class="mt-10 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <button id="suggest-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm disabled:opacity-50" ${isLoading.suggest ? 'disabled' : ''}>
+                        ${isLoading.suggest ? 'Thinking...' : 'Suggest with AI ✨'}
                     </button>
-                    <button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm">Generate Prompts</button>
+                    <button id="generate-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50" ${isLoading.generate ? 'disabled' : ''}>
+                        ${isLoading.generate ? 'Generating...' : 'Generate Prompts'}
+                    </button>
+                    <button id="clear-btn" class="w-full py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm">Clear All</button>
                 </div>
             </main>
-            ${outputHTML}
+
+            ${outputHTML ? `<section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">${outputHTML}</section>` : ''}
         </div>
     `;
     root.innerHTML = appHTML;
     addEventListeners();
 }
 
+// =======================================================================
+// EVENT LISTENERS & HANDLERS
+// =======================================================================
 function addEventListeners() {
-    document.getElementById('mode-selector')?.addEventListener('click', e => { if (e.target.dataset.value && state.mode !== e.target.dataset.value) { state.mode = e.target.dataset.value; updateDefaults(); renderApp(); } });
-    document.getElementById('intensity-selector')?.addEventListener('click', e => { if (e.target.dataset.value && state.intensity !== e.target.dataset.value) { state.intensity = e.target.dataset.value; updateDefaults(); renderApp(); } });
+    // === Kontrol Utama (Mode & Intensity) ===
+    document.getElementById('mode-selector')?.addEventListener('click', e => {
+        const value = e.target.dataset.value;
+        if (value && state.mode !== value) {
+            state.mode = value;
+            updateDefaults();
+            renderApp();
+        }
+    });
+
+    document.getElementById('intensity-selector')?.addEventListener('click', e => {
+        const value = e.target.dataset.value;
+        if (value && state.intensity !== value) {
+            state.intensity = value;
+            updateDefaults();
+            renderApp();
+        }
+    });
+
+    // === Kontrol Form Dinamis ===
     document.querySelectorAll('.form-select').forEach(el => el.addEventListener('change', handleFormChange));
     document.querySelectorAll('.form-custom-text').forEach(el => el.addEventListener('input', handleFormChange));
     document.querySelectorAll('.lock-button').forEach(el => el.addEventListener('click', handleLockToggle));
+
+    // === Kontrol Form Tambahan (Extras) ===
+    document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
+    document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
+    
+    // === Tombol Aksi Utama ===
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
     document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
-    document.getElementById('open-help-modal-btn')?.addEventListener('click', () => document.getElementById('help-modal')?.classList.remove('hidden'));
-    document.getElementById('close-help-modal-btn')?.addEventListener('click', () => document.getElementById('help-modal')?.classList.add('hidden'));
-    
-    document.getElementById('save-api-key-btn')?.addEventListener('click', handleApiKeySave);
-    document.getElementById('product-image-upload-input')?.addEventListener('change', (e) => handleImageUpload(e, 'product'));
-    document.getElementById('human-image-upload-input')?.addEventListener('change', (e) => handleImageUpload(e, 'human'));
-    document.getElementById('generate-image-btn')?.addEventListener('click', handleImageGeneration);
+    document.getElementById('clear-btn')?.addEventListener('click', clearFormAndOutputs);
 
+    // === Kontrol di Bagian Output ===
     document.querySelectorAll('.copy-button').forEach(button => {
         button.addEventListener('click', e => {
             const content = e.target.dataset.copyContent.replace(/&quot;/g, '"');
@@ -529,111 +749,199 @@ function addEventListeners() {
             });
         });
     });
-}
 
-function handleFormChange(e) { /* ... (Fungsi ini tetap sama) ... */ }
-function handleLockToggle(e) { /* ... (Fungsi ini tetap sama) ... */ }
-
-function handleApiKeySave() {
-    const openaiKey = document.getElementById('openai-api-key-input').value.trim();
-    state.openaiApiKey = openaiKey;
-    localStorage.setItem('openaiApiKey', openaiKey);
-    alert('OpenAI API Key berhasil disimpan!');
-    renderApp();
-}
-
-function handleImageUpload(event, type) {
-    const file = event.target.files[0];
-    const imageStateKey = type === 'product' ? 'productReferenceImage' : 'humanReferenceImage';
-    const otherImageStateKey = type === 'product' ? 'humanReferenceImage' : 'productReferenceImage';
-
-    if (!file) {
-        state[imageStateKey] = { data: null, name: null, mimeType: null };
-        renderApp();
-        return;
-    }
-
-    // Reset gambar referensi lainnya untuk memastikan hanya satu yang aktif
-    state[otherImageStateKey] = { data: null, name: null, mimeType: null };
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-        state[imageStateKey] = {
-            data: reader.result.split(',')[1],
-            name: file.name,
-            mimeType: file.type
-        };
-        renderApp();
-    };
-    reader.readAsDataURL(file);
-}
-
-// Panggilan ke backend analisis gambar (Hugging Face)
-async function callVisionAPI(imageBase64) {
-    state.isLoading.imageAnalyze = true;
-    renderApp();
-    try {
-        const response = await fetch('/api/analyze-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageBase64 }),
+    document.querySelectorAll('.accordion-toggle').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const index = Number(e.currentTarget.dataset.sceneIndex);
+            state.openAccordionScene = state.openAccordionScene === index ? null : index;
+            renderApp();
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || "Failed to analyze image");
-        return result.description;
-    } catch (error) {
-        console.error("Error calling image analysis backend:", error);
-        alert(`Gagal menganalisis gambar: ${error.message}`);
-        return null;
-    } finally {
-        state.isLoading.imageAnalyze = false;
-        renderApp();
-    }
+    });
+
+    // === Kontrol Pop-up Bantuan ===
+    const helpModal = document.getElementById('help-modal');
+    const openHelpBtn = document.getElementById('open-help-modal-btn');
+    const closeHelpBtn = document.getElementById('close-help-modal-btn');
+
+    openHelpBtn?.addEventListener('click', () => {
+        helpModal?.classList.remove('hidden');
+    });
+
+    closeHelpBtn?.addEventListener('click', () => {
+        helpModal?.classList.add('hidden');
+    });
+
+    helpModal?.addEventListener('click', (e) => {
+        if (e.target.id === 'help-modal') {
+            helpModal.classList.add('hidden');
+        }
+    });
 }
 
-// Panggilan ke backend sugesti teks (Groq)
-async function callTextAPI(prompt) {
+function handleFormChange(e) {
+    const target = e.target;
+    const id = target.id.replace('-select', '').replace('-text', '');
+    const [modeOrPrefix, ...fieldIdParts] = id.split('-');
+    const fieldId = fieldIdParts.join('-');
+
+    let stateSlice;
+    if (modeOrPrefix === 'human') {
+        stateSlice = state.humanState;
+    } else if (state.formState[modeOrPrefix]) {
+        stateSlice = state.formState[modeOrPrefix];
+    } else {
+        return; // Tidak ada state slice yang cocok
+    }
+
+    if (!stateSlice[fieldId]) {
+        stateSlice[fieldId] = { select: '', custom: '' };
+    }
+
+    // --- AWAL PERBAIKAN ---
+    const isTextOnly = !PROMPT_OPTIONS[modeOrPrefix]?.hasOwnProperty(state.intensity) || !PROMPT_OPTIONS[modeOrPrefix][state.intensity]?.hasOwnProperty(fieldId);
+
+    if (target.classList.contains('form-select')) {
+        stateSlice[fieldId].select = target.value;
+        stateSlice[fieldId].custom = '';
+        const textEl = document.getElementById(`${id}-text`);
+        if(textEl) textEl.value = '';
+    } else { // Ini berlaku untuk semua input teks, termasuk Custom Key
+        stateSlice[fieldId].custom = target.value;
+        // Jika bukan field text-only, kosongkan dropdownnya
+        if (!isTextOnly) {
+            const selectEl = document.getElementById(`${id}-select`);
+            if (selectEl) selectEl.value = '';
+        }
+    }
+    // --- AKHIR PERBAIKAN ---
+}
+
+
+function handleLockToggle(e) {
+    const { lockMode, lockField } = e.currentTarget.dataset;
+    state.lockedFields[lockMode][lockField] = !state.lockedFields[lockMode][lockField];
+    renderApp();
+}
+
+function handleToggleChange(e) {
+    const id = e.target.id;
+    if (id === 'human-in-shot-toggle') {
+        state.humanState.enabled = e.target.checked;
+    } else if (id === 'film-linkScenes-toggle') {
+        state.filmState.linkScenes = e.target.checked;
+    }
+    renderApp();
+}
+
+async function callGeminiAPI(prompt, generationConfig = {}) {
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({ prompt, generationConfig }),
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || "Failed to get suggestion");
-        return result.text;
+        if (!response.ok) throw new Error(`API error: ${await response.text()}`);
+        return await response.json().then(result => result?.candidates?.[0]?.content?.parts?.[0]?.text || null);
     } catch (error) {
-        console.error("Error calling text suggestion backend:", error);
-        alert(`Error pada AI sugesti teks: ${error.message}`);
+        console.error("Error calling backend API:", error);
+        alert("An error occurred. Please check the console for details.");
         return null;
     }
 }
 
-function getFinalValue(fieldState) { if (!fieldState) return ''; return (fieldState.custom || '').trim() || fieldState.select || ''; }
+function getFinalValue(fieldState) {
+    // Pastikan fieldState tidak null atau undefined sebelum diakses
+    if (!fieldState) return '';
+    return (fieldState.custom || '').trim() || fieldState.select || '';
+}
 
-async function handleSubmit() { // Fungsi ini hanya untuk generate prompt teks
+async function handleSubmit() {
+    state.isLoading.generate = true;
     state.outputs = null;
+    state.promptVariations = { original: null, variations: [] };
     renderApp();
 
-    const { mode, formState } = state;
-    const data = { ...state };
+    const { mode, formState, humanState, filmState } = state;
+    const data = { ...state, ...filmState };
     PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
-    
-    const fieldsToExclude = [ 'actionVerb', 'motionEffect', 'editingStyle', 'soundDesignCue', 'pacing', 'characterAnchor' ];
+
+    if (mode === 'product' && humanState.enabled) {
+        data.humanInShot = {};
+        PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
+    }
+
+    const fieldsToExcludeForImage = [
+        'actionVerb', 
+        'motionEffect', 
+        'editingStyle', 
+        'soundDesignCue', 
+        'pacing', 
+        //'aspectRatio',
+        'characterAnchor' // characterAnchor tetap dikecualikan seperti sebelumnya
+    ];
+
     let parameterString = PROMPT_OPTIONS[mode].fields
-        .filter(field => !fieldsToExclude.includes(field) && data[field])
+        .filter(field => !fieldsToExcludeForImage.includes(field) && data[field]) // Filter out non-visual fields and empty values
         .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
         .join(', ');
+    // --- AKHIR PERUBAHAN ---
 
-    const finalPromptForText = `You are a world-class art director. Synthesize the provided parameters into a single, powerful and detailed text-to-image prompt. The prompt must be a single cohesive paragraph. Return ONLY the prompt paragraph itself, without any introductory phrases or quotation marks. Parameters: ${parameterString}.`;
-    
-    // Untuk generate prompt teks, kita bisa pakai Groq lagi agar cepat
-    const rawText = await callTextAPI(finalPromptForText);
-    
-    if (rawText) {
-        state.outputs = [{ text: rawText.trim() }];
+    if (data.humanInShot) {
+        const humanParams = Object.entries(data.humanInShot)
+            .filter(([, value]) => value)
+            .map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
+        if(humanParams) {
+             parameterString += `. Human in shot details: ${humanParams}`;
+        }
     }
-    
+
+    const cleanAIText = (rawText) => {
+        if (!rawText) return '';
+        let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
+        cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim();
+        return cleaned;
+    };
+
+    let textPrompts = [];
+
+    if (data.mode === 'film') {
+        const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
+        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
+        const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
+
+        if (filmState.numScenes > 1 && filmState.linkScenes) {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
+            }
+        } else {
+             const sceneCount = filmState.numScenes;
+             const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
+                 const sceneInstruction = sceneCount > 1 ? ` This is scene ${i+1} of ${sceneCount}.` : '';
+                 const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`;
+                 return callGeminiAPI(finalPrompt);
+             });
+             const results = await Promise.all(promptsPromises);
+             textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
+        }
+    } else {
+        const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
+        let rawText = await callGeminiAPI(finalPrompt);
+        if (rawText) {
+            textPrompts = [cleanAIText(rawText)];
+        }
+    }
+
+    if (textPrompts.length > 0) {
+        state.outputs = textPrompts.map(imagePrompt => {
+            const videoPrompts = generateVideoPrompts(data, imagePrompt); // Panggil fungsi yang akan kita perbaiki selanjutnya
+            return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
+        });
+    }
+
+    state.isLoading.generate = false;
     renderApp();
 }
 
@@ -642,26 +950,24 @@ async function handleAISuggest() {
     renderApp();
 
     try {
-        let imageContext = "";
-        const refImage = state.productReferenceImage.data ? state.productReferenceImage : state.humanReferenceImage;
-        if (refImage.data) {
-            const description = await callVisionAPI(refImage.data);
-            if (description) {
-                imageContext = `\n\nIMPORTANT CONTEXT FROM A REFERENCE IMAGE: "${description}". You must use this context to inform your suggestions.`;
-            }
-        }
-        
-        const { mode, formState, lockedFields, intensity } = state;
+        const { mode, formState, lockedFields, humanState, intensity } = state;
         const labelToFieldIdMap = {};
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => { 
+        const fieldIdToModeMap = {};
+
+        // Populate maps for main mode
+        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             labelToFieldIdMap[label] = fieldId;
+            fieldIdToModeMap[fieldId] = mode;
         });
 
         const lockedContext = {};
         const unlockedFieldsLabels = [];
+
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            // Jangan minta sugesti untuk Custom Key, karena itu adalah input
             if (fieldId === 'customKey') return;
+
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             if (lockedFields[mode]?.[fieldId]) {
                 const value = getFinalValue(formState[mode][fieldId]);
@@ -670,18 +976,71 @@ async function handleAISuggest() {
                 unlockedFieldsLabels.push(label);
             }
         });
+        
+        // --- LOGIKA BARU UNTUK HUMAN IN SHOT ---
+        let unlockedHumanFieldsLabels = [];
+        if (mode === 'product' && humanState.enabled) {
+            const humanConfig = PROMPT_OPTIONS.special.humanInShot;
+            lockedContext['Human in Shot Details'] = {};
+            humanConfig.fields.forEach(fieldId => {
+                const label = humanConfig.fieldLabels[fieldId];
+                labelToFieldIdMap[label] = fieldId;
+                fieldIdToModeMap[fieldId] = 'product_human';
 
-        if (unlockedFieldsLabels.length === 0) {
+                if (lockedFields.product_human?.[fieldId]) {
+                    const value = getFinalValue(humanState[fieldId]);
+                    if (value) lockedContext['Human in Shot Details'][label] = value;
+                } else {
+                    unlockedHumanFieldsLabels.push(label);
+                }
+            });
+            if (Object.keys(lockedContext['Human in Shot Details']).length === 0) {
+                delete lockedContext['Human in Shot Details'];
+            }
+        }
+        
+        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
+        
+        if (allUnlockedLabels.length === 0) {
             alert("All fields are locked. Please unlock some fields to get AI suggestions.");
+            state.isLoading.suggest = false;
+            renderApp();
             return;
         }
 
+        // --- LOGIKA BARU UNTUK CUSTOM KEY ---
         const customKeyValue = getFinalValue(formState[mode].customKey);
-        const customKeyInstruction = customKeyValue ? `The user has provided mandatory keywords that MUST be central to your suggestions: "${customKeyValue}". This is the primary creative direction.` : '';
+        let customKeyInstruction = '';
+        if (customKeyValue) {
+            customKeyInstruction = `
+        // --- MANDATORY CREATIVE KEYS ---
+        The user has provided the following mandatory keywords or concepts that MUST be central to your suggestions: "${customKeyValue}".
+        All of your suggestions for the unlocked fields must revolve around, be inspired by, and be coherent with these keys. This is the primary creative direction.
+        // --- END MANDATORY KEYS ---
+            `;
+        }
+
+        // --- PROMPT FINAL UNTUK AI ---
+        const prompt = `
+        You are an expert creative art director and a practical filmmaker. Your task is to generate suggestions for a visual concept with a '${intensity}' creative intensity.
+
+        ${customKeyInstruction}
+
+        Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
+        Suggest coherent and creative values for the following unlocked fields.
+
+        // --- SPECIAL INSTRUCTIONS ---
+        For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject and the scene.
+        For example, if the Main Subject is a 'skateboarder', suggest a realistic action like 'pushes off the ground to start rolling in a riding stance' or 'performs a simple kickturn'. Avoid suggesting outcomes like 'capturing motion blur', instead describe the action that *causes* it.
+        // --- END SPECIAL INSTRUCTIONS ---
+
+        Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
         
-        const promptForGroq = `You are an expert creative art director. Your task is to generate suggestions for a visual concept with a '${intensity}' creative intensity. ${customKeyInstruction} Given the locked parameters: ${JSON.stringify(lockedContext)}, suggest values for the following unlocked fields: ${unlockedFieldsLabels.join(', ')}. Return your answer as a simple key-value list (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.${imageContext}`;
-        
-        const resultText = await callTextAPI(promptForGroq);
+        Fields to suggest:
+        ${allUnlockedLabels.join('\n')}
+        `;
+
+        const resultText = await callGeminiAPI(prompt);
 
         if (resultText) {
             const lines = resultText.split('\n');
@@ -691,56 +1050,119 @@ async function handleAISuggest() {
                     const label = parts[0].trim().replace(/\*+/g, '');
                     const value = parts.slice(1).join(':').trim();
                     const fieldId = labelToFieldIdMap[label];
-                    if (fieldId && formState[mode][fieldId]) {
-                        formState[mode][fieldId].custom = value;
-                        formState[mode][fieldId].select = '';
+                    const fieldMode = fieldIdToModeMap[fieldId];
+                    
+                    if (fieldId && fieldMode) {
+                        let stateSlice;
+                        if (fieldMode === 'product_human') {
+                            stateSlice = state.humanState;
+                        } else {
+                            stateSlice = state.formState[fieldMode];
+                        }
+
+                        if (stateSlice && stateSlice[fieldId]) {
+                            stateSlice[fieldId].custom = value;
+                            stateSlice[fieldId].select = '';
+                        }
                     }
                 }
             });
+            renderApp();
         }
     } catch (e) {
         console.error("An error occurred during AI suggestion:", e);
+        alert("Terjadi kesalahan saat memproses sugesti AI.");
     } finally {
         state.isLoading.suggest = false;
         renderApp();
     }
 }
 
-async function handleImageGeneration() {
-    if (!state.outputs || !state.openaiApiKey) {
-        alert("Harap generate prompt terlebih dahulu dan pastikan OpenAI API Key sudah dimasukkan.");
-        return;
-    }
-    const textPrompt = state.outputs[0].text;
-    const imageContainer = document.getElementById('generated-image-container');
+
+function generateVideoPrompts(data, imagePrompt) {
+    let long = '', short = '';
     
-    imageContainer.innerHTML = `<p class="text-gray-500 animate-pulse">⏳ Sedang membuat gambar... Ini mungkin memakan waktu hingga 1 menit.</p>`;
-    state.isLoading.generate = true;
-    renderApp();
+    // Ambil semua data relevan, termasuk semua field baru
+    const { 
+        mode,
+        mainSubject, characters,
+        actionVerb, motionEffect,
+        cameraAngle, cameraMovement, shotType,
+        lighting, mood, atmosphere,
+        pacing, editingStyle, lensEffects, soundDesignCue,
+        composition,
+        aspectRatio
+    } = data;
 
-    try {
-        const response = await fetch('/api/generate-image', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${state.openaiApiKey}` // Kirim kunci pengguna di header
-            },
-            body: JSON.stringify({ prompt: textPrompt })
-        });
+    // Tentukan elemen-elemen inti
+    const subject = mainSubject || characters || "The subject";
+    const primaryAction = actionVerb || motionEffect || `shows an expression of "${data.expression || 'neutral'}"`;
+    const cameraInstruction = cameraMovement || shotType || cameraAngle || 'a static shot';
+    const sceneAtmosphere = atmosphere || mood || 'cinematic';
+
+    if (mode === 'model' || mode === 'film') {
+        // --- PROMPT VIDEO PANJANG (LONG) ---
+        let longParts = [
+            `Create a short, cinematic video based on the visual style of "${imagePrompt}".`,
+            `The scene opens focusing on ${subject}. The primary action is: the subject **${primaryAction}**.`,
+            `The camera work should be a **${cameraInstruction}**.`,
+            `Utilize **${lighting || 'natural lighting'}** to establish a **${sceneAtmosphere}** atmosphere.`,
+        ];
+        // Tambahkan detail sinematik jika ada (khusus mode film)
+        if (pacing) longParts.push(`The pacing is **${pacing}**.`);
+        if (editingStyle) longParts.push(`The editing style should feel like **${editingStyle}**.`);
+        if (lensEffects) longParts.push(`Incorporate lens effects like **${lensEffects}**.`);
+        if (soundDesignCue) longParts.push(`The mood is enhanced by sound design suggesting **${soundDesignCue}**.`);
+        if (aspectRatio) longParts.push(`Render in a **${aspectRatio}** aspect ratio.`);
+        long = longParts.join(' ');
+
+        // --- PROMPT VIDEO PENDEK (SHORT) ---
+        let shortParts = [
+            `Video of ${subject} who **${primaryAction}**.`,
+            `Camera: **${cameraInstruction}**.`,
+            `Atmosphere: **${sceneAtmosphere}**.`,
+        ];
+        if (pacing) shortParts.push(`Pacing: **${pacing}**.`);
+        short = shortParts.join(' ');
+
+    } else if (mode === 'product') {
+        const productAction = motionEffect || 'subtle highlights and reflections';
+
+        // --- PROMPT VIDEO PANJANG (LONG) ---
+        long = `Animate the product shot from "${imagePrompt}". The camera move is a **${composition || 'slow push-in'}**. ` +
+               `Introduce dynamic motion effects like **${productAction}** to bring the product to life. ` +
+               `The lighting is **${lighting || 'clean studio light'}**, maintaining a **${mood || 'premium'}** feel.`;
         
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message);
-
-        imageContainer.innerHTML = `<img src="${data.imageUrl}" alt="Generated by DALL-E 3" class="w-full h-full object-contain rounded-lg"/>`;
-    } catch (error) {
-        console.error("Image Generation Error:", error);
-        imageContainer.innerHTML = `<p class="text-red-500">Gagal membuat gambar: ${error.message}</p>`;
-    } finally {
-        state.isLoading.generate = false;
-        renderApp();
+        // --- PROMPT VIDEO PENDEK (SHORT) ---
+        short = `Animate product shot with **${productAction}**. Camera: **${composition || 'slow push-in'}**. Mood: **${mood || 'premium'}**.`;
     }
+
+    // Membersihkan spasi ekstra dari hasil
+    long = long.replace(/\s\s+/g, ' ').trim();
+    short = short.replace(/\s\s+/g, ' ').trim();
+
+    return { long, short };
+};
+
+async function handleGenerateVariations(originalPrompt) {
+    state.isLoading.variations = true;
+    state.promptVariations = { original: originalPrompt, variations: [] };
+    renderApp();
+    const prompt = `You are a creative assistant. Given the art direction prompt, generate 3 distinct variations. Keep core elements but alter mood, details, or perspective. Return as a JSON array of strings.\n\nOriginal Prompt: "${originalPrompt}"`;
+    const resultJson = await callGeminiAPI(prompt, { responseMimeType: "application/json" });
+    if (resultJson) {
+        try {
+            const variations = JSON.parse(resultJson);
+            state.promptVariations = { original: originalPrompt, variations };
+        } catch (e) { console.error("Failed to parse variations:", e); }
+    }
+    state.isLoading.variations = false;
+    renderApp();
 }
 
+// =======================================================================
+// INITIALIZE APP
+// =======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     initializeState();
     renderApp();
