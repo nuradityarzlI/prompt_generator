@@ -1,5 +1,3 @@
-
-
 // script js versi baru v9
 
 
@@ -203,7 +201,7 @@ const PROMPT_OPTIONS = {
         }
     },
     film: {
-        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship'],
+        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship'],
         fieldLabels: { 
             genre: "Genre", 
             sceneType: "Scene Type", 
@@ -226,7 +224,6 @@ const PROMPT_OPTIONS = {
             characterAnchor: "Character Anchor / Identity", 
             wardrobeLock: "Wardrobe Lock (Main Outfit)", 
             hairMakeup: "Hair & Makeup Details",
-            aspectRatio: "Aspect Ratio",
             characterRelationship: "Character Relationship / Interaction Style",
             customKey: "Custom Key (Elemen Wajib)"
         },
@@ -246,16 +243,13 @@ const PROMPT_OPTIONS = {
             lensEffects: ["no effects, clean lens", "subtle lens flare", "soft focus for romantic mood", "deep focus", "natural bokeh", "clear, sharp focus", "gentle blooming on highlights", "anamorphic bokeh (subtle)", "breathing effect (subtle)", "perfectly clean image"],
             soundDesignCue: ["quiet room tone", "gentle classical music score", "sound of birds chirping", "ticking clock", "rain against the window", "crackling fireplace", "distant church bells", "clear dialogue", "footsteps on a wooden floor", "turning pages of a book"],
             pacing: ["slow and deliberate", "gentle rhythm", "leisurely", "calm and steady", "observational", "unhurried", "thoughtful", "graceful", "naturalistic timing", "real-time feel"],
-            aspectRatio: ["1.85:1 (Standard Flat)", "1.37:1 (Academy Ratio)", "4:3 (Classic TV)", "1.66:1 (European Widescreen)", "2.00:1 (Univisium)", "custom narrow aspect ratio", "split screen (symmetrical)", "circular vignette", "soft-edged frame", "standard 16:9"],
+            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"],
             references: ["Greta Gerwig naturalism", "Wong Kar-wai nostalgia", "Ozu stillness", "Linklater realism", "Kore-eda intimacy", "Kurosawa epic drama", "Ang Lee family drama", "James Ivory heritage", "Ron Howard sincerity", "Alfonso Cuarón realism"], 
             cameraLens: ["ARRI Alexa Mini + 35mm", "Canon C300 MkIII + 85mm", "Sony FX3 + 50mm", "RED Helium + 40mm", "Leica SL Cine + 50mm", "ARRI Amira + 28mm", "Canon R5C cine + 35mm", "Sony A7S III + 24mm", "Blackmagic 6K + 35mm", "RED Raven + 50mm"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"],
-            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
-            consistencyToggle: ["ON", "OFF"],
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"],
-            
         },
         balanced: { 
             genre: ["psychological thriller", "heist drama", "mystery adventure", "romantic drama", "political intrigue", "action suspense", "crime procedural", "dystopian near-future", "satire drama", "ensemble relationship film"], 
@@ -273,14 +267,12 @@ const PROMPT_OPTIONS = {
             lensEffects: ["anamorphic lens flare", "rack focus", "focus pull", "lens breathing", "hazy bloom effect", "raindrops on lens", "intentional lens dirt/smudge", "dreamy soft filter", "vignetting to focus attention", "zoom lens compression"],
             soundDesignCue: ["tense, pulsing synth score", "bustling city ambience", "loud nightclub music", "inaudible muffled dialogue", "sudden, impactful sound effect", "character's heavy breathing", "non-diegetic music swells", "ominous drone", "cacophony of sounds", "sharp, jarring silence"],
             pacing: ["fast-paced and frantic", "tense and suspenseful", "dynamic and energetic", "alternating fast and slow", "driving and propulsive", "quick and rhythmic", "building to a crescendo", "relentless", "breathless", "punchy"],
-            aspectRatio: ["2.39:1 (Anamorphic Widescreen)", "2:1 (common for streaming)", "16:9 (HD Video)", "alternating aspect ratios", "extreme letterboxing", "vertical 9:16 (for social)", "unconventional split screen", "dynamic aspect ratio changes", "super wide 3.55:1", "claustrophobic 1:1"],
+            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"],
             references: ["Christopher Nolan suspense", "David Fincher noir", "Denis Villeneuve sci-fi realism", "Sofia Coppola minimalism", "Paul Thomas Anderson drama", "Ridley Scott epic", "Alfonso Cuarón hybrid", "Barry Jenkins poetic realism", "Bong Joon-ho satire", "Sam Mendes theatrical style"], 
             cameraLens: ["Sony FX6 + 24–70mm", "RED Komodo + 50mm", "Canon C500 MkII + 35mm", "DJI Ronin 4D + 35mm", "ARRI Alexa LF + 47mm", "Sony Venice + 50mm prime", "Nikon Z9 cine + 28mm", "Blackmagic Pocket 6K + 85mm", "Canon R5C + 50mm", "Leica SL2 cine + 90mm"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
-            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
-            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
         experimental: { 
@@ -299,14 +291,12 @@ const PROMPT_OPTIONS = {
             lensEffects: ["lens-whacking", "free-lensing", "prism filter effects", "kaleidoscope lens", "custom experimental lens", "liquid on lens", "broken lens effect", "extreme chromatic aberration", "anamorphic distortion", "breathing that distorts space"],
             soundDesignCue: ["deafening silence", "glitching audio", "ASMR-like textures", "atonal drone", "cacophony of overlapping voices", "a single, pure sine wave", "reversed audio", "sound that precedes the visual", "heartbeat rhythm", "white noise"],
             pacing: ["hypnotic and slow", "jarring and chaotic", "non-linear time", "cyclical / looping", "meditative and trance-like", "frenetic and explosive", "a single, long, unending moment", "fragmented and disjointed", "accelerating to infinity", "decelerating to a stop"],
-            aspectRatio: ["constantly shifting aspect ratio", "extreme vertical aspect ratio", "multi-frame layout (grid)", "circular or other shape frame", "anamorphic with extreme distortion", "a tiny frame in a black void", "overlapping frames", "4:3 for claustrophobia", "polyvision (multiple screens)", "no frame (immersive)"],
+            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"],
             references: ["Gaspar Noé surreal chaos", "Lars von Trier raw realism", "David Lynch dream logic", "Nick Knight SHOWstudio", "Tim Walker fantasy", "Alejandro Jodorowsky symbolic", "Harmony Korine fragmented", "Peter Greenaway baroque surrealism", "Shirin Neshat conceptual", "arthouse collective visuals"], 
             cameraLens: ["Sony Venice + anamorphic", "RED Komodo + fisheye", "Canon C500 MkII + tilt-shift", "Blackmagic 6K + probe lens", "360 VR rig", "RED Komodo + 16mm wide", "Phase One + cinema back", "Canon R5C + 8mm fisheye", "Blackmagic URSA Mini + vintage glass", "experimental Lomo lenses"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
-            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
-            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
         vintage: { 
@@ -325,14 +315,12 @@ const PROMPT_OPTIONS = {
             lensEffects: ["soft focus / blooming highlights", "streaky lens flare", "vaseline on the lens effect", "zoom lens breathing", "low-quality VHS lens distortion", "grainy, low-light noise", "authentic film gate weave", "dust on the lens", "anamorphic flare (70s)", "dreamy diffusion filter"],
             soundDesignCue: ["vinyl record crackle", "cassette tape hiss", "8-bit video game sounds", "sitcom laugh track", "muffled dialogue from old TV", "80s synth-pop score", "70s funk music", "rotary phone ringing", "VHS tape motor whirring", "dial-up modem sounds"],
             pacing: ["leisurely 70s pacing", "fast-paced 80s montage", "slacker 90s pacing", "home video real-time feel", "documentary observational", "music video rhythm", "suspenseful slow-burn", "comedic timing", "erratic and jittery", "nostalgic and slow"],
-            aspectRatio: ["4:3 (CRT Television)", "2.35:1 (70s Widescreen)", "1.85:1 (80s/90s Film)", "Super 8mm aspect ratio", "grainy 16mm aspect ratio", "rounded TV screen corners", "video camera viewfinder overlay", "split screen", "damaged film border", "authentic Polaroid frame"],
+            aspectRatio: ["1:1 (Square)", "4:5 (Portrait)", "16:9 (Landscape)", "9:16 (Vertical)"],
             references: ["Brian De Palma thrillers", "John Hughes teen films", "Wim Wenders road movies", "early Spike Lee", "80s MTV music videos", "70s Italian giallo", "French New Wave echoes", "Richard Donner 80s blockbusters", "VHS-era horror (Troma)", "Fellini retro surrealism"], 
             cameraLens: ["Super 8mm film camera", "VHS camcorder (Sony Handycam)", "Betacam SP", "Bolex 16mm", "Panasonic M7 VHS shoulder cam", "Polaroid instant film recorder", "Arriflex 435 (70s)", "Mitchell BNCR (classic Hollywood)", "Hi8 camcorder", "analog 35mm Panavision"], 
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
-            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
-            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         }
     },
@@ -352,7 +340,7 @@ const PROMPT_OPTIONS = {
     }
 };
 
-/ =======================================================================
+// =======================================================================
 // GLOBAL STATE MANAGEMENT
 // =======================================================================
 let state = {};
