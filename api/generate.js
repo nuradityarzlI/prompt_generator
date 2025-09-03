@@ -18,7 +18,7 @@ export default async function handler(request, response) {
         const apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
         
         const payload = {
-            model: "llama3-70b-8192", // Model yang lebih baik dan stabil
+            model: "openai/gpt-oss-120b", // Model yang lebih baik dan stabil
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7
         };
