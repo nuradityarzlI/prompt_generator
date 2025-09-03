@@ -594,7 +594,7 @@ async function callVisionAPI(imageBase64) {
 // Panggilan ke backend sugesti teks (Groq)
 async function callTextAPI(prompt) {
     try {
-        const response = await fetch('/api/suggest-text', {
+        const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt }),
