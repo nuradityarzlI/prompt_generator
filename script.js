@@ -802,19 +802,23 @@ async function handleImageAnalysis() {
         content: []
     }];
 
-    // 'promptText' didefinisikan satu kali sebagai const.
-    const promptText = "You are a world-class prompt engineer for the DALL-E 3 image generator. Look at the image(s) I've uploaded. Your task is to write a single, perfect, and highly detailed DALL-E 3 prompt that will recreate the image(s) as closely as possible. Describe the object, its materials, texture, the exact lighting, the composition, the camera angle, and the style of the photograph. Be objective and literal. Output ONLY the text for the prompt and nothing else.";
-    
-    // Blok if/else yang lama untuk membangun promptText sudah dihapus.
+    // --- PERUBAHAN UTAMA ADA DI SINI ---
+    // Prompt ini sekarang fokus 100% pada deskripsi fisik produk dan
+    // secara eksplisit melarang AI mendeskripsikan background atau konsep.
+    const promptText = "You are an expert product analyst. Your sole task is to describe the physical product(s) in the uploaded image in extreme, objective detail. Focus exclusively on the product's attributes: brand name, logo details, specific materials (e.g., 'pebbled leather', 'brushed aluminum'), texture, color, precise shape and structure, hardware, stitching, and any unique physical features. Crucially, DO NOT describe the background, the lighting, the composition, the mood, or the overall artistic concept of the photo. Ignore the environment completely. Output ONLY a detailed, comma-separated list of these physical attributes.";
+    // --- AKHIR PERUBAHAN ---
     
     messages[0].content.push({ type: "text", text: promptText });
 
+    // Hanya kirim gambar produk, karena fokusnya hanya pada produk.
     if (state.productImage.data) {
         messages[0].content.push({ type: "image_url", image_url: { url: state.productImage.data } });
     }
+    // Jika ada gambar manusia, AI akan mendeskripsikannya juga sebagai "produk".
     if (state.humanImage.data) {
         messages[0].content.push({ type: "image_url", image_url: { url: state.humanImage.data } });
     }
+
 
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
