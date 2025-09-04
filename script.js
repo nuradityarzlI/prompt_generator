@@ -1020,72 +1020,123 @@ async function handleSubmit() {
     state.promptVariations = { original: null, variations: [] };
     renderApp();
 
-    const { mode, formState, humanState, filmState } = state;
+    // Ambil semua state yang dibutuhkan di awal
+    const { mode, formState, humanState, filmState, imageAnalysisResult } = state;
+    
+    // 'data' akan dibutuhkan di akhir untuk generateVideoPrompts, jadi kita buat di luar if/else
     const data = { ...state, ...filmState };
     PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
-
-    if (mode === 'product' && humanState.enabled) {
+     if (mode === 'product' && humanState.enabled) {
         data.humanInShot = {};
         PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
     }
 
-    const fieldsToExcludeForImage = [ 'actionVerb', 'motionEffect', 'editingStyle', 'soundDesignCue', 'pacing', 'characterAnchor' ];
-
-    let parameterString = PROMPT_OPTIONS[mode].fields
-        .filter(field => !fieldsToExcludeForImage.includes(field) && data[field])
-        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
-        .join(', ');
-
-    if (data.humanInShot) {
-        const humanParams = Object.entries(data.humanInShot)
-            .filter(([, value]) => value)
-            .map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
-        if(humanParams) {
-             parameterString += `. Human in shot details: ${humanParams}`;
-        }
-    }
-
-    const cleanAIText = (rawText) => {
-        if (!rawText) return '';
-        let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
-        cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim();
-        return cleaned;
-    };
-
     let textPrompts = [];
 
-    if (data.mode === 'film') {
-        const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
-        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
-        const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
+    // --- AWAL LOGIKA BARU ---
+    // Cek jika kita menggunakan alur kerja baru (ada analisis gambar di mode produk)
+    if (mode === 'product' && imageAnalysisResult) {
+        
+        // Ambil deskripsi produk dari hasil analisis
+        const productDescription = imageAnalysisResult;
 
-        if (filmState.numScenes > 1 && filmState.linkScenes) {
-            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
-            let rawText = await callGenerateAPI(finalPrompt);
-            if (rawText) {
-                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
+        // Tentukan field mana yang berisi deskripsi ADEGAN
+        const sceneFields = [
+            'surface', 'composition', 'lightingStyle', 'background', 'mood', 
+            'compositionScale', 'shadowStyle', 'colorHarmony', 'advertisingStyle', 
+            'references', 'cameraLens', 'aspectRatio'
+        ];
+        
+        // Kumpulkan semua nilai dari field adegan yang sudah diisi
+        const sceneParts = sceneFields
+            .map(fieldId => getFinalValue(formState.product[fieldId]))
+            .filter(Boolean); // Hapus nilai yang kosong
+
+        // Kumpulkan detail humanInShot jika diaktifkan
+        let humanInShotDescription = '';
+        if (humanState.enabled) {
+            const humanParts = PROMPT_OPTIONS.special.humanInShot.fields
+                .map(fieldId => {
+                    const value = getFinalValue(humanState[fieldId]);
+                    return value ? `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]}: ${value}` : null;
+                })
+                .filter(Boolean)
+                .join(', ');
+            
+            if (humanParts) {
+                humanInShotDescription = `Human in shot details: ${humanParts}`;
+            }
+        }
+
+        // Gabungkan semua bagian menjadi satu prompt final
+        const combinedPrompt = [productDescription, ...sceneParts, humanInShotDescription]
+            .filter(Boolean) // Hapus bagian yang mungkin kosong
+            .join(', ');
+
+        textPrompts.push(combinedPrompt);
+
+    } else {
+        // --- ALUR LAMA (KODE ASLI ANDA) ---
+        // Jika tidak ada analisis gambar, jalankan kode asli Anda sebagai fallback.
+        const fieldsToExcludeForImage = [ 'actionVerb', 'motionEffect', 'editingStyle', 'soundDesignCue', 'pacing', 'characterAnchor' ];
+
+        let parameterString = PROMPT_OPTIONS[mode].fields
+            .filter(field => !fieldsToExcludeForImage.includes(field) && data[field])
+            .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
+            .join(', ');
+
+        if (data.humanInShot) {
+            const humanParams = Object.entries(data.humanInShot)
+                .filter(([, value]) => value)
+                .map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
+            if(humanParams) {
+                 parameterString += `. Human in shot details: ${humanParams}`;
+            }
+        }
+
+        const cleanAIText = (rawText) => {
+            if (!rawText) return '';
+            let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
+            cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim();
+            return cleaned;
+        };
+
+        if (data.mode === 'film') {
+            const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
+            const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
+            const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
+
+            if (filmState.numScenes > 1 && filmState.linkScenes) {
+                const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
+                let rawText = await callGenerateAPI(finalPrompt);
+                if (rawText) {
+                    rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                    textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
+                }
+            } else {
+                 const sceneCount = filmState.numScenes;
+                 const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
+                     const sceneInstruction = sceneCount > 1 ? ` This is scene ${i+1} of ${sceneCount}.` : '';
+                     const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`;
+                     return callGenerateAPI(finalPrompt);
+                 });
+                 const results = await Promise.all(promptsPromises);
+                 textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
             }
         } else {
-             const sceneCount = filmState.numScenes;
-             const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
-                 const sceneInstruction = sceneCount > 1 ? ` This is scene ${i+1} of ${sceneCount}.` : '';
-                 const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`;
-                 return callGenerateAPI(finalPrompt);
-             });
-             const results = await Promise.all(promptsPromises);
-             textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
-        }
-    } else {
-        const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
-        let rawText = await callGenerateAPI(finalPrompt);
-        if (rawText) {
-            textPrompts = [cleanAIText(rawText)];
+            const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
+            let rawText = await callGenerateAPI(finalPrompt);
+            if (rawText) {
+                textPrompts = [cleanAIText(rawText)];
+            }
         }
     }
+    // --- AKHIR BLOK if/else ---
 
+    // Bagian akhir ini akan berjalan untuk kedua alur (baru dan lama)
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
+            // 'data' yang dibuat di awal digunakan di sini untuk video prompts
             const videoPrompts = generateVideoPrompts(data, imagePrompt);
             return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
         });
