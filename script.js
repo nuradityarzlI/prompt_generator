@@ -381,26 +381,17 @@ function initializeState() {
         mode: 'model',
         intensity: 'conservative',
         outputs: null,
-        // Modifikasi isLoading untuk menambahkan state baru
-        isLoading: { suggest: false, generate: false, variations: false, imageAnalysis: false },
+        isLoading: { suggest: false, generate: false, variations: false },
         promptVariations: { original: null, variations: [] },
         formState: initialFormState,
         lockedFields: initialLockState,
         humanState: initialHumanState,
         filmState: { numScenes: 1, linkScenes: true },
         openAccordionScene: 0,
-        error: null,
-
-        // --- STATE BARU UNTUK FITUR ANALISIS GAMBAR ---
-        openaiApiKey: '',
-        productImage: { data: null, name: '' }, // Untuk menyimpan gambar produk (base64)
-        humanImage: { data: null, name: '' },   // Untuk menyimpan gambar manusia (base64)
-        imageAnalysisResult: '', // Untuk menyimpan hasil teks dari OpenAI Vision
     };
 
     updateDefaults();
 }
-
 
 function updateDefaults() {
     const { mode, intensity, formState, lockedFields } = state;
@@ -571,61 +562,27 @@ function FilmFormExtras() {
         </div>`;
 }
 
-// --- FUNGSI BARU UNTUK UI ANALISIS GAMBAR ---
-function OpenAIKeyInput() {
-    return `
-        <div class="my-8 p-4 bg-gray-50 rounded-lg border">
-            <label for="openai-api-key" class="text-sm font-semibold text-gray-700 mb-2 block">OpenAI API Key (Opsional)</label>
-            <input type="password" id="openai-api-key" value="${state.openaiApiKey}" placeholder="Masukkan API Key OpenAI untuk mengaktifkan analisis gambar..." class="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-            <p class="text-xs text-gray-500 mt-1">API Key hanya digunakan untuk fitur analisis gambar referensi pada mode "Product Photography".</p>
-        </div>
-    `;
-}
-
-function ImageAnalysisSection() {
-    const { isLoading, productImage, humanImage, imageAnalysisResult } = state;
-    return `
-        <div class="mt-6 border-t pt-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Analisis Gambar Referensi</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border rounded-lg bg-gray-50">
-                <div>
-                    <label for="product-image-upload" class="text-sm font-semibold text-gray-700 mb-2 block">1. Unggah Foto Produk</label>
-                    <input type="file" id="product-image-upload" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                    ${productImage.data ? `<div class="mt-2"><img src="${productImage.data}" class="rounded-lg max-h-40 border shadow-sm"/></div>` : ''}
-                </div>
-                <div>
-                    <label for="human-image-upload" class="text-sm font-semibold text-gray-700 mb-2 block">2. Unggah Foto Manusia/Model</label>
-                    <input type="file" id="human-image-upload" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"/>
-                    ${humanImage.data ? `<div class="mt-2"><img src="${humanImage.data}" class="rounded-lg max-h-40 border shadow-sm"/></div>` : ''}
-                </div>
-            </div>
-            <button id="analyze-images-btn" class="w-full mt-4 py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition disabled:opacity-50" ${isLoading.imageAnalysis || (!productImage.data && !humanImage.data) ? 'disabled' : ''}>
-                ${isLoading.imageAnalysis ? 'Menganalisis...' : 'Analisis Gambar dengan AI Vision'}
-            </button>
-            ${imageAnalysisResult ? `
-                <div class="mt-4">
-                    <label class="text-sm font-semibold text-gray-700 mb-2 block">Hasil Analisis (Referensi untuk "Suggest by AI"):</label>
-                    <textarea class="w-full p-3 bg-gray-100 border rounded-lg text-sm" rows="5" readonly>${imageAnalysisResult}</textarea>
-                </div>
-            ` : ''}
-        </div>
-    `;
-}
-// --- AKHIR FUNGSI BARU ---
-
-
 function clearFormAndOutputs() {
+    // 1. Simpan mode dan intensity yang sedang aktif saat ini
     const currentMode = state.mode;
     const currentIntensity = state.intensity;
-    const currentApiKey = state.openaiApiKey; // Simpan API key
 
-    initializeState(); // Reset semuanya
+    // 2. Panggil fungsi inisialisasi untuk me-reset semuanya ke kondisi awal
+    //    Ini adalah cara paling efisien untuk membersihkan semua state seperti
+    //    formState, lockedFields, humanState, dll.
+    initializeState();
 
+    // 3. Setelah semuanya bersih, kembalikan mode dan intensity yang tadi kita simpan
     state.mode = currentMode;
     state.intensity = currentIntensity;
-    state.openaiApiKey = currentApiKey; // Kembalikan API key
     
+    // 4. Panggil updateDefaults() lagi. Fungsi ini akan membaca mode dan intensity
+    //    yang baru saja kita kembalikan, lalu mengisi form dengan nilai default
+    //    yang sesuai.
     updateDefaults();
+
+    // 5. Render ulang aplikasi untuk menampilkan form yang sudah bersih
+    //    namun dengan mode dan intensity yang tetap sama.
     renderApp();
 }
 
@@ -655,15 +612,7 @@ function renderApp() {
         })).join('');
 
     let extrasHTML = '';
-    // --- MODIFIKASI LOGIKA extrasHTML ---
-    if (mode === 'product') {
-        // Tampilkan fitur analisis gambar JIKA API key sudah dimasukkan
-        if (state.openaiApiKey) {
-            extrasHTML += ImageAnalysisSection();
-        }
-        // Tetap tampilkan toggle 'Human in Product Shot'
-        extrasHTML += ProductFormExtras();
-    }
+    if (mode === 'product') extrasHTML = ProductFormExtras();
     if (mode === 'film') extrasHTML = FilmFormExtras();
 
     let outputHTML = '';
@@ -681,16 +630,6 @@ function renderApp() {
                     </div>
                 </div>`;
         }
-    }
-    
-    let errorHTML = '';
-    if (state.error) {
-        errorHTML = `
-            <section class="mt-8 bg-red-50 border border-red-200 rounded-2xl shadow-lg p-6">
-                <h3 class="text-lg font-bold text-red-800">An Error Occurred</h3>
-                <p class="mt-2 p-3 bg-red-100 text-red-700 rounded-md text-sm font-mono whitespace-pre-wrap">${state.error}</p>
-            </section>
-        `;
     }
 
     const appHTML = `
@@ -716,8 +655,6 @@ function renderApp() {
                         ${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}
                     </div>
                 </div>
-                
-                ${OpenAIKeyInput()}
 
                 <div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
                     <div>${renderFields(leftFields)}</div>
@@ -758,7 +695,6 @@ function renderApp() {
                 </div>
             </main>
 
-            ${errorHTML}
             ${outputHTML ? `<section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">${outputHTML}</section>` : ''}
         </div>
     `;
@@ -769,88 +705,6 @@ function renderApp() {
 // =======================================================================
 // EVENT LISTENERS & HANDLERS
 // =======================================================================
-
-// --- FUNGSI BARU UNTUK MENANGANI GAMBAR & ANALISIS ---
-function handleImageUpload(event, imageType) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-        if (imageType === 'product') {
-            state.productImage = { data: reader.result, name: file.name };
-        } else if (imageType === 'human') {
-            state.humanImage = { data: reader.result, name: file.name };
-        }
-        renderApp();
-    };
-    reader.readAsDataURL(file);
-}
-
-async function handleImageAnalysis() {
-    if (!state.openaiApiKey) {
-        alert("Silakan masukkan OpenAI API Key Anda terlebih dahulu.");
-        return;
-    }
-    
-    state.isLoading.imageAnalysis = true;
-    state.imageAnalysisResult = '';
-    renderApp();
-
-    const messages = [{
-        role: "user",
-        content: []
-    }];
-
-    // --- PERUBAHAN UTAMA ADA DI SINI ---
-    // Prompt ini sekarang fokus 100% pada deskripsi fisik produk dan
-    // secara eksplisit melarang AI mendeskripsikan background atau konsep.
-    const promptText = "You are an expert product analyst. Your sole task is to describe the physical product(s) in the uploaded image in extreme, objective detail. Focus exclusively on the product's attributes: brand name, logo details, specific materials (e.g., 'pebbled leather', 'brushed aluminum'), texture, color, precise shape and structure, hardware, stitching, and any unique physical features. Crucially, DO NOT describe the background, the lighting, the composition, the mood, or the overall artistic concept of the photo. Ignore the environment completely. Output ONLY a detailed, comma-separated list of these physical attributes.";
-    // --- AKHIR PERUBAHAN ---
-    
-    messages[0].content.push({ type: "text", text: promptText });
-
-    // Hanya kirim gambar produk, karena fokusnya hanya pada produk.
-    if (state.productImage.data) {
-        messages[0].content.push({ type: "image_url", image_url: { url: state.productImage.data } });
-    }
-    // Jika ada gambar manusia, AI akan mendeskripsikannya juga sebagai "produk".
-    if (state.humanImage.data) {
-        messages[0].content.push({ type: "image_url", image_url: { url: state.humanImage.data } });
-    }
-
-
-    try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${state.openaiApiKey}`
-            },
-            body: JSON.stringify({
-                model: "gpt-4o",
-                messages: messages,
-                max_tokens: 450
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`OpenAI API Error: ${errorData.error.message}`);
-        }
-
-        const data = await response.json();
-        state.imageAnalysisResult = data.choices[0].message.content;
-
-    } catch (error) {
-        console.error("Image analysis failed:", error);
-        state.imageAnalysisResult = `Error: ${error.message}`;
-    } finally {
-        state.isLoading.imageAnalysis = false;
-        renderApp();
-    }
-}
-
 function addEventListeners() {
     // === Kontrol Utama (Mode & Intensity) ===
     document.getElementById('mode-selector')?.addEventListener('click', e => {
@@ -922,20 +776,6 @@ function addEventListeners() {
             helpModal.classList.add('hidden');
         }
     });
-
-    // --- EVENT LISTENERS BARU UNTUK FITUR ANALISIS GAMBAR ---
-    document.getElementById('openai-api-key')?.addEventListener('input', e => {
-        state.openaiApiKey = e.target.value;
-    });
-    
-    document.getElementById('openai-api-key')?.addEventListener('change', () => {
-        renderApp();
-    });
-
-    document.getElementById('product-image-upload')?.addEventListener('change', (e) => handleImageUpload(e, 'product'));
-    document.getElementById('human-image-upload')?.addEventListener('change', (e) => handleImageUpload(e, 'human'));
-    document.getElementById('analyze-images-btn')?.addEventListener('click', handleImageAnalysis);
-    // --- AKHIR EVENT LISTENERS BARU ---
 }
 
 function handleFormChange(e) {
@@ -950,25 +790,30 @@ function handleFormChange(e) {
     } else if (state.formState[modeOrPrefix]) {
         stateSlice = state.formState[modeOrPrefix];
     } else {
-        return;
+        return; // Tidak ada state slice yang cocok
     }
 
     if (!stateSlice[fieldId]) {
         stateSlice[fieldId] = { select: '', custom: '' };
     }
-    
+
+    // --- AWAL PERBAIKAN ---
+    const isTextOnly = !PROMPT_OPTIONS[modeOrPrefix]?.hasOwnProperty(state.intensity) || !PROMPT_OPTIONS[modeOrPrefix][state.intensity]?.hasOwnProperty(fieldId);
+
     if (target.classList.contains('form-select')) {
         stateSlice[fieldId].select = target.value;
         stateSlice[fieldId].custom = '';
-        // --- PERBAIKAN SINKRONISASI UI ---
         const textEl = document.getElementById(`${id}-text`);
         if(textEl) textEl.value = '';
-        // --- AKHIR PERBAIKAN ---
-    } else {
+    } else { // Ini berlaku untuk semua input teks, termasuk Custom Key
         stateSlice[fieldId].custom = target.value;
-        const selectEl = document.getElementById(`${id}-select`);
-        if (selectEl) selectEl.value = '';
+        // Jika bukan field text-only, kosongkan dropdownnya
+        if (!isTextOnly) {
+            const selectEl = document.getElementById(`${id}-select`);
+            if (selectEl) selectEl.value = '';
+        }
     }
+    // --- AKHIR PERBAIKAN ---
 }
 
 
@@ -988,28 +833,24 @@ function handleToggleChange(e) {
     renderApp();
 }
 
-// Ganti nama fungsi menjadi lebih deskriptif
-async function callGenerateAPI(prompt, generationConfig = {}) {
-    state.error = null;
+async function callGeminiAPI(prompt, generationConfig = {}) {
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt, generationConfig }),
         });
-        if (!response.ok) {
-             const errorDetails = await response.text();
-             throw new Error(`API Error: ${response.status} - ${errorDetails}`);
-        }
+        if (!response.ok) throw new Error(`API error: ${await response.text()}`);
         return await response.json().then(result => result?.candidates?.[0]?.content?.parts?.[0]?.text || null);
     } catch (error) {
         console.error("Error calling backend API:", error);
-        state.error = error.message;
+        alert("An error occurred. Please check the console for details.");
         return null;
     }
 }
 
 function getFinalValue(fieldState) {
+    // Pastikan fieldState tidak null atau undefined sebelum diakses
     if (!fieldState) return '';
     return (fieldState.custom || '').trim() || fieldState.select || '';
 }
@@ -1020,113 +861,82 @@ async function handleSubmit() {
     state.promptVariations = { original: null, variations: [] };
     renderApp();
 
-    // Ambil semua state yang dibutuhkan di awal
-    const { mode, formState, humanState, filmState, imageAnalysisResult } = state;
-    
-    // 'data' akan dibutuhkan di akhir untuk generateVideoPrompts, jadi kita buat di luar if/else
+    const { mode, formState, humanState, filmState } = state;
     const data = { ...state, ...filmState };
     PROMPT_OPTIONS[mode].fields.forEach(field => { data[field] = getFinalValue(formState[mode][field]); });
-     if (mode === 'product' && humanState.enabled) {
+
+    if (mode === 'product' && humanState.enabled) {
         data.humanInShot = {};
         PROMPT_OPTIONS.special.humanInShot.fields.forEach(field => { data.humanInShot[field] = getFinalValue(humanState[field]); });
     }
 
-    let textPrompts = [];
+    const fieldsToExcludeForImage = [
+        'actionVerb', 
+        'motionEffect', 
+        'editingStyle', 
+        'soundDesignCue', 
+        'pacing', 
+        //'aspectRatio',
+        'characterAnchor' // characterAnchor tetap dikecualikan seperti sebelumnya
+    ];
+
+    let parameterString = PROMPT_OPTIONS[mode].fields
+        .filter(field => !fieldsToExcludeForImage.includes(field) && data[field]) // Filter out non-visual fields and empty values
+        .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
+        .join(', ');
+    // --- AKHIR PERUBAHAN ---
+
+    if (data.humanInShot) {
+        const humanParams = Object.entries(data.humanInShot)
+            .filter(([, value]) => value)
+            .map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
+        if(humanParams) {
+             parameterString += `. Human in shot details: ${humanParams}`;
+        }
+    }
 
     const cleanAIText = (rawText) => {
         if (!rawText) return '';
         let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
-        cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```(plaintext|json)?\n?|```/g, '').trim();
+        cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim();
         return cleaned;
     };
 
-    if (mode === 'product' && imageAnalysisResult) {
-        
-        const productDescription = cleanAIText(imageAnalysisResult);
+    let textPrompts = [];
 
-        const sceneFields = [
-            'surface', 'composition', 'lightingStyle', 'background', 'mood', 
-            'compositionScale', 'shadowStyle', 'colorHarmony', 'advertisingStyle', 
-            'references', 'cameraLens', 'aspectRatio'
-        ];
-        
-        const sceneParts = sceneFields
-            .map(fieldId => getFinalValue(formState.product[fieldId]))
-            .filter(Boolean);
+    if (data.mode === 'film') {
+        const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
+        const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
+        const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
 
-        let humanInShotDescription = '';
-        if (humanState.enabled) {
-            const humanParts = PROMPT_OPTIONS.special.humanInShot.fields
-                .map(fieldId => {
-                    const value = getFinalValue(humanState[fieldId]);
-                    return value ? `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[fieldId]}: ${value}` : null;
-                })
-                .filter(Boolean)
-                .join(', ');
-            
-            if (humanParts) {
-                humanInShotDescription = `Human in shot details: ${humanParts}`;
-            }
-        }
-
-        const rawCombinedPrompt = [productDescription, ...sceneParts, humanInShotDescription]
-            .filter(Boolean)
-            .join(', ');
-
-        // --- LANGKAH BARU: MINTA AI UNTUK MERAPIKAN PROMPT ---
-        const refinementPrompt = `You are a world-class prompt engineer. I will provide a list of comma-separated keywords and phrases describing a product and a scene. Your task is to rewrite and structure this list into a single, elegant, and coherent paragraph suitable for an AI image generator like Midjourney or DALL-E. Group related concepts (like lighting, composition, etc.) and use descriptive connecting language. Output ONLY the final, refined prompt paragraph. Here is the list: ${rawCombinedPrompt}`;
-        
-        const finalPrompt = await callGenerateAPI(refinementPrompt);
-        textPrompts.push(cleanAIText(finalPrompt));
-        // --- AKHIR LANGKAH BARU ---
-
-    } else {
-        
-        // Alur lama tidak diubah
-        const fieldsToExcludeForImage = [ 'actionVerb', 'motionEffect', 'editingStyle', 'soundDesignCue', 'pacing', 'characterAnchor' ];
-        let parameterString = PROMPT_OPTIONS[mode].fields.filter(f => !fieldsToExcludeForImage.includes(f) && data[f]).map(f => `${PROMPT_OPTIONS[mode].fieldLabels[f]}: ${data[f]}`).join(', ');
-        if (data.humanInShot) {
-            const humanParams = Object.entries(data.humanInShot).filter(([, v]) => v).map(([k, v]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[k]}: ${v}`).join(', ');
-            if(humanParams) { parameterString += `. Human in shot details: ${humanParams}`; }
-        }
-
-        if (data.mode === 'film') {
-            const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
-            const characterPrefix = characterAnchorValue ? `Main character is: ${characterAnchorValue}. ` : '';
-            const baseInstruction = `You are a prompt engineer with master in cinematic concept artist. Your task is to synthesize the provided parameters into a powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks.`;
-
-            if (filmState.numScenes > 1 && filmState.linkScenes) {
-                const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
-                let rawText = await callGenerateAPI(finalPrompt);
-                if (rawText) {
-                    rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
-                    textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
-                }
-            } else {
-                 const sceneCount = filmState.numScenes;
-                 const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
-                     const sceneInstruction = sceneCount > 1 ? ` This is scene ${i+1} of ${sceneCount}.` : '';
-                     const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`;
-                     return callGenerateAPI(finalPrompt);
-                 });
-                 const results = await Promise.all(promptsPromises);
-                 textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
+        if (filmState.numScenes > 1 && filmState.linkScenes) {
+            const finalPrompt = `${characterPrefix}${baseInstruction}\n\nBased on these parameters: ${parameterString}, write ${filmState.numScenes} connected text-to-image prompts that form a coherent sequence. Separate each prompt with "---SCENE BREAK---".`;
+            let rawText = await callGeminiAPI(finalPrompt);
+            if (rawText) {
+                rawText = rawText.replace(/^Here.*?:\s*\n*/i, '').trim();
+                textPrompts = rawText.split('---SCENE BREAK---').map(s => s.trim().replace(/^\s*\**\s*(?:Prompt|Scene)\s*\d+\s*:?\s*\**\s*/i, '').trim()).filter(Boolean);
             }
         } else {
-            const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
-            let rawText = await callGenerateAPI(finalPrompt);
-            if (rawText) {
-                textPrompts = [cleanAIText(rawText)];
-            }
+             const sceneCount = filmState.numScenes;
+             const promptsPromises = Array.from({ length: sceneCount }, (_, i) => {
+                 const sceneInstruction = sceneCount > 1 ? ` This is scene ${i+1} of ${sceneCount}.` : '';
+                 const finalPrompt = `${characterPrefix}${baseInstruction}${sceneInstruction}\n\nParameters: ${parameterString}.`;
+                 return callGeminiAPI(finalPrompt);
+             });
+             const results = await Promise.all(promptsPromises);
+             textPrompts = results.map(rawText => cleanAIText(rawText)).filter(Boolean);
+        }
+    } else {
+        const finalPrompt = `You are a prompt engineer with expert art director. Synthesize the provided parameters into a single, powerful text-to-image prompt. Return ONLY the prompt paragraph itself, without any introductory phrases, explanations, or quotation marks. Parameters: ${parameterString}.`;
+        let rawText = await callGeminiAPI(finalPrompt);
+        if (rawText) {
+            textPrompts = [cleanAIText(rawText)];
         }
     }
-    // --- AKHIR BLOK if/else ---
 
-    // Bagian akhir ini akan berjalan untuk kedua alur (baru dan lama)
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
-            // 'data' yang dibuat di awal digunakan di sini untuk video prompts
-            const videoPrompts = generateVideoPrompts(data, imagePrompt);
+            const videoPrompts = generateVideoPrompts(data, imagePrompt); // Panggil fungsi yang akan kita perbaiki selanjutnya
             return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
         });
     }
@@ -1144,6 +954,7 @@ async function handleAISuggest() {
         const labelToFieldIdMap = {};
         const fieldIdToModeMap = {};
 
+        // Populate maps for main mode
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             labelToFieldIdMap[label] = fieldId;
@@ -1154,7 +965,9 @@ async function handleAISuggest() {
         const unlockedFieldsLabels = [];
 
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            // Jangan minta sugesti untuk Custom Key, karena itu adalah input
             if (fieldId === 'customKey') return;
+
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             if (lockedFields[mode]?.[fieldId]) {
                 const value = getFinalValue(formState[mode][fieldId]);
@@ -1164,6 +977,7 @@ async function handleAISuggest() {
             }
         });
         
+        // --- LOGIKA BARU UNTUK HUMAN IN SHOT ---
         let unlockedHumanFieldsLabels = [];
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
@@ -1194,6 +1008,7 @@ async function handleAISuggest() {
             return;
         }
 
+        // --- LOGIKA BARU UNTUK CUSTOM KEY ---
         const customKeyValue = getFinalValue(formState[mode].customKey);
         let customKeyInstruction = '';
         if (customKeyValue) {
@@ -1205,38 +1020,27 @@ async function handleAISuggest() {
             `;
         }
 
-        // --- MODIFIKASI: SUNTIKKAN KONTEKS DARI ANALISIS GAMBAR ---
-        let imageContextInstruction = '';
-        if (state.imageAnalysisResult) {
-            imageContextInstruction = `
-        // --- PRIMARY VISUAL CONTEXT FROM IMAGE ANALYSIS ---
-        Your suggestions MUST be heavily inspired by the following visual analysis from a reference image. This is the main creative guide.
-        Image Analysis Result: "${state.imageAnalysisResult}"
-        // --- END PRIMARY CONTEXT ---
-            `;
-        }
-
+        // --- PROMPT FINAL UNTUK AI ---
         const prompt = `
-            You are an expert creative art director and a practical filmmaker. Your task is to generate suggestions for a visual concept with a '${intensity}' creative intensity.
+        You are an expert creative art director and a practical filmmaker. Your task is to generate suggestions for a visual concept with a '${intensity}' creative intensity.
 
-            ${imageContextInstruction}
-            ${customKeyInstruction}
+        ${customKeyInstruction}
 
-            Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
-            Suggest coherent and creative values for the following unlocked fields.
+        Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
+        Suggest coherent and creative values for the following unlocked fields.
 
-            // --- SPECIAL INSTRUCTIONS ---
-            For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject and the scene.
-            For example, if the Main Subject is a 'skateboarder', suggest a realistic action like 'pushes off the ground to start rolling in a riding stance' or 'performs a simple kickturn'. Avoid suggesting outcomes like 'capturing motion blur', instead describe the action that *causes* it.
-            // --- END SPECIAL INSTRUCTIONS ---
+        // --- SPECIAL INSTRUCTIONS ---
+        For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject and the scene.
+        For example, if the Main Subject is a 'skateboarder', suggest a realistic action like 'pushes off the ground to start rolling in a riding stance' or 'performs a simple kickturn'. Avoid suggesting outcomes like 'capturing motion blur', instead describe the action that *causes* it.
+        // --- END SPECIAL INSTRUCTIONS ---
 
-            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
+        Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
         
-            Fields to suggest:
-            ${allUnlockedLabels.join('\n')}
+        Fields to suggest:
+        ${allUnlockedLabels.join('\n')}
         `;
 
-        const resultText = await callGenerateAPI(prompt);
+        const resultText = await callGeminiAPI(prompt);
 
         if (resultText) {
             const lines = resultText.split('\n');
@@ -1278,6 +1082,7 @@ async function handleAISuggest() {
 function generateVideoPrompts(data, imagePrompt) {
     let long = '', short = '';
     
+    // Ambil semua data relevan, termasuk semua field baru
     const { 
         mode,
         mainSubject, characters,
@@ -1289,18 +1094,21 @@ function generateVideoPrompts(data, imagePrompt) {
         aspectRatio
     } = data;
 
+    // Tentukan elemen-elemen inti
     const subject = mainSubject || characters || "The subject";
     const primaryAction = actionVerb || motionEffect || `shows an expression of "${data.expression || 'neutral'}"`;
     const cameraInstruction = cameraMovement || shotType || cameraAngle || 'a static shot';
     const sceneAtmosphere = atmosphere || mood || 'cinematic';
 
     if (mode === 'model' || mode === 'film') {
+        // --- PROMPT VIDEO PANJANG (LONG) ---
         let longParts = [
             `Create a short, cinematic video based on the visual style of "${imagePrompt}".`,
             `The scene opens focusing on ${subject}. The primary action is: the subject **${primaryAction}**.`,
             `The camera work should be a **${cameraInstruction}**.`,
             `Utilize **${lighting || 'natural lighting'}** to establish a **${sceneAtmosphere}** atmosphere.`,
         ];
+        // Tambahkan detail sinematik jika ada (khusus mode film)
         if (pacing) longParts.push(`The pacing is **${pacing}**.`);
         if (editingStyle) longParts.push(`The editing style should feel like **${editingStyle}**.`);
         if (lensEffects) longParts.push(`Incorporate lens effects like **${lensEffects}**.`);
@@ -1308,6 +1116,7 @@ function generateVideoPrompts(data, imagePrompt) {
         if (aspectRatio) longParts.push(`Render in a **${aspectRatio}** aspect ratio.`);
         long = longParts.join(' ');
 
+        // --- PROMPT VIDEO PENDEK (SHORT) ---
         let shortParts = [
             `Video of ${subject} who **${primaryAction}**.`,
             `Camera: **${cameraInstruction}**.`,
@@ -1319,13 +1128,16 @@ function generateVideoPrompts(data, imagePrompt) {
     } else if (mode === 'product') {
         const productAction = motionEffect || 'subtle highlights and reflections';
 
+        // --- PROMPT VIDEO PANJANG (LONG) ---
         long = `Animate the product shot from "${imagePrompt}". The camera move is a **${composition || 'slow push-in'}**. ` +
                `Introduce dynamic motion effects like **${productAction}** to bring the product to life. ` +
                `The lighting is **${lighting || 'clean studio light'}**, maintaining a **${mood || 'premium'}** feel.`;
         
+        // --- PROMPT VIDEO PENDEK (SHORT) ---
         short = `Animate product shot with **${productAction}**. Camera: **${composition || 'slow push-in'}**. Mood: **${mood || 'premium'}**.`;
     }
 
+    // Membersihkan spasi ekstra dari hasil
     long = long.replace(/\s\s+/g, ' ').trim();
     short = short.replace(/\s\s+/g, ' ').trim();
 
@@ -1337,7 +1149,7 @@ async function handleGenerateVariations(originalPrompt) {
     state.promptVariations = { original: originalPrompt, variations: [] };
     renderApp();
     const prompt = `You are a creative assistant. Given the art direction prompt, generate 3 distinct variations. Keep core elements but alter mood, details, or perspective. Return as a JSON array of strings.\n\nOriginal Prompt: "${originalPrompt}"`;
-    const resultJson = await callGenerateAPI(prompt, { responseMimeType: "application/json" });
+    const resultJson = await callGeminiAPI(prompt, { responseMimeType: "application/json" });
     if (resultJson) {
         try {
             const variations = JSON.parse(resultJson);
