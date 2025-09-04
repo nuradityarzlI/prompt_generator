@@ -1033,26 +1033,27 @@ async function handleSubmit() {
 
     let textPrompts = [];
 
-    // --- AWAL LOGIKA BARU ---
-    // Cek jika kita menggunakan alur kerja baru (ada analisis gambar di mode produk)
+    const cleanAIText = (rawText) => {
+        if (!rawText) return '';
+        let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
+        cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```(plaintext|json)?\n?|```/g, '').trim();
+        return cleaned;
+    };
+
     if (mode === 'product' && imageAnalysisResult) {
         
-        // Ambil deskripsi produk dari hasil analisis
-        const productDescription = imageAnalysisResult;
+        const productDescription = cleanAIText(imageAnalysisResult);
 
-        // Tentukan field mana yang berisi deskripsi ADEGAN
         const sceneFields = [
             'surface', 'composition', 'lightingStyle', 'background', 'mood', 
             'compositionScale', 'shadowStyle', 'colorHarmony', 'advertisingStyle', 
             'references', 'cameraLens', 'aspectRatio'
         ];
         
-        // Kumpulkan semua nilai dari field adegan yang sudah diisi
         const sceneParts = sceneFields
             .map(fieldId => getFinalValue(formState.product[fieldId]))
-            .filter(Boolean); // Hapus nilai yang kosong
+            .filter(Boolean);
 
-        // Kumpulkan detail humanInShot jika diaktifkan
         let humanInShotDescription = '';
         if (humanState.enabled) {
             const humanParts = PROMPT_OPTIONS.special.humanInShot.fields
@@ -1068,38 +1069,26 @@ async function handleSubmit() {
             }
         }
 
-        // Gabungkan semua bagian menjadi satu prompt final
-        const combinedPrompt = [productDescription, ...sceneParts, humanInShotDescription]
-            .filter(Boolean) // Hapus bagian yang mungkin kosong
+        const rawCombinedPrompt = [productDescription, ...sceneParts, humanInShotDescription]
+            .filter(Boolean)
             .join(', ');
 
-        textPrompts.push(combinedPrompt);
+        // --- LANGKAH BARU: MINTA AI UNTUK MERAPIKAN PROMPT ---
+        const refinementPrompt = `You are a world-class prompt engineer. I will provide a list of comma-separated keywords and phrases describing a product and a scene. Your task is to rewrite and structure this list into a single, elegant, and coherent paragraph suitable for an AI image generator like Midjourney or DALL-E. Group related concepts (like lighting, composition, etc.) and use descriptive connecting language. Output ONLY the final, refined prompt paragraph. Here is the list: ${rawCombinedPrompt}`;
+        
+        const finalPrompt = await callGenerateAPI(refinementPrompt);
+        textPrompts.push(cleanAIText(finalPrompt));
+        // --- AKHIR LANGKAH BARU ---
 
     } else {
-        // --- ALUR LAMA (KODE ASLI ANDA) ---
-        // Jika tidak ada analisis gambar, jalankan kode asli Anda sebagai fallback.
+        
+        // Alur lama tidak diubah
         const fieldsToExcludeForImage = [ 'actionVerb', 'motionEffect', 'editingStyle', 'soundDesignCue', 'pacing', 'characterAnchor' ];
-
-        let parameterString = PROMPT_OPTIONS[mode].fields
-            .filter(field => !fieldsToExcludeForImage.includes(field) && data[field])
-            .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
-            .join(', ');
-
+        let parameterString = PROMPT_OPTIONS[mode].fields.filter(f => !fieldsToExcludeForImage.includes(f) && data[f]).map(f => `${PROMPT_OPTIONS[mode].fieldLabels[f]}: ${data[f]}`).join(', ');
         if (data.humanInShot) {
-            const humanParams = Object.entries(data.humanInShot)
-                .filter(([, value]) => value)
-                .map(([key, value]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[key]}: ${value}`).join(', ');
-            if(humanParams) {
-                 parameterString += `. Human in shot details: ${humanParams}`;
-            }
+            const humanParams = Object.entries(data.humanInShot).filter(([, v]) => v).map(([k, v]) => `${PROMPT_OPTIONS.special.humanInShot.fieldLabels[k]}: ${v}`).join(', ');
+            if(humanParams) { parameterString += `. Human in shot details: ${humanParams}`; }
         }
-
-        const cleanAIText = (rawText) => {
-            if (!rawText) return '';
-            let cleaned = rawText.replace(/^(Here's|Certainly|What an|Here is|Sure, here's).*?(:|\n)/i, '');
-            cleaned = cleaned.trim().replace(/^"|"$/g, '').replace(/```json|```/g, '').trim();
-            return cleaned;
-        };
 
         if (data.mode === 'film') {
             const characterAnchorValue = getFinalValue(formState.film.characterAnchor);
