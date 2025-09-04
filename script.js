@@ -829,7 +829,7 @@ async function handleImageAnalysis() {
                 'Authorization': `Bearer ${state.openaiApiKey}`
             },
             body: JSON.stringify({
-                model: "gpt-4-vision-preview",
+                model: "gpt-4o",
                 messages: messages,
                 max_tokens: 300
             })
