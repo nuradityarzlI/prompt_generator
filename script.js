@@ -802,15 +802,10 @@ async function handleImageAnalysis() {
         content: []
     }];
 
+    // 'promptText' didefinisikan satu kali sebagai const.
     const promptText = "You are a world-class prompt engineer for the DALL-E 3 image generator. Look at the image(s) I've uploaded. Your task is to write a single, perfect, and highly detailed DALL-E 3 prompt that will recreate the image(s) as closely as possible. Describe the object, its materials, texture, the exact lighting, the composition, the camera angle, and the style of the photograph. Be objective and literal. Output ONLY the text for the prompt and nothing else.";
     
-    if(state.productImage.data && state.humanImage.data){
-        promptText += "The first image is the product, and the second is a human model. Describe the product's material, texture, shape, and potential branding style. For the human, describe their pose, expression, ethnicity, and clothing style. Synthesize these into a cohesive art direction concept. Be concise and descriptive."
-    } else if (state.productImage.data){
-        promptText += "Describe the product's material, surface, texture, shape, and overall mood. Provide a concise art direction summary."
-    } else if (state.humanImage.data){
-        promptText += "Describe the person's pose, expression, ethnicity, styling (hair/outfit), and the overall mood they convey. Provide a concise art direction summary."
-    }
+    // Blok if/else yang lama untuk membangun promptText sudah dihapus.
     
     messages[0].content.push({ type: "text", text: promptText });
 
@@ -831,7 +826,7 @@ async function handleImageAnalysis() {
             body: JSON.stringify({
                 model: "gpt-4o",
                 messages: messages,
-                max_tokens: 300
+                max_tokens: 450
             })
         });
 
@@ -851,8 +846,6 @@ async function handleImageAnalysis() {
         renderApp();
     }
 }
-// --- AKHIR FUNGSI BARU ---
-
 
 function addEventListeners() {
     // === Kontrol Utama (Mode & Intensity) ===
