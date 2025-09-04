@@ -802,7 +802,7 @@ async function handleImageAnalysis() {
         content: []
     }];
 
-    let promptText = "Analyze the provided image(s) for a product photography moodboard. Extract key visual elements. ";
+    const promptText = "You are a world-class prompt engineer for the DALL-E 3 image generator. Look at the image(s) I've uploaded. Your task is to write a single, perfect, and highly detailed DALL-E 3 prompt that will recreate the image(s) as closely as possible. Describe the object, its materials, texture, the exact lighting, the composition, the camera angle, and the style of the photograph. Be objective and literal. Output ONLY the text for the prompt and nothing else.";
     
     if(state.productImage.data && state.humanImage.data){
         promptText += "The first image is the product, and the second is a human model. Describe the product's material, texture, shape, and potential branding style. For the human, describe their pose, expression, ethnicity, and clothing style. Synthesize these into a cohesive art direction concept. Be concise and descriptive."
