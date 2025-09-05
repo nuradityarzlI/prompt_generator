@@ -892,53 +892,31 @@ function handleFormChange(e) {
 
 function handleLockToggle(e) {
     const { lockMode, lockField } = e.currentTarget.dataset;
-    // Ambil mode dan intensity saat ini untuk memeriksa daftar opsi
-    const { mode, intensity } = state;
-
     const isLocking = !state.lockedFields[lockMode]?.[lockField];
 
-    // Tentukan bagian state mana yang akan dimodifikasi
-    let stateSlice;
-    if (lockMode === 'product_human') {
-        stateSlice = state.humanState;
-    } else if (state.formState[lockMode]) {
-        stateSlice = state.formState[lockMode];
-    }
+    // Logika ini sekarang HANYA berjalan saat MENGUNCI.
+    if (isLocking) {
+        // Tentukan bagian state mana yang akan dimodifikasi
+        let stateSlice;
+        if (lockMode === 'product_human') {
+            stateSlice = state.humanState;
+        } else if (state.formState[lockMode]) {
+            stateSlice = state.formState[lockMode];
+        }
 
-    // Pastikan stateSlice dan field-nya ada sebelum melanjutkan
-    if (stateSlice && stateSlice[lockField]) {
-        if (isLocking) {
-            // --- LOGIKA SAAT MENGUNCI ---
+        // Jika ada nilai yang dipilih di dropdown, salin ke custom text
+        if (stateSlice && stateSlice[lockField]) {
             const selectedValue = stateSlice[lockField].select;
             if (selectedValue) {
                 stateSlice[lockField].custom = selectedValue;
                 stateSlice[lockField].select = '';
             }
-        } else {
-            // --- LOGIKA BARU SAAT KUNCI DIHILANGKAN (UNLOCK) ---
-            const customValue = stateSlice[lockField].custom;
-
-            if (customValue) {
-                // Cari daftar opsi dropdown yang sesuai untuk field ini
-                let optionsList = [];
-                if (lockMode === 'product_human') {
-                    optionsList = PROMPT_OPTIONS.special.humanInShot.options[lockField] || [];
-                } else {
-                    optionsList = PROMPT_OPTIONS[mode]?.[intensity]?.[lockField] || [];
-                }
-
-                // Periksa apakah nilai custom ada di dalam daftar opsi dropdown
-                if (optionsList.includes(customValue)) {
-                    // Jika ya, kembalikan nilai tersebut ke dropdown
-                    stateSlice[lockField].select = customValue;
-                    stateSlice[lockField].custom = '';
-                }
-                // Jika tidak, biarkan nilai tetap di kolom custom agar bisa diedit
-            }
         }
     }
+    // Saat isLocking bernilai false (membuka kunci), tidak ada logika yang dijalankan.
+    // Ini memastikan nilai di 'custom text' tidak akan berubah sampai dihapus manual.
 
-    // Terakhir, selalu toggle status kunci di state
+    // Terakhir, selalu ubah status kunci di state
     state.lockedFields[lockMode][lockField] = !state.lockedFields[lockMode][lockField];
     
     // Render ulang aplikasi untuk menampilkan perubahan
