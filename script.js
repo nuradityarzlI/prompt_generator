@@ -1144,25 +1144,42 @@ async function handleAISuggest() {
         // --- END MANDATORY KEYS ---
             `;
         }
+        
+        const styleGuides = {
+            conservative: "Gaya ini harus terasa **timeless, elegan, bersih, dan profesional**. Pikirkan seperti foto editorial Vogue klasik atau foto korporat kelas atas. Prioritaskan estetika yang halus, seimbang, dan dapat diterima secara universal. Hindari segala sesuatu yang terlalu aneh atau berisiko.",
+            balanced: "Gaya ini harus **modern, dinamis, komersial, dan relevan dengan tren saat ini**. Pikirkan seperti lookbook Zara, kampanye Nike, atau editorial majalah gaya hidup. Sugesti harus terasa segar dan aspirasional, namun tetap membumi dan mudah dipahami.",
+            experimental: "Ini adalah mode untuk menjadi **avant-garde, sureal, abstrak, dan mendobrak aturan**. Pikirkan gaya Nick Knight, Dazed Magazine, atau kampanye Balenciaga. **Jangan menyarankan foto model biasa.** Sugestikan komposisi yang terfragmentasi, subjek yang tidak biasa (misal: hanya bagian tubuh), pencahayaan aneh, dan konsep yang benar-benar di luar nalar. Tujuannya adalah seni, bukan potret biasa.",
+            vintage: "Gaya ini harus **membangkitkan nostalgia era tertentu secara otentik**. Pikirkan estetika film analog, warna pudar Polaroid, palet warna khas tahun 70-an, 80-an, atau 90-an. Semua sugesti, mulai dari styling hingga pencahayaan, harus terasa seperti berasal dari masa lalu, bukan sekadar foto modern dengan filter grain."
+        };
+
+        const styleInstruction = styleGuides[intensity];
 
         // --- PROMPT FINAL UNTUK AI ---
         const prompt = `
-        You are an expert creative art director and a practical filmmaker. Your task is to generate suggestions for a visual concept with a '${intensity}' creative intensity.
+            You are a world-class creative art director and prompt engineer with a specific creative vision.
+            Your main task is to provide creative suggestions for several unlocked visual parameters.
 
-        ${customKeyInstruction}
+            // --- MANDATORY STYLE GUIDE ---
+            You MUST operate strictly within the following creative intensity mode: **${intensity.toUpperCase()}**.
+            Here is the definition for this mode: "${styleInstruction}"
+            All of your suggestions MUST strictly adhere to this style guide. For example, if the mode is 'Experimental', do NOT suggest a simple, smiling portrait.
+            // --- END STYLE GUIDE ---
 
-        Given the following creative direction (locked parameters): ${JSON.stringify(lockedContext)}
-        Suggest coherent and creative values for the following unlocked fields.
+            // --- SPECIAL INSTRUCTIONS ---
+            For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject, the scene, and the overall style guide. For example, if the Main Subject is a 'skateboarder' and the style is 'Experimental', suggest a realistic action like 'tilts their body into a sharp, gravity-defying turn' or 'drags their hand on the ground while crouching low on the board'. Avoid suggesting outcomes like 'capturing motion blur'; instead, describe the action that *causes* it.
+            // --- END SPECIAL INSTRUCTIONS ---
 
-        // --- SPECIAL INSTRUCTIONS ---
-        For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject and the scene.
-        For example, if the Main Subject is a 'skateboarder', suggest a realistic action like 'pushes off the ground to start rolling in a riding stance' or 'performs a simple kickturn'. Avoid suggesting outcomes like 'capturing motion blur', instead describe the action that *causes* it.
-        // --- END SPECIAL INSTRUCTIONS ---
+            ${customKeyInstruction} // Variabel ini sudah ada dari kode Anda
 
-        Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
-        
-        Fields to suggest:
-        ${allUnlockedLabels.join('\n')}
+            Given the following locked-in parameters (the existing creative direction):
+            ${JSON.stringify(lockedContext)}
+
+            Now, provide highly creative and coherent suggestions for the following unlocked fields. Ensure every suggestion fits the **${intensity.toUpperCase()}** style guide and all special instructions perfectly.
+
+            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
+
+            Fields to suggest:
+            ${allUnlockedLabels.join('\n')}
         `;
 
         const resultText = await callGeminiAPI(prompt);
