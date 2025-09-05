@@ -109,7 +109,7 @@ const PROMPT_OPTIONS = {
         }
     },
     product: {
-        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens','aspectRatio'],
+        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'extraElements', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens','aspectRatio'],
         fieldLabels: { 
             productType: "Product Type", 
             material: "Material / Texture", 
@@ -117,7 +117,8 @@ const PROMPT_OPTIONS = {
             composition: "Composition Style", 
             lightingStyle: "Lighting Style", 
             background: "Background / Environment", 
-            mood: "Mood & Aesthetic", 
+            mood: "Mood & Aesthetic",
+            extraElements: "Extra Visual Elements", 
             compositionScale: "Composition Scale",
             shadowStyle: "Shadow Style",
             colorHarmony: "Color Harmony",
@@ -136,6 +137,7 @@ const PROMPT_OPTIONS = {
             lightingStyle: ["clean catalog three-point", "daylight-balanced studio", "golden hour window light", "high-key seamless", "softbox gradient", "rim highlight", "balanced flash", "even soft fill", "commercial diffuse", "spotlight accent"], 
             background: ["seamless white", "solid black", "neutral gray", "gradient backdrop", "velvet drape", "luxury stone wall", "studio beige", "soft pastel", "catalog neutral", "premium catalog backdrop"], 
             mood: ["premium clean", "minimalist timeless", "professional polish", "heritage classic", "natural organic", "luxury timeless", "tech minimal", "refined elegance", "catalog polish", "understated prestige"], 
+            extraElements: ["subtle reflection", "catalog shadow", "natural highlight", "controlled sparkle", "faint mist", "clean specular glow", "halo light ring", "smooth gradient halo", "soft rim", "premium clean shine"],
             compositionScale: ["product centered full", "medium shot of product", "macro detail shot", "product in context (wide)", "slightly angled medium shot", "top-down flat-lay", "hero shot filling frame", "group shot of collection", "environmental product shot", "isometric view"],
             shadowStyle: ["soft drop shadow", "no shadow (floating look)", "subtle ambient occlusion", "gentle gradient shadow", "natural window light shadow", "product casting shadow on self", "clean, hard shadow", "long soft shadow", "diffused shadow", "reflective shadow on surface"],
             colorHarmony: ["monochromatic", "analogous colors", "neutral with accent color", "high-key white on white", "low-key dark on dark", "complementary colors", "split-complementary", "triadic color harmony", "achromatic (B&W)", "earth tones"],
@@ -153,6 +155,7 @@ const PROMPT_OPTIONS = {
             lightingStyle: ["cinematic spotlight", "moody rim light", "neon accent glow", "cloudy daylight", "mixed warm + cool gels", "reflective bounce", "indirect soft glow", "urban streetlight mimic", "natural window daylight", "color block fill"], 
             background: ["lifestyle bathroom", "urban desk", "rooftop daylight", "boutique store", "industrial interior", "colorful pastel blocks", "subway wall", "modern kitchen counter", "café table", "lifestyle living room"], 
             mood: ["vibrant commercial", "lifestyle premium", "playful youthful", "cinematic stylish", "luxury contemporary", "aspirational modern", "trendy editorial", "casual lifestyle", "brand-forward energy", "glossy premium"], 
+            extraElements: ["splash water", "coffee steam", "flying petals", "fabric motion", "glowing accent gels", "subtle smoke haze", "lifestyle props", "scattered accessories", "natural liquid drops", "casual environmental props"], 
             compositionScale: ["product in use by model", "lifestyle flat-lay", "environmental wide shot", "dynamic close-up on detail", "over-the-shoulder product view", "group of products in scene", "product on-the-go", "from the user's POV", "exploded view of components"],
             shadowStyle: ["long dramatic shadow (golden hour)", "hard graphic shadow", "caustic light reflections", "patterned shadow (from leaves, etc.)", "soft, moody shadow", "neon-colored shadow", "split lighting shadow", "reflective color bounce shadow", "no shadow, high-key", "backlit with shadow towards camera"],
             colorHarmony: ["bold complementary colors", "vibrant triadic", "analogous with a pop of contrast", "pastel on pastel", "neon on dark background", "monochromatic with texture", "desaturated with one vibrant color", "color blocking", "warm cinematic grade", "cool, moody tones"],
@@ -170,6 +173,7 @@ const PROMPT_OPTIONS = {
             lightingStyle: ["glitch strobes", "projection mapping", "harsh overexposure", "neon splash glow", "silhouette glow edges", "thermal light effect", "rotating colored beams", "hard flash freeze", "strobe rainbow split", "laser grid pattern"], 
             background: ["surreal CGI void", "liquid mercury backdrop", "infinite mirror wall", "neon holographic set", "glitch projection wall", "digital desert void", "smoke-filled space", "abstract sculpture wall", "glowing cube chamber", "fragmented reality background"], 
             mood: ["surreal avant-garde", "dreamlike conceptual", "edgy futuristic", "cyber-organic chaos", "glitch abstraction", "fragmented surreal", "alien industrial", "hyper-real fashion-tech", "bold dream-state", "impossible sci-fi vibe"], 
+            extraElements: ["shattered fragments", "liquid explosion", "holographic aura", "neon particle trails", "abstract projection overlays", "glitch fragments", "levitating debris", "glowing dust particles", "surreal fire sparks", "floating geometric props"], 
             compositionScale: ["impossible macro shot", "product dwarfed by surreal environment", "infinite zoom-in (fractal)", "multi-perspective view", "anamorphic wide-screen", "product seen through a crystal", "microscopic texture view", "product as a planet in space", "fisheye extreme close-up", "worm's-eye view from below"],
             shadowStyle: ["no shadows, pure light", "shadow is a liquid pool", "glitching, fragmented shadow", "shadow projects a different image", "shadow is a solid object", "colored gel shadow", "shadow that moves independently", "inverse shadow (light)", "shadow made of particles", "long, distorted, surreal shadow"],
             colorHarmony: ["inverted colors", "RGB split effect", "thermal camera palette", "monochromatic with a glitching accent", "holographic spectrum", "dissonant, clashing colors", "UV blacklight reactive", "acidic color palette", "achromatic with light refraction", "color palette shifts over time"],
@@ -187,6 +191,7 @@ const PROMPT_OPTIONS = {
             lightingStyle: ["tungsten warm lamp", "incandescent bulb glow", "vintage studio flash umbrellas", "continuous hot light", "candlelit product", "Polaroid flash burst", "80s catalog gradient light", "neon diner sign glow", "VHS camcorder harsh flash", "retro gradient wash"], 
             background: ["retro diner tiles", "wood-paneled room", "80s wallpaper", "Polaroid white wall", "shag carpet room", "disco neon backdrop", "tiled bathroom retro", "VHS home wall", "archival film set", "analog studio drape"], 
             mood: ["nostalgic retro charm", "70s lifestyle gloss", "80s glamorous catalog", "90s minimal chic", "Polaroid candid vibe", "analog warm nostalgia", "disco glam aesthetic", "retro playful design", "MTV 90s advertising", "analog film texture mood"], 
+            extraElements: ["dust particles in light", "Polaroid frame overlay", "retro price tag", "vintage magazine text overlay", "film scratches", "VHS timestamp corner", "faded ad borders", "retro product box prop", "instant film aesthetic", "archival logo stamp"],
             compositionScale: ["product in a vintage scene", "close-up on worn texture", "product on a store shelf (vintage)", "flat-lay with other retro items", "Polaroid of the product", "magazine ad layout", "old catalog style", "product seen on a vintage TV", "full table setting"],
             shadowStyle: ["harsh direct flash shadow", "long, warm tungsten shadow", "soft, grainy shadow", "no shadow, flat catalog look", "shadow from a window blind", "dappled light shadow", "neon sign casting shadow", "indistinct, dark room shadow", "shadow with film grain", "authentic, unstyled shadow"],
             colorHarmony: ["faded Kodachrome palette", "warm 70s earth tones", "vibrant 80s neons and pastels", "muted 90s grunge tones", "sepia-toned", "black and white with heavy grain", "cross-processed greens and magentas", "Technicolor saturation", "aged, yellowed paper tones", "Polaroid's unique color cast"],
@@ -1090,7 +1095,7 @@ function generateVideoPrompts(data, imagePrompt) {
         cameraAngle, cameraMovement, shotType,
         lighting, mood, atmosphere,
         pacing, editingStyle, lensEffects, soundDesignCue,
-        composition,
+        composition, extraElements,
         aspectRatio
     } = data;
 
@@ -1126,7 +1131,7 @@ function generateVideoPrompts(data, imagePrompt) {
         short = shortParts.join(' ');
 
     } else if (mode === 'product') {
-        const productAction = motionEffect || 'subtle highlights and reflections';
+        const productAction = motionEffect || extraElements || 'subtle highlights and reflections';
 
         // --- PROMPT VIDEO PANJANG (LONG) ---
         long = `Animate the product shot from "${imagePrompt}". The camera move is a **${composition || 'slow push-in'}**. ` +
