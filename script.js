@@ -870,23 +870,48 @@ function handleFormChange(e) {
         stateSlice[fieldId] = { select: '', custom: '' };
     }
 
-    // --- AWAL PERBAIKAN ---
-    const isTextOnly = !PROMPT_OPTIONS[modeOrPrefix]?.hasOwnProperty(state.intensity) || !PROMPT_OPTIONS[modeOrPrefix][state.intensity]?.hasOwnProperty(fieldId);
-
     if (target.classList.contains('form-select')) {
+        // Logika saat dropdown diubah (tetap sama)
         stateSlice[fieldId].select = target.value;
         stateSlice[fieldId].custom = '';
         const textEl = document.getElementById(`${id}-text`);
         if(textEl) textEl.value = '';
-    } else { // Ini berlaku untuk semua input teks, termasuk Custom Key
-        stateSlice[fieldId].custom = target.value;
-        // Jika bukan field text-only, kosongkan dropdownnya
-        if (!isTextOnly) {
+
+    } else { // Logika saat custom text diubah
+        const customValue = target.value;
+        stateSlice[fieldId].custom = customValue;
+
+        if (customValue.trim() === '') {
+            // BARU: Jika teks custom dihapus, kembalikan dropdown ke default
+            const { mode, intensity } = state;
+            let defaultValue = '';
+
+            // Dapatkan nilai default dari daftar opsi yang sesuai
+            if (modeOrPrefix === 'human') {
+                defaultValue = (PROMPT_OPTIONS.special.humanInShot.options[fieldId] || [])[0] || '';
+            } else {
+                defaultValue = (PROMPT_OPTIONS[mode]?.[intensity]?.[fieldId] || [])[0] || '';
+            }
+            
+            // Perbarui state: set select ke default, custom sudah kosong
+            stateSlice[fieldId].select = defaultValue;
+
+            // Perbarui tampilan UI dropdown secara langsung
             const selectEl = document.getElementById(`${id}-select`);
-            if (selectEl) selectEl.value = '';
+            if (selectEl) {
+                selectEl.value = defaultValue;
+            }
+        } else {
+            // LAMA: Jika teks custom diisi, kosongkan pilihan dropdown
+            stateSlice[fieldId].select = '';
+            
+            // Perbarui tampilan UI dropdown secara langsung
+            const selectEl = document.getElementById(`${id}-select`);
+            if (selectEl) {
+                selectEl.value = '';
+            }
         }
     }
-    // --- AKHIR PERBAIKAN ---
 }
 
 
