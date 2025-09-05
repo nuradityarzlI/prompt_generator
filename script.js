@@ -23,6 +23,27 @@ const PROMPT_OPTIONS = {
             aspectRatio: "Aspect Ratio",
             customKey: "Custom Key (Elemen Wajib)" 
         },
+        fieldDescriptions: {
+            sceneStyle: "The overall visual genre of the photograph. Examples: 'editorial portrait' for a magazine style, or 'studio portrait' for a controlled studio shot.",
+            mainSubject: "The primary focus of the image. This can be a single person, a group, or a specific character archetype.",
+            ethnicity: "The subject's ethnic background, skin tone, or origin, ensuring accurate and desired representation.",
+            styling: "The subject's appearance, including hair, outfit, and makeup. This is crucial for defining the character and theme.",
+            expression: "The facial expression or body language of the subject, used to convey a specific emotion or mood.",
+            actionVerb: "For video: The specific movement performed by the subject. This defines what is happening in the scene.",
+            cameraAngle: "The position and viewpoint of the camera relative to the subject, such as 'eye-level' or 'low-angle' for a powerful look.",
+            lighting: "The lighting setup for the scene, which creates mood and dimension. 'Softbox' lighting is flattering, while 'golden hour' is warm and dramatic.",
+            background: "The environment behind the subject. It can range from a simple 'seamless paper' in a studio to a specific real-world location.",
+            mood: "The overall emotional feeling or aesthetic of the image, like 'timeless editorial' or 'clean minimalist'.",
+            composition: "The arrangement of visual elements within the frame. 'Rule of thirds' is a classic technique for balance.",
+            focusTechnique: "How focus is used to direct the viewer's eye, such as 'shallow depth of field' to create a blurry background (bokeh).",
+            colorPalette: "The dominant color scheme of the image, such as 'neutral tones' for a calm feel or 'monochromatic' for a unified look.",
+            filmStock: "The texture and grain of the image, often simulating classic analog film like 'Kodak Portra 400' for a vintage aesthetic.",
+            postProcessing: "The editing style applied after the photo is taken, such as 'natural retouching' or adding 'contrast enhancement'.",
+            atmosphere: "The tangible feeling of the environment in the image. Is it 'calm and composed' or 'warm and inviting'?",
+            references: "Inspiration from famous photographers, magazines, or brands to serve as a visual benchmark for the desired style.",
+            cameraLens: "The simulated camera and lens used to achieve specific optical characteristics, like perspective and depth of field.",
+            aspectRatio: "The proportional relationship between the image's width and height, e.g., '1:1' for a square format or '16:9' for widescreen."
+        },
         conservative: { 
             sceneStyle: ["editorial portrait", "studio portrait", "fashion lookbook", "beauty shot", "corporate headshot", "catalogue clean shot", "bridal studio session", "black & white studio headshot", "formal fashion editorial", "graduation portrait"], 
             mainSubject: ["single female model", "single male model", "duo portrait", "business professional", "family/lifestyle group", "academic scholar", "classical dancer", "bride/groom", "executive profile", "politician headshot"], 
@@ -129,6 +150,24 @@ const PROMPT_OPTIONS = {
             aspectRatio: "Aspect Ratio",
             customKey: "Custom Key (Elemen Wajib)"
         },
+        fieldDescriptions: {
+            productType: "The specific item being photographed, such as a 'skincare bottle', 'luxury watch', or 'designer sneaker'.",
+            material: "The texture and substance of the product itself, like 'frosted glass' or 'brushed metal'. This informs lighting and reflections.",
+            surface: "The surface on which the product is placed. A 'marble slab' suggests luxury, while a 'concrete shelf' feels industrial.",
+            composition: "The arrangement of the product within the frame. 'Hero single centered' is direct, while a 'classic flat-lay' is an overhead shot.",
+            lightingStyle: "How the product is illuminated. 'Clean catalog' lighting is bright and even, while 'cinematic spotlight' is dramatic and focused.",
+            background: "The environment behind the product. Can be a 'seamless white' background for e-commerce or a 'lifestyle bathroom' for context.",
+            mood: "The overall aesthetic and feeling of the advertisement. 'Premium clean' is minimalist and high-end; 'vibrant commercial' is energetic.",
+            extraElements: "Additional dynamic visuals that add interest, such as a 'water splash', 'flying petals', or 'subtle smoke'.",
+            compositionScale: "The camera's proximity to the product. Ranges from a 'macro detail shot' to a wider 'environmental product shot'.",
+            shadowStyle: "The quality, direction, and hardness of shadows. A 'soft drop shadow' is subtle, while a 'hard graphic shadow' is modern and bold.",
+            colorHarmony: "The relationship between colors in the scene. 'Monochromatic' is unified, while 'bold complementary colors' are high-contrast.",
+            motionEffect: "For video: The dynamic effect applied to the product, like a 'slow 360 rotation' or 'product dropping into water'.",
+            advertisingStyle: "The intended context for the image, such as a 'luxury magazine ad', 'social media ad', or 'minimalist e-commerce'.",
+            references: "Inspiration drawn from iconic brand styles to guide the aesthetic, like 'Apple clean product' or 'Nike e-commerce'.",
+            cameraLens: "The simulated camera and lens used, often a 'macro lens' to capture fine, intricate details of the product.",
+            aspectRatio: "The final dimensions of the image, tailored for platforms like '1:1 (Square E-commerce)' or '9:16 (Story Ad)'."
+        },
         conservative: { 
             productType: ["skincare bottle", "perfume flacon", "luxury watch", "leather bag", "beverage can", "premium laptop", "jewelry ring", "fountain pen", "wine bottle", "classic book cover"], 
             material: ["frosted glass", "polished metal", "matte plastic", "leather grain", "satin fabric", "glossy ceramic", "brushed steel", "clear crystal", "lacquer wood", "smooth marble"], 
@@ -229,6 +268,30 @@ const PROMPT_OPTIONS = {
             aspectRatio: "Aspect Ratio",
             characterRelationship: "Character Relationship / Interaction Style",
             customKey: "Custom Key (Elemen Wajib)"
+        },
+        fieldDescriptions: {
+            genre: "The category of the film, which sets the audience's expectations and the overall tone. E.g., 'period drama', 'psychological thriller'.",
+            sceneType: "The specific type of event or interaction occurring, such as a 'heartfelt dialogue', 'rooftop confrontation', or 'chase sequence'.",
+            characters: "Who is in the scene? This can be a 'romantic duo', a 'detective vs suspect', or a more abstract 'masked performer'.",
+            setting: "The physical location where the scene takes place. The setting heavily influences the mood and context of the story.",
+            timeOfDay: "The time of day, which dictates the quality and color of natural light. 'Golden hour' is warm, while 'blue hour' is mysterious.",
+            cameraMovement: "How the camera moves within the scene. A 'steady dolly-in' builds tension, while 'handheld tracking' creates a sense of urgency.",
+            actionVerb: "The primary physical action performed by a character. This is the key movement that drives the scene's narrative forward.",
+            mood: "The emotional atmosphere of the scene. Can range from 'heartfelt sincerity' to 'tense suspense' or 'dreamlike surreal'.",
+            visualAesthetic: "The overall look, including color grading and texture. 'Teal & orange' is common in blockbusters; 'classic 35mm film' is nostalgic.",
+            shotType: "The framing of the shot, describing how much of the subject is visible and from what perspective. E.g., 'close-up', 'wide shot', 'POV'.",
+            editingStyle: "The technique used to cut shots together. 'Invisible editing' is seamless, while 'fast-paced cutting' creates energy.",
+            productionDesign: "The visual design of the set, props, and overall environment. Can be 'historically accurate', 'sleek minimalist', or 'gritty realistic'.",
+            lensEffects: "Optical effects created by the camera lens, such as 'anamorphic lens flare' or a 'rack focus' to shift the viewer's attention.",
+            soundDesignCue: "A description of the soundscape to enhance the mood (even for a still image). E.g., 'quiet room tone', 'pulsing synth score'.",
+            pacing: "The perceived speed and rhythm of the scene. Can be 'slow and deliberate' to build suspense or 'fast-paced and frantic' for action.",
+            aspectRatio: "The frame's width-to-height ratio. '2.39:1' provides a cinematic widescreen look, while '4:3' can feel classic or claustrophobic.",
+            references: "Inspiration from the signature style of directors or films, such as 'David Fincher noir' or 'Wes Anderson symmetry'.",
+            cameraLens: "The type of camera and lens combination used to achieve the desired cinematic look, affecting perspective and depth.",
+            characterAnchor: "A fixed, detailed description of a character's core identity (age, gender, general look) to maintain consistency across scenes.",
+            wardrobeLock: "The primary, consistent outfit for a character. This is essential for maintaining visual continuity between different shots or scenes.",
+            hairMakeup: "Specific, consistent details for a character's hair and makeup style, further ensuring visual continuity across the film.",
+            characterRelationship: "Defines the dynamic between characters in the scene, such as 'Tense and confrontational' or 'Playful and lighthearted'."
         },
         conservative: { 
             genre: ["period drama", "romantic comedy", "slice-of-life", "historical biopic", "family melodrama", "coming-of-age", "literary adaptation", "courtroom drama", "social realism", "classic love story"], 
@@ -436,15 +499,18 @@ function SegmentedControl({ options, selected, id }) {
     return `<div id="${id}" class="flex p-1 bg-gray-100 rounded-lg">${options.map(({ value, label }) => `<button type="button" data-value="${value}" class="flex-1 py-2 px-1 text-sm font-semibold rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selected === value ? 'bg-white text-gray-800 shadow-sm' : 'bg-transparent text-gray-500 hover:bg-gray-200'}">${label}</button>`).join('')}</div>`;
 }
 
-function FormField({ id, mode, fieldId, label, options, value, customValue, isLocked = false }) {
+function FormField({ id, mode, fieldId, label, options, value, customValue, isLocked = false, description }) {
     const hasValue = customValue.trim() || value;
     const showWarning = isLocked && !hasValue;
+    // Teks tooltip default jika deskripsi spesifik tidak diberikan
+    const tooltipText = description || "Select a curated option or enter a custom value below.";
+    
     return `
         <div class="mb-6">
             <div class="flex items-center justify-between mb-2">
                 <label for="${id}-select" class="flex items-center text-sm font-semibold text-gray-700">
                     ${label}
-                    ${Tooltip("Select a curated option or enter a custom value below.")}
+                    ${Tooltip(tooltipText)} 
                 </label>
                 <button type="button" data-lock-mode="${mode}" data-lock-field="${fieldId}" class="lock-button p-1 rounded-full transition-colors ${isLocked ? 'text-blue-600 bg-blue-100' : 'text-gray-400 hover:bg-gray-200'}" title="Lock this value">
                     ${LockIcon(isLocked)}
@@ -613,7 +679,9 @@ function renderApp() {
             options: modeConfig[intensity]?.[fieldId],
             value: formState[mode]?.[fieldId]?.select || '',
             customValue: formState[mode]?.[fieldId]?.custom || '',
-            isLocked: lockedFields[mode]?.[fieldId]
+            isLocked: lockedFields[mode]?.[fieldId],
+            // BARIS INI DITAMBAHKAN UNTUK MENGAMBIL DESKRIPSI
+            description: modeConfig.fieldDescriptions?.[fieldId]
         })).join('');
 
     let extrasHTML = '';
@@ -824,7 +892,38 @@ function handleFormChange(e) {
 
 function handleLockToggle(e) {
     const { lockMode, lockField } = e.currentTarget.dataset;
+
+    // Tentukan state yang akan menjadi terkunci (kebalikan dari state saat ini)
+    const isLocking = !state.lockedFields[lockMode]?.[lockField];
+
+    // Jika tindakan ini adalah MENGUNCI field...
+    if (isLocking) {
+        // Tentukan bagian state mana yang akan dimodifikasi (formState utama atau humanState)
+        let stateSlice;
+        if (lockMode === 'product_human') {
+            stateSlice = state.humanState;
+        } else if (state.formState[lockMode]) {
+            stateSlice = state.formState[lockMode];
+        }
+
+        // Pastikan stateSlice dan field-nya ada
+        if (stateSlice && stateSlice[lockField]) {
+            const selectedValue = stateSlice[lockField].select;
+
+            // Jika ada nilai yang dipilih di dropdown...
+            if (selectedValue) {
+                // ...salin nilai tersebut ke input teks custom
+                stateSlice[lockField].custom = selectedValue;
+                // Kosongkan pilihan dropdown agar 'custom' menjadi satu-satunya sumber nilai
+                stateSlice[fieldId].select = '';
+            }
+        }
+    }
+
+    // Terakhir, selalu toggle status kunci di state
     state.lockedFields[lockMode][lockField] = !state.lockedFields[lockMode][lockField];
+    
+    // Render ulang aplikasi untuk menampilkan perubahan
     renderApp();
 }
 
