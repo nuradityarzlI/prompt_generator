@@ -915,7 +915,8 @@ function handleLockToggle(e) {
                 // ...salin nilai tersebut ke input teks custom
                 stateSlice[lockField].custom = selectedValue;
                 // Kosongkan pilihan dropdown agar 'custom' menjadi satu-satunya sumber nilai
-                stateSlice[fieldId].select = '';
+                // ---- INI BARIS YANG DIPERBAIKI ----
+                stateSlice[lockField].select = '';
             }
         }
     }
