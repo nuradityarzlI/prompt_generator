@@ -265,6 +265,7 @@ const PROMPT_OPTIONS = {
             characterAnchor: "Character Anchor / Identity", 
             wardrobeLock: "Wardrobe Lock (Main Outfit)", 
             hairMakeup: "Hair & Makeup Details",
+            aspectRatio: "Aspect Ratio",
             characterRelationship: "Character Relationship / Interaction Style",
             customKey: "Custom Key (Elemen Wajib)"
         },
@@ -314,8 +315,10 @@ const PROMPT_OPTIONS = {
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"],
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"],
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"],
-         
+            
         },
         balanced: { 
             genre: ["psychological thriller", "heist drama", "mystery adventure", "romantic drama", "political intrigue", "action suspense", "crime procedural", "dystopian near-future", "satire drama", "ensemble relationship film"], 
@@ -339,6 +342,8 @@ const PROMPT_OPTIONS = {
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
         experimental: { 
@@ -363,6 +368,8 @@ const PROMPT_OPTIONS = {
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         },
         vintage: { 
@@ -387,6 +394,8 @@ const PROMPT_OPTIONS = {
             characterAnchor: ["Female, early 20s, youthful, bright expression", "Female, late 20s, elegant, calm expression", "Female, early 30s, thoughtful, melancholic", "Female, 40s, mature, strong presence", "Male, early 20s, energetic, curious", "Male, late 20s, stylish, confident", "Male, early 30s, introspective, quiet strength", "Male, 40s, weathered, kind eyes", "Male, 50s, authoritative, reflective"], 
             wardrobeLock: ["Casual neutral (shirt + jeans)", "Business attire (suit, tie, dress shirt)", "Vintage (cardigan + blouse, muted tones)", "Formal evening (dress, tuxedo)", "Streetwear (hoodie, sneakers)", "Minimalist modern (monochrome outfit)", "Rustic/countryside (wool sweater, boots)", "Cultural/traditional attire (kimono, kebaya, sari, etc.)"], 
             hairMakeup: ["Hair: Shoulder-length, loose natural", "Hair: Long, wavy, styled", "Hair: Short, neat, side-part", "Hair: Bun / tied up", "Hair: Curly, voluminous", "Hair: Bald / shaved", "Makeup: Natural minimal", "Makeup: Bold (lipstick, eyeliner)", "Makeup: Matte finish", "Makeup: Vintage glam (red lips, soft curls)"], 
+            aspectRatio: ["16:9 (Widescreen)", "9:16 (Vertical Cinema)", "4:5 (Social Cut)", "1:1 (Square Frame)"],
+            consistencyToggle: ["ON", "OFF"], 
             characterRelationship: ["Distant but caring", "Intimate but restrained", "Tense and confrontational", "Playful and lighthearted", "Professional and formal", "Secretive and guarded", "Melancholic and reflective"] 
         }
     },
@@ -474,165 +483,6 @@ function updateDefaults() {
 }
 
 // =======================================================================
-// KODE TAMBAHAN UNTUK STYLE LIBRARY DIMULAI DI SINI
-// =======================================================================
-
-const STYLE_LIBRARY_DATA = {
-    film: {
-        "Sutradara Film": [
-            {
-                name: "Ridley Scott (Blade Runner)",
-                description: "Gaya noir, dystopian, dengan hujan neon dan nuansa reflektif.",
-                settings: {
-                    mood: "stylish noir",
-                    visualAesthetic: "bleach bypass, heavy grain",
-                    lighting: "neon rim accent, moody soft shadow",
-                    atmosphere: "gritty and urban, constant drizzle, reflective puddles",
-                    colorPalette: "teal and orange",
-                    references: "Blade Runner (1982) film stills",
-                    setting: "futuristic city street at night"
-                }
-            },
-            {
-                name: "Wes Anderson",
-                description: "Komposisi simetris, warna pastel, dan properti yang unik.",
-                settings: {
-                    composition: "symmetrical, centered",
-                    visualAesthetic: "flat perspective, diorama-like",
-                    productionDesign: "meticulously curated props, vintage aesthetic",
-                    mood: "whimsical, quirky, deadpan humor",
-                    cameraMovement: "symmetrical medium, slow pan",
-                    colorPalette: "vibrant pastels"
-                }
-            }
-        ]
-    },
-    model: {
-        "Estetika Fotografi": [
-            {
-                name: "Tim Walker Fantasy",
-                description: "Sureal, properti berukuran besar, dan narasi dongeng.",
-                settings: {
-                    sceneStyle: "surreal fashion editorial",
-                    mood: "dreamlike abstraction",
-                    styling: "avant-garde makeup, sculptural hair",
-                    background: "oversized props, fantasy set design",
-                    references: "Tim Walker surreal photography",
-                    composition: "dizzying perspective"
-                }
-            },
-             {
-                name: "Peter McKinnon Cinematic",
-                description: "Kontras tinggi, warna moody, dan pencahayaan dramatis untuk potret.",
-                settings: {
-                    sceneStyle: "cinematic portrait",
-                    lighting: "moody soft shadow, strong key light",
-                    colorPalette: "desaturated urban tones",
-                    atmosphere: "melancholy and cinematic",
-                    postProcessing: "cinematic LUT applied, contrast enhancement",
-                    references: "Peter McKinnon's portrait style"
-                }
-            }
-        ]
-    },
-    product: {
-        "Gaya Iklan Komersial": [
-            {
-                name: "Apple Clean Product",
-                description: "Minimalis, bersih, dengan fokus pada detail produk dan latar belakang gradien.",
-                settings: {
-                    lightingStyle: "softbox gradient",
-                    background: "seamless white or light gray gradient",
-                    mood: "premium clean, minimalist timeless",
-                    composition: "hero single centered",
-                    shadowStyle: "soft drop shadow",
-                    references: "Apple product launch visuals"
-                }
-            }
-        ]
-    }
-};
-
-function handleApplyStyle(mode, categoryKey, styleIndex) {
-    const style = STYLE_LIBRARY_DATA[mode]?.[categoryKey]?.[styleIndex];
-    if (!style) {
-        console.error("Gaya tidak ditemukan!");
-        return;
-    }
-
-    for (const fieldId in style.settings) {
-        if (!state.lockedFields[mode]?.[fieldId]) {
-            const value = style.settings[fieldId];
-            if (state.formState[mode][fieldId] !== undefined) {
-                 state.formState[mode][fieldId].custom = value;
-                 state.formState[mode][fieldId].select = '';
-            }
-        }
-    }
-    
-    const modal = document.getElementById('style-library-modal');
-    if (modal) modal.classList.add('hidden');
-    
-    renderApp();
-}
-
-function StyleLibraryModal() {
-    const { mode } = state;
-    const libraryForMode = STYLE_LIBRARY_DATA[mode];
-
-    let categoriesHTML = '';
-    if (libraryForMode) {
-        for (const categoryKey in libraryForMode) {
-            const styles = libraryForMode[categoryKey];
-            const stylesHTML = styles.map((style, styleIndex) => `
-                <div class="border border-gray-200 p-4 rounded-lg bg-white hover:shadow-md transition-shadow flex flex-col">
-                    <h4 class="font-bold text-gray-800">${style.name}</h4>
-                    <p class="text-sm text-gray-600 mt-1 mb-3 flex-grow">${style.description}</p>
-                    <button 
-                        class="apply-style-btn w-full mt-auto py-2 px-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 text-sm transition-colors"
-                        data-mode="${mode}"
-                        data-category-key="${categoryKey}"
-                        data-style-index="${styleIndex}"
-                    >Terapkan Gaya</button>
-                </div>
-            `).join('');
-
-            categoriesHTML += `
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">${categoryKey}</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        ${stylesHTML}
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    return `
-        <div id="style-library-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-gray-900 bg-opacity-70 backdrop-blur-sm">
-            <div class="w-full max-w-4xl p-6 sm:p-8 m-4 bg-gray-50 rounded-lg shadow-xl transform transition-all flex flex-col">
-                <div class="flex justify-between items-center mb-4 flex-shrink-0">
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Perpustakaan Gaya</h2>
-                    <button id="close-style-modal-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600">
-                        <svg xmlns="http://www.w.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="max-h-[70vh] overflow-y-auto pr-2 flex-grow">
-                    ${categoriesHTML || '<p class="text-gray-600">Tidak ada gaya yang tersedia untuk mode ini.</p>'}
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// =======================================================================
-// AKHIR DARI KODE TAMBAHAN
-// =======================================================================
-
-
-// =======================================================================
 // HELPER & COMPONENT FUNCTIONS
 // =======================================================================
 const capitalize = (s) => (s && typeof s === 'string' ? s.charAt(0).toUpperCase() + s.slice(1) : '');
@@ -652,6 +502,7 @@ function SegmentedControl({ options, selected, id }) {
 function FormField({ id, mode, fieldId, label, options, value, customValue, isLocked = false, description }) {
     const hasValue = customValue.trim() || value;
     const showWarning = isLocked && !hasValue;
+    // Teks tooltip default jika deskripsi spesifik tidak diberikan
     const tooltipText = description || "Select a curated option or enter a custom value below.";
     
     return `
@@ -783,12 +634,26 @@ function FilmFormExtras() {
 }
 
 function clearFormAndOutputs() {
+    // 1. Simpan mode dan intensity yang sedang aktif saat ini
     const currentMode = state.mode;
     const currentIntensity = state.intensity;
+
+    // 2. Panggil fungsi inisialisasi untuk me-reset semuanya ke kondisi awal
+    //    Ini adalah cara paling efisien untuk membersihkan semua state seperti
+    //    formState, lockedFields, humanState, dll.
     initializeState();
+
+    // 3. Setelah semuanya bersih, kembalikan mode dan intensity yang tadi kita simpan
     state.mode = currentMode;
     state.intensity = currentIntensity;
+    
+    // 4. Panggil updateDefaults() lagi. Fungsi ini akan membaca mode dan intensity
+    //    yang baru saja kita kembalikan, lalu mengisi form dengan nilai default
+    //    yang sesuai.
     updateDefaults();
+
+    // 5. Render ulang aplikasi untuk menampilkan form yang sudah bersih
+    //    namun dengan mode dan intensity yang tetap sama.
     renderApp();
 }
 
@@ -815,6 +680,7 @@ function renderApp() {
             value: formState[mode]?.[fieldId]?.select || '',
             customValue: formState[mode]?.[fieldId]?.custom || '',
             isLocked: lockedFields[mode]?.[fieldId],
+            // BARIS INI DITAMBAHKAN UNTUK MENGAMBIL DESKRIPSI
             description: modeConfig.fieldDescriptions?.[fieldId]
         })).join('');
 
@@ -861,14 +727,6 @@ function renderApp() {
                         <label class="text-sm font-semibold text-gray-700 mb-2 block">Creative Intensity</label>
                         ${SegmentedControl({ id: 'intensity-selector', options: [{ value: 'conservative', label: 'Conservative' }, { value: 'balanced', label: 'Balanced' }, { value: 'experimental', label: 'Experimental' }, { value: 'vintage', label: 'Vintage/Retro' }], selected: intensity })}
                     </div>
-                    <div>
-                        <button id="open-style-library-btn" class="w-full flex items-center justify-center py-3 px-4 bg-white text-gray-800 font-semibold rounded-lg border border-gray-300 hover:bg-gray-100 transition shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 011-1h14a1 1 0 110 2H3a1 1 0 01-1-1z"/>
-                            </svg>
-                            Pilih Gaya dari Perpustakaan
-                        </button>
-                    </div>
                 </div>
 
                 <div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
@@ -913,9 +771,7 @@ function renderApp() {
             ${outputHTML ? `<section class="mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-10">${outputHTML}</section>` : ''}
         </div>
     `;
-
-    const finalHTML = appHTML + StyleLibraryModal();
-    root.innerHTML = finalHTML;
+    root.innerHTML = appHTML;
     addEventListeners();
 }
 
@@ -923,6 +779,7 @@ function renderApp() {
 // EVENT LISTENERS & HANDLERS
 // =======================================================================
 function addEventListeners() {
+    // === Kontrol Utama (Mode & Intensity) ===
     document.getElementById('mode-selector')?.addEventListener('click', e => {
         const value = e.target.dataset.value;
         if (value && state.mode !== value) {
@@ -941,17 +798,21 @@ function addEventListeners() {
         }
     });
 
+    // === Kontrol Form Dinamis ===
     document.querySelectorAll('.form-select').forEach(el => el.addEventListener('change', handleFormChange));
     document.querySelectorAll('.form-custom-text').forEach(el => el.addEventListener('input', handleFormChange));
     document.querySelectorAll('.lock-button').forEach(el => el.addEventListener('click', handleLockToggle));
 
+    // === Kontrol Form Tambahan (Extras) ===
     document.querySelectorAll('.toggle-switch').forEach(el => el.addEventListener('change', handleToggleChange));
     document.getElementById('film-numScenes')?.addEventListener('change', e => { state.filmState.numScenes = Number(e.target.value); });
     
+    // === Tombol Aksi Utama ===
     document.getElementById('generate-btn')?.addEventListener('click', handleSubmit);
     document.getElementById('suggest-btn')?.addEventListener('click', handleAISuggest);
     document.getElementById('clear-btn')?.addEventListener('click', clearFormAndOutputs);
 
+    // === Kontrol di Bagian Output ===
     document.querySelectorAll('.copy-button').forEach(button => {
         button.addEventListener('click', e => {
             const content = e.target.dataset.copyContent.replace(/&quot;/g, '"');
@@ -970,6 +831,7 @@ function addEventListeners() {
         });
     });
 
+    // === Kontrol Pop-up Bantuan ===
     const helpModal = document.getElementById('help-modal');
     const openHelpBtn = document.getElementById('open-help-modal-btn');
     const closeHelpBtn = document.getElementById('close-help-modal-btn');
@@ -987,35 +849,6 @@ function addEventListeners() {
             helpModal.classList.add('hidden');
         }
     });
-
-    // ========================================================
-    // EVENT LISTENER TAMBAHAN UNTUK STYLE LIBRARY
-    // ========================================================
-    document.getElementById('open-style-library-btn')?.addEventListener('click', () => {
-        const modal = document.getElementById('style-library-modal');
-        if (modal) {
-            // Re-render is needed to get the correct modal content for the current 'mode'
-            // but calling renderApp() is inefficient. A better approach is to just ensure the modal is there.
-            // Since our renderApp builds it every time, we just need to un-hide it.
-            modal.classList.remove('hidden');
-        }
-    });
-
-    const styleModal = document.getElementById('style-library-modal');
-
-    document.getElementById('close-style-modal-btn')?.addEventListener('click', () => {
-        styleModal?.classList.add('hidden');
-    });
-
-    styleModal?.addEventListener('click', e => {
-        const applyButton = e.target.closest('.apply-style-btn');
-        if (applyButton) {
-            const { mode, categoryKey, styleIndex } = applyButton.dataset;
-            handleApplyStyle(mode, categoryKey, parseInt(styleIndex, 10));
-        } else if (e.target.id === 'style-library-modal') {
-            styleModal.classList.add('hidden');
-        }
-    });
 }
 
 function handleFormChange(e) {
@@ -1030,7 +863,7 @@ function handleFormChange(e) {
     } else if (state.formState[modeOrPrefix]) {
         stateSlice = state.formState[modeOrPrefix];
     } else {
-        return;
+        return; // Tidak ada state slice yang cocok
     }
 
     if (!stateSlice[fieldId]) {
@@ -1038,30 +871,41 @@ function handleFormChange(e) {
     }
 
     if (target.classList.contains('form-select')) {
+        // Logika saat dropdown diubah (tetap sama)
         stateSlice[fieldId].select = target.value;
         stateSlice[fieldId].custom = '';
         const textEl = document.getElementById(`${id}-text`);
         if(textEl) textEl.value = '';
 
-    } else {
+    } else { // Logika saat custom text diubah
         const customValue = target.value;
         stateSlice[fieldId].custom = customValue;
 
         if (customValue.trim() === '') {
+            // BARU: Jika teks custom dihapus, kembalikan dropdown ke default
             const { mode, intensity } = state;
             let defaultValue = '';
+
+            // Dapatkan nilai default dari daftar opsi yang sesuai
             if (modeOrPrefix === 'human') {
                 defaultValue = (PROMPT_OPTIONS.special.humanInShot.options[fieldId] || [])[0] || '';
             } else {
                 defaultValue = (PROMPT_OPTIONS[mode]?.[intensity]?.[fieldId] || [])[0] || '';
             }
+            
+            // Perbarui state: set select ke default, custom sudah kosong
             stateSlice[fieldId].select = defaultValue;
+
+            // Perbarui tampilan UI dropdown secara langsung
             const selectEl = document.getElementById(`${id}-select`);
             if (selectEl) {
                 selectEl.value = defaultValue;
             }
         } else {
+            // LAMA: Jika teks custom diisi, kosongkan pilihan dropdown
             stateSlice[fieldId].select = '';
+            
+            // Perbarui tampilan UI dropdown secara langsung
             const selectEl = document.getElementById(`${id}-select`);
             if (selectEl) {
                 selectEl.value = '';
@@ -1075,7 +919,9 @@ function handleLockToggle(e) {
     const { lockMode, lockField } = e.currentTarget.dataset;
     const isLocking = !state.lockedFields[lockMode]?.[lockField];
 
+    // Logika ini sekarang HANYA berjalan saat MENGUNCI.
     if (isLocking) {
+        // Tentukan bagian state mana yang akan dimodifikasi
         let stateSlice;
         if (lockMode === 'product_human') {
             stateSlice = state.humanState;
@@ -1083,6 +929,7 @@ function handleLockToggle(e) {
             stateSlice = state.formState[lockMode];
         }
 
+        // Jika ada nilai yang dipilih di dropdown, salin ke custom text
         if (stateSlice && stateSlice[lockField]) {
             const selectedValue = stateSlice[lockField].select;
             if (selectedValue) {
@@ -1091,12 +938,13 @@ function handleLockToggle(e) {
             }
         }
     }
-    
-    if (!state.lockedFields[lockMode]) {
-        state.lockedFields[lockMode] = {};
-    }
+    // Saat isLocking bernilai false (membuka kunci), tidak ada logika yang dijalankan.
+    // Ini memastikan nilai di 'custom text' tidak akan berubah sampai dihapus manual.
+
+    // Terakhir, selalu ubah status kunci di state
     state.lockedFields[lockMode][lockField] = !state.lockedFields[lockMode][lockField];
     
+    // Render ulang aplikasi untuk menampilkan perubahan
     renderApp();
 }
 
@@ -1127,6 +975,7 @@ async function callGeminiAPI(prompt, generationConfig = {}) {
 }
 
 function getFinalValue(fieldState) {
+    // Pastikan fieldState tidak null atau undefined sebelum diakses
     if (!fieldState) return '';
     return (fieldState.custom || '').trim() || fieldState.select || '';
 }
@@ -1152,13 +1001,15 @@ async function handleSubmit() {
         'editingStyle', 
         'soundDesignCue', 
         'pacing', 
-        'characterAnchor'
+        //'aspectRatio',
+        'characterAnchor' // characterAnchor tetap dikecualikan seperti sebelumnya
     ];
 
     let parameterString = PROMPT_OPTIONS[mode].fields
-        .filter(field => !fieldsToExcludeForImage.includes(field) && data[field])
+        .filter(field => !fieldsToExcludeForImage.includes(field) && data[field]) // Filter out non-visual fields and empty values
         .map(field => `${PROMPT_OPTIONS[mode].fieldLabels[field]}: ${data[field]}`)
         .join(', ');
+    // --- AKHIR PERUBAHAN ---
 
     if (data.humanInShot) {
         const humanParams = Object.entries(data.humanInShot)
@@ -1210,7 +1061,7 @@ async function handleSubmit() {
 
     if (textPrompts.length > 0) {
         state.outputs = textPrompts.map(imagePrompt => {
-            const videoPrompts = generateVideoPrompts(data, imagePrompt);
+            const videoPrompts = generateVideoPrompts(data, imagePrompt); // Panggil fungsi yang akan kita perbaiki selanjutnya
             return { text: imagePrompt, videoLong: videoPrompts.long, videoShort: videoPrompts.short };
         });
     }
@@ -1228,6 +1079,7 @@ async function handleAISuggest() {
         const labelToFieldIdMap = {};
         const fieldIdToModeMap = {};
 
+        // Populate maps for main mode
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             labelToFieldIdMap[label] = fieldId;
@@ -1238,6 +1090,7 @@ async function handleAISuggest() {
         const unlockedFieldsLabels = [];
 
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
+            // Jangan minta sugesti untuk Custom Key, karena itu adalah input
             if (fieldId === 'customKey') return;
 
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
@@ -1249,6 +1102,7 @@ async function handleAISuggest() {
             }
         });
         
+        // --- LOGIKA BARU UNTUK HUMAN IN SHOT ---
         let unlockedHumanFieldsLabels = [];
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
@@ -1279,6 +1133,7 @@ async function handleAISuggest() {
             return;
         }
 
+        // --- LOGIKA BARU UNTUK CUSTOM KEY ---
         const customKeyValue = getFinalValue(formState[mode].customKey);
         let customKeyInstruction = '';
         if (customKeyValue) {
@@ -1299,6 +1154,7 @@ async function handleAISuggest() {
 
         const styleInstruction = styleGuides[intensity];
 
+        // --- PROMPT FINAL UNTUK AI ---
         const prompt = `
             You are a world-class creative art director and prompt engineer with a specific creative vision.
             Your main task is to provide creative suggestions for several unlocked visual parameters.
@@ -1313,7 +1169,7 @@ async function handleAISuggest() {
             For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject, the scene, and the overall style guide. For example, if the Main Subject is a 'skateboarder' and the style is 'Experimental', suggest a realistic action like 'tilts their body into a sharp, gravity-defying turn' or 'drags their hand on the ground while crouching low on the board'. Avoid suggesting outcomes like 'capturing motion blur'; instead, describe the action that *causes* it.
             // --- END SPECIAL INSTRUCTIONS ---
 
-            ${customKeyInstruction}
+            ${customKeyInstruction} // Variabel ini sudah ada dari kode Anda
 
             Given the following locked-in parameters (the existing creative direction):
             ${JSON.stringify(lockedContext)}
@@ -1368,6 +1224,7 @@ async function handleAISuggest() {
 function generateVideoPrompts(data, imagePrompt) {
     let long = '', short = '';
     
+    // Ambil semua data relevan, termasuk semua field baru
     const { 
         mode,
         mainSubject, characters,
@@ -1379,18 +1236,21 @@ function generateVideoPrompts(data, imagePrompt) {
         aspectRatio
     } = data;
 
+    // Tentukan elemen-elemen inti
     const subject = mainSubject || characters || "The subject";
     const primaryAction = actionVerb || motionEffect || `shows an expression of "${data.expression || 'neutral'}"`;
     const cameraInstruction = cameraMovement || shotType || cameraAngle || 'a static shot';
     const sceneAtmosphere = atmosphere || mood || 'cinematic';
 
     if (mode === 'model' || mode === 'film') {
+        // --- PROMPT VIDEO PANJANG (LONG) ---
         let longParts = [
             `Create a short, cinematic video based on the visual style of "${imagePrompt}".`,
             `The scene opens focusing on ${subject}. The primary action is: the subject **${primaryAction}**.`,
             `The camera work should be a **${cameraInstruction}**.`,
             `Utilize **${lighting || 'natural lighting'}** to establish a **${sceneAtmosphere}** atmosphere.`,
         ];
+        // Tambahkan detail sinematik jika ada (khusus mode film)
         if (pacing) longParts.push(`The pacing is **${pacing}**.`);
         if (editingStyle) longParts.push(`The editing style should feel like **${editingStyle}**.`);
         if (lensEffects) longParts.push(`Incorporate lens effects like **${lensEffects}**.`);
@@ -1398,6 +1258,7 @@ function generateVideoPrompts(data, imagePrompt) {
         if (aspectRatio) longParts.push(`Render in a **${aspectRatio}** aspect ratio.`);
         long = longParts.join(' ');
 
+        // --- PROMPT VIDEO PENDEK (SHORT) ---
         let shortParts = [
             `Video of ${subject} who **${primaryAction}**.`,
             `Camera: **${cameraInstruction}**.`,
@@ -1409,13 +1270,16 @@ function generateVideoPrompts(data, imagePrompt) {
     } else if (mode === 'product') {
         const productAction = motionEffect || extraElements || 'subtle highlights and reflections';
 
+        // --- PROMPT VIDEO PANJANG (LONG) ---
         long = `Animate the product shot from "${imagePrompt}". The camera move is a **${composition || 'slow push-in'}**. ` +
                `Introduce dynamic motion effects like **${productAction}** to bring the product to life. ` +
                `The lighting is **${lighting || 'clean studio light'}**, maintaining a **${mood || 'premium'}** feel.`;
         
+        // --- PROMPT VIDEO PENDEK (SHORT) ---
         short = `Animate product shot with **${productAction}**. Camera: **${composition || 'slow push-in'}**. Mood: **${mood || 'premium'}**.`;
     }
 
+    // Membersihkan spasi ekstra dari hasil
     long = long.replace(/\s\s+/g, ' ').trim();
     short = short.replace(/\s\s+/g, ' ').trim();
 
