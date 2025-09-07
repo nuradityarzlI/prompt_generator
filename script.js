@@ -1129,10 +1129,10 @@ async function handleAISuggest() {
         }
         
         const styleGuides = {
-            conservative: "The style must be timeless, elegant, and professional. Prioritize subtlety and universally accepted aesthetics.",
-            balanced: "The main task in this mode is to create visuals that are **aspirational yet grounded** and have strong commercial appeal. Think of a major fashion magazine cover (not avant-garde), a premium brand lookbook, or a lifestyle ad. **Balance is key:** between artistic and commercial, between unique and relatable. The end result should always feel beautiful, modern, and desirable to a wide audience.",
-            experimental: "The style must be avant-garde, surreal, and rule-breaking. Aggressively avoid normal portraits. The goal is fine art.",
-            vintage: "The style must authentically evoke a specific past era, like analog film or faded Polaroids."
+            conservative: "The style must communicate trust, premium quality, and heritage. It should be timeless, elegant, and professional to build brand credibility. The goal is to project an image of stability and excellence, making it ideal for luxury goods, financial services, and corporate branding where reliability is key.",
+            balanced: "The primary goal is to make a product, service, or lifestyle feel highly desirable and attainable to a broad audience. The visuals must be aspirational yet grounded, with strong commercial appeal. Balance is key: between artistic and commercial, unique and relatable. The end result must always place the product or brand as the hero, making it feel beautiful, modern, and essential.",
+            experimental: "The style must be avant-garde, surreal, and rule-breaking to capture attention in a crowded market. The goal is to create a memorable, high-impact campaign that positions the brand as a forward-thinking leader. While abstract, the visuals must cleverly integrate the product or brand message. This style is used to generate buzz and appeal to a niche audience that values creativity and originality, commonly seen in high-fashion, tech, or arts-related campaigns.",
+            vintage: "The style must authentically evoke a specific past era to tap into powerful emotions like nostalgia and trust. The goal is not just to look old, but to communicate authenticity, craftsmanship, and timeless quality. This approach is highly effective for brands wanting to highlight their heritage or for products that offer a sense of comfort and reliability, such as artisanal goods, classic apparel, or organic foods."
         };
 
         const styleInstruction = styleGuides[intensity];
