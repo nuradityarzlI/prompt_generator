@@ -1,6 +1,6 @@
 const PROMPT_OPTIONS = {
     model: {
-        fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'postProcessing', 'atmosphere', 'references', 'cameraLens','aspectRatio','customKey'],
+        fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'postProcessing', 'atmosphere', 'references', 'cameraLens','aspectRatio'],
         fieldLabels: { 
             sceneStyle: "Scene Style / Photography", 
             mainSubject: "Main Subject", 
@@ -130,7 +130,7 @@ const PROMPT_OPTIONS = {
         }
     },
     product: {
-        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'extraElements', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens','aspectRatio','customKey'],
+        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'extraElements', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens','aspectRatio'],
         fieldLabels: { 
             productType: "Product Type", 
             material: "Material / Texture", 
@@ -242,7 +242,7 @@ const PROMPT_OPTIONS = {
         }
     },
     film: {
-        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship','customKey'],
+        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship'],
         fieldLabels: { 
             genre: "Genre", 
             sceneType: "Scene Type", 
@@ -950,12 +950,11 @@ function handleToggleChange(e) {
     renderApp();
 }
 
-async function callGeminiAPI(prompt, generationConfig = {}) { // Ditambah parameter kedua
+async function callGeminiAPI(prompt, generationConfig = {}) {
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // Kirim prompt DAN generationConfig
             body: JSON.stringify({ prompt, generationConfig }),
         });
         if (!response.ok) throw new Error(`API error: ${await response.text()}`);
@@ -1148,104 +1147,35 @@ async function handleAISuggest() {
         const styleInstruction = styleGuides[intensity];
 
         // --- PROMPT FINAL UNTUK AI ---
-async function handleAISuggest() {
-    state.isLoading.suggest = true;
-    renderApp();
-
-    try {
-        const { mode, formState, lockedFields, humanState, intensity } = state;
-        const labelToFieldIdMap = {};
-        const fieldIdToModeMap = {};
-
-        // Bagian ini tidak perlu diubah
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
-            const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
-            labelToFieldIdMap[label] = fieldId;
-            fieldIdToModeMap[fieldId] = mode;
-        });
-
-        const lockedContext = {};
-        const unlockedFieldsLabels = [];
-
-        PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
-            if (fieldId === 'customKey') return;
-            const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
-            if (lockedFields[mode]?.[fieldId]) {
-                const value = getFinalValue(formState[mode][fieldId]);
-                if (value) lockedContext[label] = value;
-            } else {
-                unlockedFieldsLabels.push(label);
-            }
-        });
-        
-        let unlockedHumanFieldsLabels = [];
-        if (mode === 'product' && humanState.enabled) {
-            const humanConfig = PROMPT_OPTIONS.special.humanInShot;
-            lockedContext['Human in Shot Details'] = {};
-            humanConfig.fields.forEach(fieldId => {
-                const label = humanConfig.fieldLabels[fieldId];
-                labelToFieldIdMap[label] = fieldId;
-                fieldIdToModeMap[fieldId] = 'product_human';
-                if (lockedFields.product_human?.[fieldId]) {
-                    const value = getFinalValue(humanState[fieldId]);
-                    if (value) lockedContext['Human in Shot Details'][label] = value;
-                } else {
-                    unlockedHumanFieldsLabels.push(label);
-                }
-            });
-            if (Object.keys(lockedContext['Human in Shot Details']).length === 0) {
-                delete lockedContext['Human in Shot Details'];
-            }
-        }
-        
-        const allUnlockedLabels = [...unlockedFieldsLabels, ...unlockedHumanFieldsLabels];
-        
-        if (allUnlockedLabels.length === 0) {
-            alert("All fields are locked. Please unlock some fields to get AI suggestions.");
-            state.isLoading.suggest = false;
-            renderApp();
-            return;
-        }
-
-        const customKeyValue = getFinalValue(formState[mode].customKey);
-        let customKeyInstruction = '';
-        if (customKeyValue) {
-            customKeyInstruction = `\nThe user's core idea is: "${customKeyValue}". All suggestions must be coherent with this idea.`;
-        }
-        
-        const styleGuides = {
-            conservative: "The style must be timeless, elegant, and professional. Prioritize subtlety and universally accepted aesthetics.",
-            balanced: "The style must be modern, dynamic, and commercially relevant. The suggestions should feel fresh and aspirational.",
-            experimental: "The style must be avant-garde, surreal, and rule-breaking. Aggressively avoid normal portraits. The goal is fine art.",
-            vintage: "The style must authentically evoke a specific past era, like analog film or faded Polaroids."
-        };
-
-        const styleInstruction = styleGuides[intensity];
-
-        // --- SEDIKIT MODIFIKASI PADA PROMPT ---
         const prompt = `
-            You are a visionary art director. Your goal is to generate surprising and non-obvious suggestions.
-            **AVOID CLICHÉS.** For each field, propose a creative, unexpected idea that still fits the overall concept.
-            Use this random seed to ensure unique results: ${Math.random()}.
+            You are a world-class creative art director and prompt engineer with a specific creative vision.
+            Your main task is to provide creative suggestions for several unlocked visual parameters.
 
-            Creative Mode: **${intensity.toUpperCase()}**. Definition: "${styleInstruction}"
-            ${customKeyInstruction}
+            // --- MANDATORY STYLE GUIDE ---
+            You MUST operate strictly within the following creative intensity mode: **${intensity.toUpperCase()}**.
+            Here is the definition for this mode: "${styleInstruction}"
+            All of your suggestions MUST strictly adhere to this style guide. For example, if the mode is 'Experimental', do NOT suggest a simple, smiling portrait.
+            // --- END STYLE GUIDE ---
 
-            Given the locked parameters:
+            // --- SPECIAL INSTRUCTIONS ---
+            For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject, the scene, and the overall style guide. For example, if the Main Subject is a 'skateboarder' and the style is 'Experimental', suggest a realistic action like 'tilts their body into a sharp, gravity-defying turn' or 'drags their hand on the ground while crouching low on the board'. Avoid suggesting outcomes like 'capturing motion blur'; instead, describe the action that *causes* it.
+            // --- END SPECIAL INSTRUCTIONS ---
+
+            ${customKeyInstruction} // Variabel ini sudah ada dari kode Anda
+
+            Given the following locked-in parameters (the existing creative direction):
             ${JSON.stringify(lockedContext)}
 
-            Provide creative suggestions for the following unlocked fields.
-            Return ONLY a simple key-value list (e.g., "Key: Value"). No explanations.
+            Now, provide highly creative and coherent suggestions for the following unlocked fields. Ensure every suggestion fits the **${intensity.toUpperCase()}** style guide and all special instructions perfectly.
+
+            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
 
             Fields to suggest:
             ${allUnlockedLabels.join('\n')}
         `;
 
-        // --- PERUBAHAN UTAMA ADA DI SINI ---
-        // Panggil API dengan prompt baru DAN temperature tinggi
-        const resultText = await callGeminiAPI(prompt, { temperature: 0.95 });
+        const resultText = await callGeminiAPI(prompt);
 
-        // Bagian ini ke bawah tidak perlu diubah
         if (resultText) {
             const lines = resultText.split('\n');
             lines.forEach(line => {
@@ -1263,6 +1193,7 @@ async function handleAISuggest() {
                         } else {
                             stateSlice = state.formState[fieldMode];
                         }
+
                         if (stateSlice && stateSlice[fieldId]) {
                             stateSlice[fieldId].custom = value;
                             stateSlice[fieldId].select = '';
