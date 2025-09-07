@@ -950,11 +950,12 @@ function handleToggleChange(e) {
     renderApp();
 }
 
-async function callGeminiAPI(prompt, generationConfig = {}) {
+async function callGeminiAPI(prompt, generationConfig = {}) { // Ditambah parameter kedua
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            // Kirim prompt DAN generationConfig
             body: JSON.stringify({ prompt, generationConfig }),
         });
         if (!response.ok) throw new Error(`API error: ${await response.text()}`);
