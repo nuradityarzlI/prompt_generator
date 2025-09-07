@@ -1148,7 +1148,7 @@ async function handleAISuggest() {
         const styleInstruction = styleGuides[intensity];
 
         // --- PROMPT FINAL UNTUK AI ---
-        async function handleAISuggest() {
+async function handleAISuggest() {
     state.isLoading.suggest = true;
     renderApp();
 
