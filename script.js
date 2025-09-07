@@ -1139,8 +1139,9 @@ async function handleAISuggest() {
 
         // --- SEDIKIT MODIFIKASI PADA PROMPT ---
         const prompt = `
-            You are a world-class Commercial Art Director and prompt engineer. Your goal is to translate creative ideas into polished, aspirational, and commercially viable visuals.
-
+            You are a world-class creative art director and prompt engineer with a specific creative vision.
+            Your main task is to provide creative suggestions for several unlocked visual parameters.
+            
             // --- MANDATORY STYLE GUIDE ---
             You MUST operate strictly within the following creative intensity mode: **${intensity.toUpperCase()}**.
             Here is the definition for this mode: "${styleInstruction}"
@@ -1180,7 +1181,7 @@ async function handleAISuggest() {
 
         // --- PERUBAHAN UTAMA ADA DI SINI ---
         // Panggil API dengan prompt baru DAN temperature tinggi
-        const resultText = await callGeminiAPI(prompt, { temperature: 0.6 });
+        const resultText = await callGeminiAPI(prompt, { temperature: 0.7 });
 
         // Bagian ini ke bawah tidak perlu diubah
         if (resultText) {
