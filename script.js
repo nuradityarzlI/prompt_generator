@@ -1072,7 +1072,7 @@ async function handleAISuggest() {
         const labelToFieldIdMap = {};
         const fieldIdToModeMap = {};
 
-        // Populate maps for main mode
+        // Bagian ini tidak perlu diubah
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             labelToFieldIdMap[label] = fieldId;
@@ -1083,9 +1083,7 @@ async function handleAISuggest() {
         const unlockedFieldsLabels = [];
 
         PROMPT_OPTIONS[mode].fields.forEach(fieldId => {
-            // Jangan minta sugesti untuk Custom Key, karena itu adalah input
             if (fieldId === 'customKey') return;
-
             const label = PROMPT_OPTIONS[mode].fieldLabels[fieldId];
             if (lockedFields[mode]?.[fieldId]) {
                 const value = getFinalValue(formState[mode][fieldId]);
@@ -1095,7 +1093,6 @@ async function handleAISuggest() {
             }
         });
         
-        // --- LOGIKA BARU UNTUK HUMAN IN SHOT ---
         let unlockedHumanFieldsLabels = [];
         if (mode === 'product' && humanState.enabled) {
             const humanConfig = PROMPT_OPTIONS.special.humanInShot;
@@ -1104,7 +1101,6 @@ async function handleAISuggest() {
                 const label = humanConfig.fieldLabels[fieldId];
                 labelToFieldIdMap[label] = fieldId;
                 fieldIdToModeMap[fieldId] = 'product_human';
-
                 if (lockedFields.product_human?.[fieldId]) {
                     const value = getFinalValue(humanState[fieldId]);
                     if (value) lockedContext['Human in Shot Details'][label] = value;
@@ -1126,57 +1122,45 @@ async function handleAISuggest() {
             return;
         }
 
-        // --- LOGIKA BARU UNTUK CUSTOM KEY ---
         const customKeyValue = getFinalValue(formState[mode].customKey);
         let customKeyInstruction = '';
         if (customKeyValue) {
-            customKeyInstruction = `
-        // --- MANDATORY CREATIVE KEYS ---
-        The user has provided the following mandatory keywords or concepts that MUST be central to your suggestions: "${customKeyValue}".
-        All of your suggestions for the unlocked fields must revolve around, be inspired by, and be coherent with these keys. This is the primary creative direction.
-        // --- END MANDATORY KEYS ---
-            `;
+            customKeyInstruction = `\nThe user's core idea is: "${customKeyValue}". All suggestions must be coherent with this idea.`;
         }
         
         const styleGuides = {
-            conservative: "Gaya ini harus terasa **timeless, elegan, bersih, dan profesional**. Pikirkan seperti foto editorial Vogue klasik atau foto korporat kelas atas. Prioritaskan estetika yang halus, seimbang, dan dapat diterima secara universal. Hindari segala sesuatu yang terlalu aneh atau berisiko.",
-            balanced: "Gaya ini harus **modern, dinamis, komersial, dan relevan dengan tren saat ini**. Pikirkan seperti lookbook Zara, kampanye Nike, atau editorial majalah gaya hidup. Sugesti harus terasa segar dan aspirasional, namun tetap membumi dan mudah dipahami.",
-            experimental: "Ini adalah mode untuk menjadi **avant-garde, sureal, abstrak, dan mendobrak aturan**. Pikirkan gaya Nick Knight, Dazed Magazine, atau kampanye Balenciaga. **Jangan menyarankan foto model biasa.** Sugestikan komposisi yang terfragmentasi, subjek yang tidak biasa (misal: hanya bagian tubuh), pencahayaan aneh, dan konsep yang benar-benar di luar nalar. Tujuannya adalah seni, bukan potret biasa.",
-            vintage: "Gaya ini harus **membangkitkan nostalgia era tertentu secara otentik**. Pikirkan estetika film analog, warna pudar Polaroid, palet warna khas tahun 70-an, 80-an, atau 90-an. Semua sugesti, mulai dari styling hingga pencahayaan, harus terasa seperti berasal dari masa lalu, bukan sekadar foto modern dengan filter grain."
+            conservative: "The style must be timeless, elegant, and professional. Prioritize subtlety and universally accepted aesthetics.",
+            balanced: "The style must be modern, dynamic, and commercially relevant. The suggestions should feel fresh and aspirational.",
+            experimental: "The style must be avant-garde, surreal, and rule-breaking. Aggressively avoid normal portraits. The goal is fine art.",
+            vintage: "The style must authentically evoke a specific past era, like analog film or faded Polaroids."
         };
 
         const styleInstruction = styleGuides[intensity];
 
-        // --- PROMPT FINAL UNTUK AI ---
+        // --- SEDIKIT MODIFIKASI PADA PROMPT ---
         const prompt = `
-            You are a world-class creative art director and prompt engineer with a specific creative vision.
-            Your main task is to provide creative suggestions for several unlocked visual parameters.
+            You are a visionary art director. Your goal is to generate surprising and non-obvious suggestions.
+            **AVOID CLICHÉS.** For each field, propose a creative, unexpected idea that still fits the overall concept.
+            Use this random seed to ensure unique results: ${Math.random()}.
 
-            // --- MANDATORY STYLE GUIDE ---
-            You MUST operate strictly within the following creative intensity mode: **${intensity.toUpperCase()}**.
-            Here is the definition for this mode: "${styleInstruction}"
-            All of your suggestions MUST strictly adhere to this style guide. For example, if the mode is 'Experimental', do NOT suggest a simple, smiling portrait.
-            // --- END STYLE GUIDE ---
+            Creative Mode: **${intensity.toUpperCase()}**. Definition: "${styleInstruction}"
+            ${customKeyInstruction}
 
-            // --- SPECIAL INSTRUCTIONS ---
-            For any field labeled "Action / Gerakan", describe a simple, physically plausible action that a person can realistically perform. The action should logically connect to the subject, the scene, and the overall style guide. For example, if the Main Subject is a 'skateboarder' and the style is 'Experimental', suggest a realistic action like 'tilts their body into a sharp, gravity-defying turn' or 'drags their hand on the ground while crouching low on the board'. Avoid suggesting outcomes like 'capturing motion blur'; instead, describe the action that *causes* it.
-            // --- END SPECIAL INSTRUCTIONS ---
-
-            ${customKeyInstruction} // Variabel ini sudah ada dari kode Anda
-
-            Given the following locked-in parameters (the existing creative direction):
+            Given the locked parameters:
             ${JSON.stringify(lockedContext)}
 
-            Now, provide highly creative and coherent suggestions for the following unlocked fields. Ensure every suggestion fits the **${intensity.toUpperCase()}** style guide and all special instructions perfectly.
-
-            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
+            Provide creative suggestions for the following unlocked fields.
+            Return ONLY a simple key-value list (e.g., "Key: Value"). No explanations.
 
             Fields to suggest:
             ${allUnlockedLabels.join('\n')}
         `;
 
-        const resultText = await callGeminiAPI(prompt);
+        // --- PERUBAHAN UTAMA ADA DI SINI ---
+        // Panggil API dengan prompt baru DAN temperature tinggi
+        const resultText = await callGeminiAPI(prompt, { temperature: 0.95 });
 
+        // Bagian ini ke bawah tidak perlu diubah
         if (resultText) {
             const lines = resultText.split('\n');
             lines.forEach(line => {
@@ -1194,7 +1178,6 @@ async function handleAISuggest() {
                         } else {
                             stateSlice = state.formState[fieldMode];
                         }
-
                         if (stateSlice && stateSlice[fieldId]) {
                             stateSlice[fieldId].custom = value;
                             stateSlice[fieldId].select = '';
