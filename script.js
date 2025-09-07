@@ -1139,7 +1139,6 @@ async function handleAISuggest() {
 
         // --- SEDIKIT MODIFIKASI PADA PROMPT ---
         const prompt = `
-            const prompt = `
             You are a world-class Commercial Art Director and prompt engineer. Your goal is to translate creative ideas into polished, aspirational, and commercially viable visuals.
 
             // --- MANDATORY STYLE GUIDE ---
