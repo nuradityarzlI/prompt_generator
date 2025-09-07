@@ -1143,7 +1143,11 @@ async function handleAISuggest() {
             **AVOID CLICHÉS.** For each field, propose a creative, unexpected idea that still fits the overall concept.
             Use this random seed to ensure unique results: ${Math.random()}.
 
-            Creative Mode: **${intensity.toUpperCase()}**. Definition: "${styleInstruction}"
+            // --- MANDATORY STYLE GUIDE ---
+            You MUST operate strictly within the following creative intensity mode: **${intensity.toUpperCase()}**.
+            Here is the definition for this mode: "${styleInstruction}"
+            All of your suggestions MUST strictly adhere to this style guide. For example, if the mode is 'Experimental', do NOT suggest a simple, smiling portrait.
+            // --- END STYLE GUIDE ---
             ${customKeyInstruction}
 
             Given the locked parameters:
