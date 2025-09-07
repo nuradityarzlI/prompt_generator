@@ -1158,7 +1158,7 @@ async function handleAISuggest() {
 
         // --- PERUBAHAN UTAMA ADA DI SINI ---
         // Panggil API dengan prompt baru DAN temperature tinggi
-        const resultText = await callGeminiAPI(prompt, { temperature: 0.95 });
+        const resultText = await callGeminiAPI(prompt, { temperature: 0.7 });
 
         // Bagian ini ke bawah tidak perlu diubah
         if (resultText) {
