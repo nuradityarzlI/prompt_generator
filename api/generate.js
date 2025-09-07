@@ -5,7 +5,7 @@ export default async function handler(request, response) {
 
   try {
     // Ambil prompt dari frontend
-    const { prompt } = request.body;
+    const { prompt, generationConfig } = request.body;
     const groqApiKey = process.env.GROQ_API_KEY;
 
     if (!groqApiKey) {
@@ -27,6 +27,7 @@ export default async function handler(request, response) {
           content: prompt
         }
       ],
+      ...generationConfig // <<< TAMBAHKAN BARIS INI
       // PENTING: Kita HAPUS paksaan response_format JSON di sini
       // agar AI lebih bebas dan tidak mudah error.
     };
