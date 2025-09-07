@@ -1,6 +1,6 @@
 const PROMPT_OPTIONS = {
     model: {
-        fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'postProcessing', 'atmosphere', 'references', 'cameraLens','aspectRatio'],
+        fields: ['sceneStyle', 'mainSubject', 'ethnicity', 'styling', 'expression', 'actionVerb', 'cameraAngle', 'lighting', 'background', 'mood', 'composition', 'focusTechnique', 'colorPalette', 'filmStock', 'postProcessing', 'atmosphere', 'references', 'cameraLens','aspectRatio','customKey'],
         fieldLabels: { 
             sceneStyle: "Scene Style / Photography", 
             mainSubject: "Main Subject", 
@@ -130,7 +130,7 @@ const PROMPT_OPTIONS = {
         }
     },
     product: {
-        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'extraElements', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens','aspectRatio'],
+        fields: ['productType', 'material', 'surface', 'composition', 'lightingStyle', 'background', 'mood', 'extraElements', 'compositionScale', 'shadowStyle', 'colorHarmony', 'motionEffect', 'advertisingStyle', 'references', 'cameraLens','aspectRatio','customKey'],
         fieldLabels: { 
             productType: "Product Type", 
             material: "Material / Texture", 
@@ -242,7 +242,7 @@ const PROMPT_OPTIONS = {
         }
     },
     film: {
-        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship'],
+        fields: ['genre', 'sceneType', 'characters', 'setting', 'timeOfDay', 'cameraMovement', 'actionVerb', 'mood', 'visualAesthetic', 'shotType', 'editingStyle', 'productionDesign', 'lensEffects', 'soundDesignCue', 'pacing', 'aspectRatio', 'references', 'cameraLens', 'characterAnchor', 'wardrobeLock', 'hairMakeup', 'aspectRatio', 'characterRelationship','customKey'],
         fieldLabels: { 
             genre: "Genre", 
             sceneType: "Scene Type", 
