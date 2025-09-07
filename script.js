@@ -1130,7 +1130,7 @@ async function handleAISuggest() {
         
         const styleGuides = {
             conservative: "The style must be timeless, elegant, and professional. Prioritize subtlety and universally accepted aesthetics.",
-            balanced: "The style must be modern, dynamic, and commercially relevant. The suggestions should feel fresh and aspirational.",
+            balanced: "The main task in this mode is to create visuals that are **aspirational yet grounded** and have strong commercial appeal. Think of a major fashion magazine cover (not avant-garde), a premium brand lookbook, or a lifestyle ad. **Balance is key:** between artistic and commercial, between unique and relatable. The end result should always feel beautiful, modern, and desirable to a wide audience.",
             experimental: "The style must be avant-garde, surreal, and rule-breaking. Aggressively avoid normal portraits. The goal is fine art.",
             vintage: "The style must authentically evoke a specific past era, like analog film or faded Polaroids."
         };
@@ -1139,22 +1139,41 @@ async function handleAISuggest() {
 
         // --- SEDIKIT MODIFIKASI PADA PROMPT ---
         const prompt = `
-            You are a visionary art director. Your goal is to generate surprising and non-obvious suggestions.
-            **AVOID CLICHÉS.** For each field, propose a creative, unexpected idea that still fits the overall concept.
-            Use this random seed to ensure unique results: ${Math.random()}.
+            const prompt = `
+            You are a world-class Commercial Art Director and prompt engineer. Your goal is to translate creative ideas into polished, aspirational, and commercially viable visuals.
 
             // --- MANDATORY STYLE GUIDE ---
             You MUST operate strictly within the following creative intensity mode: **${intensity.toUpperCase()}**.
             Here is the definition for this mode: "${styleInstruction}"
-            All of your suggestions MUST strictly adhere to this style guide. For example, if the mode is 'Experimental', do NOT suggest a simple, smiling portrait.
-            // --- END STYLE GUIDE ---
+            This is your PRIMARY COMMAND and it overrides all other inputs if there is a conflict.
+
+            // =================================================================
+            // PENTING: ATURAN PRIORITAS & PENERJEMAHAN KREATIF
+            // =================================================================
+            // Jika 'Creative Intensity' adalah 'BALANCED', peran Anda berubah menjadi PENERJEMAH.
+            // Jika pengguna memberikan referensi yang cenderung 'Experimental' (misal: 'Tim Walker', 'sureal', 'avant-garde'), 
+            // tugas Anda BUKAN untuk meniru gaya itu secara mentah-mentah.
+            //
+            // Tugas Anda adalah MENERJEMAHKAN esensi dari referensi tersebut ke dalam dunia 'Balanced'.
+            // Tanyakan pada diri Anda: "Bagaimana cara mengambil *mood* aneh dari Tim Walker tapi membuatnya cocok untuk kampanye Zara?"
+            // atau "Bagaimana saya bisa menangkap konsep 'sureal' tapi menjaganya tetap indah dan aspirasional, bukan meresahkan?"
+            //
+            // CONTOH PENERJEMAHAN:
+            // Referensi Experimental: 'Model dengan kepala terbuat dari sangkar burung.'
+            // - JANGAN SARANKAN: 'Styling: Kepala sangkar burung.' (Ini meniru, terlalu aneh untuk Balanced).
+            // - SARANKANLAH: 'Styling: Model mengenakan anting berbentuk sangkar burung emas kecil' atau 'Background: Bayangan model membentuk siluet sangkar burung.' (Ini menerjemahkan, menjadi simbolis, indah, dan komersial).
+            //
+            // PRIORITASKAN SELALU HASIL AKHIR YANG INDAH, MUDAH DIPAHAMI, DAN ASPIRASIONAL.
+            // =================================================================
+
             ${customKeyInstruction}
 
-            Given the locked parameters:
+            Given the following locked-in parameters (the existing creative direction):
             ${JSON.stringify(lockedContext)}
 
-            Provide creative suggestions for the following unlocked fields.
-            Return ONLY a simple key-value list (e.g., "Key: Value"). No explanations.
+            Now, provide highly creative and coherent suggestions for the following unlocked fields. Ensure every suggestion PERFECTLY fits the **${intensity.toUpperCase()}** style guide, especially the translation rule if applicable.
+
+            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
 
             Fields to suggest:
             ${allUnlockedLabels.join('\n')}
