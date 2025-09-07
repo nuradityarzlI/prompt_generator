@@ -1139,41 +1139,18 @@ async function handleAISuggest() {
 
         // --- SEDIKIT MODIFIKASI PADA PROMPT ---
         const prompt = `
-            You are a world-class creative art director and prompt engineer with a specific creative vision.
-            Your main task is to provide creative suggestions for several unlocked visual parameters.
-            
-            // --- MANDATORY STYLE GUIDE ---
-            You MUST operate strictly within the following creative intensity mode: **${intensity.toUpperCase()}**.
-            Here is the definition for this mode: "${styleInstruction}"
-            This is your PRIMARY COMMAND and it overrides all other inputs if there is a conflict.
+            You are a visionary art director. Your goal is to generate surprising and non-obvious suggestions.
+            **AVOID CLICHÉS.** For each field, propose a creative, unexpected idea that still fits the overall concept.
+            Use this random seed to ensure unique results: ${Math.random()}.
 
-            // =================================================================
-            // PENTING: ATURAN PRIORITAS & PENERJEMAHAN KREATIF
-            // =================================================================
-            // Jika 'Creative Intensity' adalah 'BALANCED', peran Anda berubah menjadi PENERJEMAH.
-            // Jika pengguna memberikan referensi yang cenderung 'Experimental' (misal: 'Tim Walker', 'sureal', 'avant-garde'), 
-            // tugas Anda BUKAN untuk meniru gaya itu secara mentah-mentah.
-            //
-            // Tugas Anda adalah MENERJEMAHKAN esensi dari referensi tersebut ke dalam dunia 'Balanced'.
-            // Tanyakan pada diri Anda: "Bagaimana cara mengambil *mood* aneh dari Tim Walker tapi membuatnya cocok untuk kampanye Zara?"
-            // atau "Bagaimana saya bisa menangkap konsep 'sureal' tapi menjaganya tetap indah dan aspirasional, bukan meresahkan?"
-            //
-            // CONTOH PENERJEMAHAN:
-            // Referensi Experimental: 'Model dengan kepala terbuat dari sangkar burung.'
-            // - JANGAN SARANKAN: 'Styling: Kepala sangkar burung.' (Ini meniru, terlalu aneh untuk Balanced).
-            // - SARANKANLAH: 'Styling: Model mengenakan anting berbentuk sangkar burung emas kecil' atau 'Background: Bayangan model membentuk siluet sangkar burung.' (Ini menerjemahkan, menjadi simbolis, indah, dan komersial).
-            //
-            // PRIORITASKAN SELALU HASIL AKHIR YANG INDAH, MUDAH DIPAHAMI, DAN ASPIRASIONAL.
-            // =================================================================
-
+            Creative Mode: **${intensity.toUpperCase()}**. Definition: "${styleInstruction}"
             ${customKeyInstruction}
 
-            Given the following locked-in parameters (the existing creative direction):
+            Given the locked parameters:
             ${JSON.stringify(lockedContext)}
 
-            Now, provide highly creative and coherent suggestions for the following unlocked fields. Ensure every suggestion PERFECTLY fits the **${intensity.toUpperCase()}** style guide, especially the translation rule if applicable.
-
-            Return your answer as a simple key-value list, with each item on a new line (e.g., "Key: Value"). Do not add any other text, explanation, or markdown formatting.
+            Provide creative suggestions for the following unlocked fields.
+            Return ONLY a simple key-value list (e.g., "Key: Value"). No explanations.
 
             Fields to suggest:
             ${allUnlockedLabels.join('\n')}
